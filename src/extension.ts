@@ -5,10 +5,12 @@ var path = require('path');
 var fs = require('fs');
 const { exec } = require('child_process');
 
+// let pythonFilesDir = path.join(path.dirname(__dirname), "pythonFiles");
+
 export function activate(context: vscode.ExtensionContext) {
     let disposable = vscode.commands.registerCommand('b3ddev.startBlender', () => {
         findAndUpdateBlenderPath(blenderPath => {
-            exec(blenderPath);
+            tryFindAddonsDirectory(blenderPath, console.log);
         });
     });
 
@@ -19,7 +21,7 @@ export function deactivate() {
 }
 
 function getConfiguration() {
-    return vscode.workspace.getConfiguration('b3ddev')
+    return vscode.workspace.getConfiguration('b3ddev');
 }
 
 function getConfigBlenderPath() {
@@ -70,6 +72,29 @@ function findAndUpdateBlenderPath(whenFound : (path : string) => void) {
                 }
             });
 
+        }
+    });
+}
+
+function tryFindAddonsDirectory(blenderPath : string, callback : (path : string | undefined) => void) {
+    let sep = "###SEP###";
+    let lines = [
+        "import sys, bpy",
+        `print('${sep}' + bpy.utils.user_resource('SCRIPTS', 'addons') + '${sep}')`,
+        "sys.stdout.flush()",
+        "sys.exit()",
+    ];
+
+    let expression = lines.join('\n');
+
+    exec(`${blenderPath} -b --python-expr "${expression}"`, {},
+    (err : Error, stdout : string | Buffer, stderr : string | Buffer) => {
+        if (err === null) {
+            let text = stdout.toString();
+            let addonsPath = text.split(sep)[1];
+            callback(addonsPath);
+        } else {
+            callback(undefined);
         }
     });
 }

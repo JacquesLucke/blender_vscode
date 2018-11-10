@@ -27,6 +27,11 @@
                         "type": "string",
                         "default": "",
                         "description": "Path to the Blender executable."
+                    },
+                    "b3ddev.addonsDirectory": {
+                        "type": "string",
+                        "default": "",
+                        "description": "Path to the Blender addons directory."
                     }
                 }
             }
