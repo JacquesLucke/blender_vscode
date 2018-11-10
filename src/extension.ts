@@ -63,6 +63,7 @@ function COMMAND_setupPythonDebugging() {
 }
 
 function COMMAND_updateAddon() {
+    vscode.workspace.saveAll(false);
     request.post(
         `http://localhost:${BLENDER_PORT}`,
         {json: {type: 'UPDATE_ADDON'}},
