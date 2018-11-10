@@ -1,23 +1,112 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { ECANCELED } from 'constants';
 var path = require('path');
 var fs = require('fs');
 const { exec } = require('child_process');
 
-// let pythonFilesDir = path.join(path.dirname(__dirname), "pythonFiles");
+let pythonFilesDir = path.join(path.dirname(__dirname), "pythonFiles");
 
 export function activate(context: vscode.ExtensionContext) {
-    let disposable = vscode.commands.registerCommand('b3ddev.startBlender', () => {
-        findAndUpdateBlenderPath(blenderPath => {
-            tryFindAddonsDirectory(blenderPath, console.log);
-        });
-    });
+    let disposables = [
+        vscode.commands.registerCommand('b3ddev.startBlender', COMMAND_startBlender),
+        vscode.commands.registerCommand('b3ddev.newAddon', COMMAND_newAddon),
+    ];
 
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(...disposables);
 }
 
 export function deactivate() {
+}
+
+function COMMAND_startBlender() {
+    findAndUpdateBlenderPath(blenderPath => {
+        //tryFindAddonsDirectory(blenderPath, console.log);
+        exec(blenderPath);
+    });
+}
+
+function COMMAND_newAddon() {
+    getFolderForNewAddon(folder => {
+        getSettingsForNewAddon((addonName, authorName) => {
+            createNewAddon(folder, addonName, authorName);
+        });
+    });
+}
+
+function getFolderForNewAddon(callback : (folderpath : string) => void) {
+    let workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders === undefined) {
+        vscode.window.showWarningMessage('No empty folder open.');
+        return;
+    }
+    if (workspaceFolders.length !== 1) {
+        vscode.window.showWarningMessage('Multiple workspace folder are open.');
+    }
+
+    let folder = workspaceFolders[0].uri.path;
+    canAddonBeCreatedInFolder(folder, canBeCreated => {
+        if (canBeCreated) callback(folder);
+        else {
+            vscode.window.showErrorMessage("The folder already has a __init__.py file.");
+        }
+    });
+}
+
+function getSettingsForNewAddon(callback : (addonName : string, authorName : string) => void) {
+    vscode.window.showInputBox({
+        placeHolder: 'Addon Name (can be changed later)',
+    }).then(addonName => {
+        if (addonName === undefined) return;
+        if (addonName === "") {
+            vscode.window.showWarningMessage('Can\'t create an addon without a name.');
+            return;
+        }
+
+        vscode.window.showInputBox({
+            placeHolder: 'Your Name (can be changed later)',
+        }).then(authorName => {
+            if (authorName === undefined) return;
+            if (authorName === "") {
+                vscode.window.showWarningMessage('Can\'t create an addon without an author name.');
+                return;
+            }
+
+            callback(addonName, authorName);
+        });
+    });
+}
+
+function canAddonBeCreatedInFolder(folder : string, callback : (canBeCreated : boolean) => void) {
+    let initPath = path.join(folder, "__init__.py");
+    fs.stat(initPath, (err : Error, stat : any) => {
+        callback(err !== null);
+    });
+}
+
+function createNewAddon(folder : string, addonName : string, authorName : string) {
+    let initSourcePath = path.join(pythonFilesDir, "addon_template.py");
+    let initTargetPath = path.join(folder, "__init__.py");
+    fs.readFile(initSourcePath, 'utf8', (err : Error, data : any) => {
+        if (err !== null) {
+            vscode.window.showErrorMessage('Could not read the template file.');
+            return;
+        }
+        let text : string = data;
+        text = text.replace('ADDON_NAME', addonName);
+        text = text.replace('AUTHOR_NAME', authorName);
+
+        fs.writeFile(initTargetPath, text, (err : Error) => {
+            if (err !== null) {
+                vscode.window.showErrorMessage('Could not creat the __init__.py file.');
+                return;
+            }
+            vscode.workspace.openTextDocument(initTargetPath).then(document => {
+                vscode.window.showTextDocument(document);
+            });
+        });
+    });
 }
 
 function getConfiguration() {
@@ -38,7 +127,7 @@ function testIfPathIsBlender(filepath : string, callback : (isValid : boolean) =
     if (name.toLowerCase().startsWith('blender')) {
         let testString = '###TEST_BLENDER###';
         exec(`${filepath} -b --python-expr "import sys;print('${testString}');sys.stdout.flush();sys.exit()"`, {},
-            (error : Error, stdout : string | Buffer, stderr : string | Buffer) => {
+            (err : Error, stdout : string | Buffer, stderr : string | Buffer) => {
                 let text = stdout.toString();
                 callback(text.includes(testString));
             });

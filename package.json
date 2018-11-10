@@ -11,14 +11,21 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:b3ddev.startBlender"
+        "onCommand:b3ddev.startBlender",
+        "onCommand:b3ddev.newAddon"
     ],
     "main": "./out/extension",
     "contributes": {
-        "commands": [{
-            "command": "b3ddev.startBlender",
-            "title": "Start Blender"
-        }],
+        "commands": [
+            {
+                "command": "b3ddev.startBlender",
+                "title": "Start Blender"
+            },
+            {
+                "command": "b3ddev.newAddon",
+                "title": "New Blender Addon"
+            }
+        ],
         "configuration":[
             {
                 "title": "Blender",
