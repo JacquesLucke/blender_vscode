@@ -11,14 +11,26 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.sayHello"
+        "onCommand:b3ddev.startBlender"
     ],
     "main": "./out/extension",
     "contributes": {
         "commands": [{
-            "command": "extension.sayHello",
-            "title": "Hello World"
-        }]
+            "command": "b3ddev.startBlender",
+            "title": "Start Blender"
+        }],
+        "configuration":[
+            {
+                "title": "Blender",
+                "properties": {
+                    "b3ddev.blenderPath": {
+                        "type": "string",
+                        "default": "",
+                        "description": "Path to the Blender executable."
+                    }
+                }
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
