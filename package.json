@@ -12,7 +12,8 @@
     ],
     "activationEvents": [
         "onCommand:b3ddev.startBlender",
-        "onCommand:b3ddev.newAddon"
+        "onCommand:b3ddev.newAddon",
+        "onCommand:b3ddev.launchAddon"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -24,6 +25,10 @@
             {
                 "command": "b3ddev.newAddon",
                 "title": "New Blender Addon"
+            },
+            {
+                "command": "b3ddev.launchAddon",
+                "title": "Launch Addon"
             }
         ],
         "configuration":[
