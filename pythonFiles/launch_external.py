@@ -2,6 +2,12 @@ import os
 import sys
 import bpy
 
+try:
+    import ptvsd
+    ptvsd.enable_attach()
+except:
+    pass
+
 addon_directory = bpy.utils.user_resource('SCRIPTS', "addons")
 external_addon_directory = os.environ['ADDON_DEV_DIR']
 

@@ -13,6 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('b3ddev.startBlender', COMMAND_startBlender),
         vscode.commands.registerCommand('b3ddev.newAddon', COMMAND_newAddon),
         vscode.commands.registerCommand('b3ddev.launchAddon', COMMAND_launchAddon),
+        vscode.commands.registerCommand('b3ddev.setupPythonDebugging', COMMAND_setupPythonDebugging),
     ];
 
     context.subscriptions.push(...disposables);
@@ -45,11 +46,26 @@ function COMMAND_launchAddon() {
     }, showErrorIfNotCancel);
 }
 
-function launch_Single_External(blenderPath : string, launch_directory : string) {
+function COMMAND_setupPythonDebugging() {
+    tryGetBlenderPath(true, blenderPath => {
+        installModulesForDebugging(blenderPath);
+    }, showErrorIfNotCancel);
+}
+
+function launch_Single_External(blenderPath : string, launchDirectory : string) {
     let pyLaunchPath = path.join(pythonFilesDir, 'launch_external.py');
-    let env : any = new Object(process.env);
-    env['ADDON_DEV_DIR'] = launch_directory;
-    spawn('gnome-terminal', ['-x', blenderPath, '--python', pyLaunchPath], {env:env});
+    runExternalCommand(blenderPath, ['--python', pyLaunchPath], {ADDON_DEV_DIR:launchDirectory});
+}
+
+function installModulesForDebugging(blenderPath : string) {
+    let setupDebuggingPath = path.join(pythonFilesDir, 'setup_debugging.py');
+    let getPipPath = path.join(pythonFilesDir, 'get-pip.py');
+    runExternalCommand(blenderPath, ['-b', '--python', setupDebuggingPath], {GET_PIP_PATH:getPipPath});
+}
+
+function runExternalCommand(command : string, args : string[], additionalEnv : any = {}) {
+    let env = Object.assign({}, process.env, additionalEnv);
+    spawn('gnome-terminal', ['-x', command, ...args], {env:env});
 }
 
 function showErrorIfNotCancel(message : string) {
@@ -191,42 +207,5 @@ function askUser_BlenderPath(onSuccess : (path : string) => void, onError : (rea
                 onError('Selected file is not a valid Blender executable.');
             }
         });
-    });
-}
-
-// function tryGetAddonsDirectory(blenderPath : string, onSuccess : (path : string) => void, onError : (reason : string) => void) {
-//     let config = getConfiguration();
-//     let savedAddonDir = config.get('addonDirectory');
-
-//     if (savedAddonDir === undefined || savedAddonDir === "") {
-//         getAddonsDirectoryFromBlender(blenderPath, path => {
-//             config.update('addonsDirectory', path);
-//             onSuccess(path);
-//         }, onError);
-//     } else {
-//         onSuccess(<string>savedAddonDir);
-//     }
-// }
-
-function getAddonsDirectoryFromBlender(blenderPath : string, onSuccess : (path : string) => void, onError : (reason : string) => void) {
-    let sep = "###SEP###";
-    let lines = [
-        "import sys, bpy",
-        `print('${sep}' + bpy.utils.user_resource('SCRIPTS', 'addons') + '${sep}')`,
-        "sys.stdout.flush()",
-        "sys.exit()",
-    ];
-
-    let expression = lines.join('\n');
-
-    exec(`${blenderPath} -b --python-expr "${expression}"`, {},
-    (err : Error, stdout : string | Buffer, stderr : string | Buffer) => {
-        if (err === null) {
-            let text = stdout.toString();
-            let addonsPath = text.split(sep)[1];
-            onSuccess(addonsPath);
-        } else {
-            onError(CANCEL);
-        }
     });
 }
