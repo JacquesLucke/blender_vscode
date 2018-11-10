@@ -1,12 +1,23 @@
 import os
 import sys
 import bpy
+import json
+import requests
 
 try:
     import ptvsd
-    ptvsd.enable_attach()
 except:
     pass
+
+if "ptvsd" in globals():
+    port = 5123
+    ptvsd.enable_attach(("localhost", port))
+
+    debuggerPort = os.environ["DEBUGGER_PORT"]
+    requests.post(f"http://localhost:{debuggerPort}", json.dumps({"type" : "WAIT_FOR_ATTACH", "port" : port}))
+    print("Waiting for Debugger")
+    ptvsd.wait_for_attach()
+    print("Debugger Attached")
 
 addon_directory = bpy.utils.user_resource('SCRIPTS', "addons")
 external_addon_directory = os.environ['ADDON_DEV_DIR']

@@ -3,10 +3,13 @@
 import * as vscode from 'vscode';
 var path = require('path');
 var fs = require('fs');
+var http = require('http');
 const { exec, spawn } = require('child_process');
 
 let pythonFilesDir = path.join(path.dirname(__dirname), 'pythonFiles');
 let CANCEL = 'CANCEL';
+
+let SERVER_PORT = 6000;
 
 export function activate(context: vscode.ExtensionContext) {
     let disposables = [
@@ -17,6 +20,9 @@ export function activate(context: vscode.ExtensionContext) {
     ];
 
     context.subscriptions.push(...disposables);
+
+    let server = http.createServer(SERVER_handleRequest);
+    server.listen(SERVER_PORT);
 }
 
 export function deactivate() {
@@ -44,6 +50,7 @@ function COMMAND_launchAddon() {
             }
         }, showErrorIfNotCancel);
     }, showErrorIfNotCancel);
+
 }
 
 function COMMAND_setupPythonDebugging() {
@@ -52,9 +59,38 @@ function COMMAND_setupPythonDebugging() {
     }, showErrorIfNotCancel);
 }
 
+function startPythonDebugging(port : number) {
+    let configuration = {
+        name: "Debug Python in Blender",
+        request: "attach",
+        type: "python",
+        port: port,
+        host: "localhost"
+    };
+    vscode.debug.startDebugging(undefined, configuration);
+}
+
+function SERVER_handleRequest(request : any, response : any) {
+    console.log(request)
+    if (request.method === 'POST') {
+        let body = '';
+        request.on('data', (chunk : any) => body += chunk.toString());
+        request.on('end', () => {
+            let res = JSON.parse(body);
+            if (res.type === "WAIT_FOR_ATTACH") {
+                startPythonDebugging(res.port);
+                response.end('OK');
+            }
+        });
+    }
+}
+
 function launch_Single_External(blenderPath : string, launchDirectory : string) {
     let pyLaunchPath = path.join(pythonFilesDir, 'launch_external.py');
-    runExternalCommand(blenderPath, ['--python', pyLaunchPath], {ADDON_DEV_DIR:launchDirectory});
+    runExternalCommand(blenderPath, ['--python', pyLaunchPath], {
+        ADDON_DEV_DIR: launchDirectory,
+        DEBUGGER_PORT: SERVER_PORT,
+    });
 }
 
 function installModulesForDebugging(blenderPath : string) {
