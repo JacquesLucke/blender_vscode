@@ -34,6 +34,10 @@
             {
                 "command": "b3ddev.setupPythonDebugging",
                 "title": "Setup Blender Python Debugging"
+            },
+            {
+                "command": "b3ddev.updateAddon",
+                "title": "Update Addon"
             }
         ],
         "configuration":[

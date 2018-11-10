@@ -4,12 +4,14 @@ import * as vscode from 'vscode';
 var path = require('path');
 var fs = require('fs');
 var http = require('http');
+var request = require('request');
 const { exec, spawn } = require('child_process');
 
 let pythonFilesDir = path.join(path.dirname(__dirname), 'pythonFiles');
 let CANCEL = 'CANCEL';
 
 let SERVER_PORT = 6000;
+let BLENDER_PORT : number | undefined = undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     let disposables = [
@@ -17,6 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('b3ddev.newAddon', COMMAND_newAddon),
         vscode.commands.registerCommand('b3ddev.launchAddon', COMMAND_launchAddon),
         vscode.commands.registerCommand('b3ddev.setupPythonDebugging', COMMAND_setupPythonDebugging),
+        vscode.commands.registerCommand('b3ddev.updateAddon', COMMAND_updateAddon),
     ];
 
     context.subscriptions.push(...disposables);
@@ -59,6 +62,16 @@ function COMMAND_setupPythonDebugging() {
     }, showErrorIfNotCancel);
 }
 
+function COMMAND_updateAddon() {
+    request.post(
+        `http://localhost:${BLENDER_PORT}`,
+        {json: {type: 'UPDATE_ADDON'}},
+        function (err : any, response : any, body : any) {
+
+        }
+    );
+}
+
 function startPythonDebugging(port : number) {
     let configuration = {
         name: "Debug Python in Blender",
@@ -71,14 +84,18 @@ function startPythonDebugging(port : number) {
 }
 
 function SERVER_handleRequest(request : any, response : any) {
-    console.log(request)
+    console.log(request);
     if (request.method === 'POST') {
         let body = '';
         request.on('data', (chunk : any) => body += chunk.toString());
         request.on('end', () => {
             let res = JSON.parse(body);
-            if (res.type === "WAIT_FOR_ATTACH") {
+            if (res.type === 'WAIT_FOR_ATTACH') {
                 startPythonDebugging(res.port);
+                response.end('OK');
+            }
+            if (res.type === 'SET_PORT') {
+                BLENDER_PORT = res.port;
                 response.end('OK');
             }
         });
