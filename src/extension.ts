@@ -44,7 +44,7 @@ function COMMAND_startBlender() {
 
 function COMMAND_newAddon() {
     let workspaceFolders = getWorkspaceFolders();
-    if (workspaceFolders.length == 0) {
+    if (workspaceFolders.length === 0) {
         vscode.window.showOpenDialog({
             canSelectFiles: false,
             canSelectFolders: true,
@@ -54,7 +54,7 @@ function COMMAND_newAddon() {
             if (value === undefined) return;
             tryMakeAddonInFolder(value[0].path, true);
         });
-    } else if (workspaceFolders.length == 1) {
+    } else if (workspaceFolders.length === 1) {
         tryMakeAddonInFolder(workspaceFolders[0].uri.path);
     } else {
         vscode.window.showErrorMessage('Can\'t create a new addon in a workspace with multiple folders yet.');
@@ -299,10 +299,10 @@ class OperatorSettings {
 function insertTemplate_SimpleOperator(settings : OperatorSettings, onError : (reason : string) => void) {
     let sourcePath = path.join(templateFilesDir, 'operator_simple.py');
     readTextFile(sourcePath, text => {
-        text = text.replace('LABEL', settings.name)
+        text = text.replace('LABEL', settings.name);
         text = text.replace('OPERATOR_CLASS', 'bpy.types.Operator');
         text = text.replace('IDNAME', settings.getIdName());
-        text = text.replace('CLASS_NAME', settings.getClassName())
+        text = text.replace('CLASS_NAME', settings.getClassName());
         insertTextBlock(text, onError);
     }, onError);
 }
@@ -420,7 +420,7 @@ function getConfiguration() {
 
 function readTextFile(path : string, onSuccess : (text : string) => void, onError : (reason : string) => void) {
     fs.readFile(path, 'utf8', (err : Error, data : any) => {
-        if (err != null) {
+        if (err !== null) {
             onError(`Could not read the file: ${path}`);
             return;
         }
@@ -434,8 +434,8 @@ function runExternalCommand(command : string, args : string[], additionalEnv : a
     let config = vscode.workspace.getConfiguration('terminal.external');
     if (process.platform === 'linux') {
         spawn(config.get('linuxExec'), ['-e', command, ...args], {env:env});
-    } else if (process.platform == 'win32') {
-        spawn('start', [command, ...args], {env:env})
+    } else if (process.platform === 'win32') {
+        spawn('start', [command, ...args], {env:env});
     }
 }
 
