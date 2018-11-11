@@ -16,6 +16,13 @@
         "onCommand:b3ddev.launchAddon"
     ],
     "main": "./out/extension",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/JacquesLucke/blender_vscode"
+    },
+    "bugs": {
+        "url": "https://github.com/JacquesLucke/blender_vscode/issues"
+    },
     "contributes": {
         "commands": [
             {
@@ -66,5 +73,8 @@
         "tslint": "^5.8.0",
         "@types/node": "^8.10.25",
         "@types/mocha": "^2.2.42"
+    },
+    "dependencies": {
+        "request": "^2.87.0"
     }
 }
