@@ -71,7 +71,6 @@ def start_blender_server():
     thread.start()
 
     while port[0] is None:
-        print("sleep")
         time.sleep(0.01)
 
     return port[0]
