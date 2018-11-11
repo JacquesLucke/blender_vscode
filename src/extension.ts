@@ -8,6 +8,7 @@ var request = require('request');
 const { exec, spawn } = require('child_process');
 
 let pythonFilesDir = path.join(path.dirname(__dirname), 'pythonFiles');
+let pipPath = path.join(pythonFilesDir, 'get-pip.py');
 let CANCEL = 'CANCEL';
 
 let SERVER_PORT = 6000;
@@ -18,7 +19,6 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('b3ddev.startBlender', COMMAND_startBlender),
         vscode.commands.registerCommand('b3ddev.newAddon', COMMAND_newAddon),
         vscode.commands.registerCommand('b3ddev.launchAddon', COMMAND_launchAddon),
-        vscode.commands.registerCommand('b3ddev.setupPythonDebugging', COMMAND_setupPythonDebugging),
         vscode.commands.registerCommand('b3ddev.updateAddon', COMMAND_updateAddon),
     ];
 
@@ -84,17 +84,11 @@ function COMMAND_launchAddon() {
 
 }
 
-function COMMAND_setupPythonDebugging() {
-    tryGetBlenderPath(true, blenderPath => {
-        installModulesForDebugging(blenderPath);
-    }, showErrorIfNotCancel);
-}
-
 function COMMAND_updateAddon() {
     vscode.workspace.saveAll(false);
     request.post(
         `http://localhost:${BLENDER_PORT}`,
-        {json: {type: 'UPDATE_ADDON'}},
+        {json: {type: 'update'}},
         function (err : any, response : any, body : any) {
 
         }
@@ -119,12 +113,10 @@ function SERVER_handleRequest(request : any, response : any) {
         request.on('data', (chunk : any) => body += chunk.toString());
         request.on('end', () => {
             let res = JSON.parse(body);
-            if (res.type === 'WAIT_FOR_ATTACH') {
-                startPythonDebugging(res.port);
-                response.end('OK');
-            }
-            if (res.type === 'SET_PORT') {
-                BLENDER_PORT = res.port;
+            console.log(res);
+            if (res.type === 'setup') {
+                BLENDER_PORT = res.blenderPort;
+                startPythonDebugging(res.debugPort);
                 response.end('OK');
             }
         });
@@ -136,13 +128,8 @@ function launch_Single_External(blenderPath : string, launchDirectory : string) 
     runExternalCommand(blenderPath, ['--python', pyLaunchPath], {
         ADDON_DEV_DIR: launchDirectory,
         DEBUGGER_PORT: SERVER_PORT,
+        PIP_PATH: pipPath,
     });
-}
-
-function installModulesForDebugging(blenderPath : string) {
-    let setupDebuggingPath = path.join(pythonFilesDir, 'setup_debugging.py');
-    let getPipPath = path.join(pythonFilesDir, 'get-pip.py');
-    runExternalCommand(blenderPath, ['-b', '--python', setupDebuggingPath], {GET_PIP_PATH:getPipPath});
 }
 
 function runExternalCommand(command : string, args : string[], additionalEnv : any = {}) {

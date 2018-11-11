@@ -2,52 +2,115 @@ import os
 import sys
 import bpy
 import json
-import requests
+import time
+import random
 import threading
-
+import subprocess
 from bpy.props import StringProperty
 
-debuggerPort = os.environ["DEBUGGER_PORT"]
-debuggerUrl = f"http://localhost:{debuggerPort}"
 
-try:
-    import flask
-    import ptvsd
-except:
-    pass
+# Read Inputs
+#########################################
 
-if "ptvsd" in globals():
-    port = 5123
-    ptvsd.enable_attach(("localhost", port))
+external_port = os.environ["DEBUGGER_PORT"]
+pip_path = os.environ["PIP_PATH"]
+external_addon_directory = os.environ['ADDON_DEV_DIR']
 
-    requests.post(debuggerUrl, json.dumps({"type" : "WAIT_FOR_ATTACH", "port" : port}))
-    print("Waiting for Debugger")
-    ptvsd.wait_for_attach()
-    print("Debugger Attached")
+python_path = bpy.app.binary_path_python
+external_url = f"http://localhost:{external_port}"
 
-if "flask" in globals():
-    import flask
+
+# Install Required Packages
+##########################################
+
+try: import pip
+except ModuleNotFoundError:
+    subprocess.run([python_path, pip_path])
+
+def install_package(name):
+    subprocess.run([python_path, "-m", "pip", "install", name])
+
+def get_package(name):
+    try: return __import__(name)
+    except ModuleNotFoundError:
+        install_package(name)
+        return __import__(name)
+
+ptvsd = get_package("ptvsd")
+flask = get_package("flask")
+requests = get_package("requests")
+
+
+# Setup Communication
+#########################################
+
+def start_blender_server():
     from flask import Flask, jsonify
-    SERVER_PORT = 7643
+
+    port = [None]
 
     def server_thread_function():
-        app = Flask(__name__)
+        app = Flask("Blender Server")
         @app.route("/", methods=['POST'])
         def handle_post():
             data = flask.request.get_json()
-            if data["type"] == "UPDATE_ADDON":
+            print("Got POST:", data)
+            if data["type"] == "update":
                 bpy.ops.dev.update_addon(module_name=addon_folder_name)
             return "OK"
-        app.run(debug=True, port=SERVER_PORT, use_reloader=False)
+
+        while True:
+            try:
+                port[0] = get_random_port()
+                app.run(debug=True, port=port[0], use_reloader=False)
+            except OSError:
+                pass
 
     thread = threading.Thread(target=server_thread_function)
     thread.daemon = True
     thread.start()
-    requests.post(debuggerUrl, json.dumps({"type" : "SET_PORT", "port" : SERVER_PORT}))
+
+    while port[0] is None:
+        print("sleep")
+        time.sleep(0.01)
+
+    return port[0]
+
+def start_debug_server():
+    while True:
+        port = get_random_port()
+        try:
+            ptvsd.enable_attach(("localhost", port))
+            break
+        except OSError:
+            pass
+    return port
+
+def get_random_port():
+    return random.randint(2000, 10000)
+
+def send_connection_information(blender_port, debug_port):
+    data = {
+        "type" : "setup",
+        "blenderPort" : blender_port,
+        "debugPort" : debug_port,
+    }
+    print(data)
+    requests.post(external_url, json=data)
+
+blender_port = start_blender_server()
+debug_port = start_debug_server()
+send_connection_information(blender_port, debug_port)
+
+print("Waiting for debug client.")
+ptvsd.wait_for_attach()
+print("Debug cliend attached.")
+
+
+# Load Addon
+########################################
 
 addon_directory = bpy.utils.user_resource('SCRIPTS', "addons")
-external_addon_directory = os.environ['ADDON_DEV_DIR']
-
 addon_folder_name = os.path.basename(external_addon_directory)
 symlink_path = os.path.join(addon_directory, addon_folder_name)
 
@@ -60,6 +123,9 @@ os.symlink(external_addon_directory, symlink_path, target_is_directory=True)
 
 bpy.ops.wm.addon_enable(module=addon_folder_name)
 
+
+# Operators
+########################################
 
 class UpdateAddonOperator(bpy.types.Operator):
     bl_idname = "dev.update_addon"

@@ -13,8 +13,7 @@
     "activationEvents": [
         "onCommand:b3ddev.startBlender",
         "onCommand:b3ddev.newAddon",
-        "onCommand:b3ddev.launchAddon",
-        "onCommand:b3ddev.setupPythonDebugging"
+        "onCommand:b3ddev.launchAddon"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -30,10 +29,6 @@
             {
                 "command": "b3ddev.launchAddon",
                 "title": "Launch Addon"
-            },
-            {
-                "command": "b3ddev.setupPythonDebugging",
-                "title": "Setup Blender Python Debugging"
             },
             {
                 "command": "b3ddev.updateAddon",
