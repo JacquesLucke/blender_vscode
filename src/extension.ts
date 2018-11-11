@@ -38,11 +38,39 @@ function COMMAND_startBlender() {
 }
 
 function COMMAND_newAddon() {
-    tryDeriveFolderForNewAddon(folder => {
-        askUser_SettingsForNewAddon((addonName, authorName) => {
-            createNewAddon(folder, addonName, authorName);
+    let workspaceFolders = getWorkspaceFolders();
+    if (workspaceFolders.length == 0) {
+        vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: 'New Addon'
+        }).then(value => {
+            if (value === undefined) return;
+            tryMakeAddonInFolder(value[0].path, true);
+        });
+    } else if (workspaceFolders.length == 1) {
+        tryMakeAddonInFolder(workspaceFolders[0].uri.path);
+    } else {
+        vscode.window.showErrorMessage('Can\'t create a new addon in a workspace with multiple folders yet.');
+    }
+
+    function tryMakeAddonInFolder(folderPath : string, openWorkspace : boolean = false) {
+        canAddonBeCreatedInFolder(folderPath, () => {
+            askUser_SettingsForNewAddon((addonName, authorName) => {
+                createNewAddon(folderPath, addonName, authorName, mainPath => {
+                    if (openWorkspace) {
+                        /* Extension will automatically be restarted after this. */
+                        vscode.workspace.updateWorkspaceFolders(0, null, {uri: vscode.Uri.file(folderPath), name: addonName});
+                    } else {
+                        vscode.workspace.openTextDocument(mainPath).then(document => {
+                            vscode.window.showTextDocument(document);
+                        });
+                    }
+                });
+            }, showErrorIfNotCancel);
         }, showErrorIfNotCancel);
-    }, showErrorIfNotCancel);
+    }
 }
 
 function COMMAND_launchAddon() {
@@ -128,6 +156,12 @@ function showErrorIfNotCancel(message : string) {
     }
 }
 
+function getWorkspaceFolders() {
+    let folders = vscode.workspace.workspaceFolders;
+    if (folders === undefined) return [];
+    else return folders;
+}
+
 function tryGetAddonStructureType(onSuccess : (launchType : string) => void, onError : (reason : string) => void) {
     onSuccess('single');
 }
@@ -145,25 +179,6 @@ function tryGetBlenderPath(allowAskUser : boolean, onSuccess : (path : string) =
             onError('Could not get path to Blender.');
         }
     }
-}
-
-function tryDeriveFolderForNewAddon(onSuccess : (folderpath : string) => void, onError : (reason : string) => void) {
-    let workspaceFolders = vscode.workspace.workspaceFolders;
-    if (workspaceFolders === undefined) {
-        onError('No empty folder open.');
-        return;
-    }
-    if (workspaceFolders.length !== 1) {
-        onError('Multiple workspace folder are open.');
-    }
-
-    let folder = workspaceFolders[0].uri.path;
-    canAddonBeCreatedInFolder(folder, canBeCreated => {
-        if (canBeCreated) onSuccess(folder);
-        else {
-            onError('The folder already has an __init__.py file.');
-        }
-    });
 }
 
 function askUser_SettingsForNewAddon(onSuccess : (addonName : string, authorName : string) => void, onError : (reason : string) => void) {
@@ -191,14 +206,24 @@ function askUser_SettingsForNewAddon(onSuccess : (addonName : string, authorName
     });
 }
 
-function canAddonBeCreatedInFolder(folder : string, callback : (canBeCreated : boolean) => void) {
-    let initPath = path.join(folder, '__init__.py');
-    fs.stat(initPath, (err : Error, stat : any) => {
-        callback(err !== null);
+function canAddonBeCreatedInFolder(folder : string, onSuccess : () => void, onError : (reason : string) => void) {
+    fs.stat(folder, (err : Error, stat : any) => {
+        if (err !== null) onError('Error when accesing the folder.');
+        if (!stat.isDirectory()) onError('Not a directory.');
+
+        fs.readdir(folder, {}, (err : Error, files : string[]) => {
+            for (let name of files) {
+                if (!name.startsWith('.')) {
+                    onError('The folder already contains some files.');
+                    return;
+                }
+            }
+            onSuccess();
+        });
     });
 }
 
-function createNewAddon(folder : string, addonName : string, authorName : string) {
+function createNewAddon(folder : string, addonName : string, authorName : string, onSuccess : (mainPath : string) => void) {
     let initSourcePath = path.join(pythonFilesDir, 'addon_template.py');
     let initTargetPath = path.join(folder, "__init__.py");
     fs.readFile(initSourcePath, 'utf8', (err : Error, data : any) => {
@@ -215,9 +240,7 @@ function createNewAddon(folder : string, addonName : string, authorName : string
                 vscode.window.showErrorMessage('Could not creat the __init__.py file.');
                 return;
             }
-            vscode.workspace.openTextDocument(initTargetPath).then(document => {
-                vscode.window.showTextDocument(document);
-            });
+            onSuccess(initTargetPath);
         });
     });
 }
@@ -230,8 +253,11 @@ function testIfPathIsBlender(filepath : string, callback : (isValid : boolean) =
     let name : string = path.basename(filepath);
 
     if (name.toLowerCase().startsWith('blender')) {
+        /* not starting in background because some addons might
+         * crash Blender before the expression is executed */
         let testString = '###TEST_BLENDER###';
-        exec(`${filepath} -b --python-expr "import sys;print('${testString}');sys.stdout.flush();sys.exit()"`, {},
+        let command = `${filepath} --python-expr "import sys;print('${testString}');sys.stdout.flush();sys.exit()"`;
+        exec(command, {},
             (err : Error, stdout : string | Buffer, stderr : string | Buffer) => {
                 let text = stdout.toString();
                 callback(text.includes(testString));

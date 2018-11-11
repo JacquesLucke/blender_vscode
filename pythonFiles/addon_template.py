@@ -18,7 +18,7 @@ bl_info = {
     "blender" : (2, 80, 0),
     "location" : "",
     "warning" : "",
-    "category" : ""
+    "category" : "Generic"
 }
 
 def register():
