@@ -32,6 +32,9 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
 }
 
+/* Commands
+ *********************************************/
+
 function COMMAND_startBlender() {
     tryGetBlenderPath(true, blenderPath => {
         exec(blenderPath);
@@ -76,11 +79,7 @@ function COMMAND_newAddon() {
 
 function COMMAND_launchAddon() {
     tryGetBlenderPath(true, blenderPath => {
-        tryGetAddonStructureType(launchType => {
-            if (launchType === 'single') {
-                launch_Single_External(blenderPath, (<vscode.WorkspaceFolder[]>vscode.workspace.workspaceFolders)[0].uri.path);
-            }
-        }, showErrorIfNotCancel);
+        launch_Single_External(blenderPath, (<vscode.WorkspaceFolder[]>vscode.workspace.workspaceFolders)[0].uri.path);
     }, showErrorIfNotCancel);
 
 }
@@ -96,16 +95,9 @@ function COMMAND_updateAddon() {
     );
 }
 
-function startPythonDebugging(port : number) {
-    let configuration = {
-        name: "Debug Python in Blender",
-        request: "attach",
-        type: "python",
-        port: port,
-        host: "localhost"
-    };
-    vscode.debug.startDebugging(undefined, configuration);
-}
+
+/* Server
+ ***************************************/
 
 function SERVER_handleRequest(request : any, response : any) {
     console.log(request);
@@ -127,6 +119,17 @@ function SERVER_handleRequest(request : any, response : any) {
     }
 }
 
+function startPythonDebugging(port : number) {
+    let configuration = {
+        name: "Debug Python in Blender",
+        request: "attach",
+        type: "python",
+        port: port,
+        host: "localhost"
+    };
+    vscode.debug.startDebugging(undefined, configuration);
+}
+
 function launch_Single_External(blenderPath : string, launchDirectory : string) {
     let pyLaunchPath = path.join(pythonFilesDir, 'launch_external.py');
     runExternalCommand(blenderPath, ['--python', pyLaunchPath], {
@@ -134,32 +137,6 @@ function launch_Single_External(blenderPath : string, launchDirectory : string) 
         DEBUGGER_PORT: SERVER_PORT,
         PIP_PATH: pipPath,
     });
-}
-
-function runExternalCommand(command : string, args : string[], additionalEnv : any = {}) {
-    let env = Object.assign({}, process.env, additionalEnv);
-    let config = vscode.workspace.getConfiguration('terminal.external');
-    if (process.platform === 'linux') {
-        spawn(config.get('linuxExec'), ['-e', command, ...args], {env:env});
-    } else if (process.platform == 'win32') {
-        spawn('start', [command, ...args], {env:env})
-    }
-}
-
-function showErrorIfNotCancel(message : string) {
-    if (message !== CANCEL) {
-        vscode.window.showErrorMessage(message);
-    }
-}
-
-function getWorkspaceFolders() {
-    let folders = vscode.workspace.workspaceFolders;
-    if (folders === undefined) return [];
-    else return folders;
-}
-
-function tryGetAddonStructureType(onSuccess : (launchType : string) => void, onError : (reason : string) => void) {
-    onSuccess('single');
 }
 
 function tryGetBlenderPath(allowAskUser : boolean, onSuccess : (path : string) => void, onError : (reason : string) => void) {
@@ -202,73 +179,6 @@ function askUser_SettingsForNewAddon(onSuccess : (addonName : string, authorName
     });
 }
 
-function canAddonBeCreatedInFolder(folder : string, onSuccess : () => void, onError : (reason : string) => void) {
-    fs.stat(folder, (err : Error, stat : any) => {
-        if (err !== null) onError('Error when accesing the folder.');
-        if (!stat.isDirectory()) onError('Not a directory.');
-
-        fs.readdir(folder, {}, (err : Error, files : string[]) => {
-            for (let name of files) {
-                if (!name.startsWith('.')) {
-                    onError('The folder already contains some files.');
-                    return;
-                }
-            }
-            onSuccess();
-        });
-    });
-}
-
-function createNewAddon(folder : string, addonName : string, authorName : string, onSuccess : (mainPath : string) => void) {
-    let initSourcePath = path.join(templateFilesDir, 'addon.py');
-    let initTargetPath = path.join(folder, "__init__.py");
-    readTextFile(initSourcePath, text => {
-        text = text.replace('ADDON_NAME', addonName);
-        text = text.replace('AUTHOR_NAME', authorName);
-
-        fs.writeFile(initTargetPath, text, (err : Error) => {
-            if (err !== null) {
-                vscode.window.showErrorMessage('Could not create the __init__.py file.');
-                return;
-            }
-            onSuccess(initTargetPath);
-        });
-    }, showErrorIfNotCancel);
-}
-
-function readTextFile(path : string, onSuccess : (text : string) => void, onError : (reason : string) => void) {
-    fs.readFile(path, 'utf8', (err : Error, data : any) => {
-        if (err != null) {
-            onError(`Could not read the file: ${path}`);
-            return;
-        }
-
-        onSuccess(data);
-    });
-}
-
-function getConfiguration() {
-    return vscode.workspace.getConfiguration('b3ddev');
-}
-
-function testIfPathIsBlender(filepath : string, callback : (isValid : boolean) => void) {
-    let name : string = path.basename(filepath);
-
-    if (name.toLowerCase().startsWith('blender')) {
-        /* not starting in background because some addons might
-         * crash Blender before the expression is executed */
-        let testString = '###TEST_BLENDER###';
-        let command = `${filepath} --python-expr "import sys;print('${testString}');sys.stdout.flush();sys.exit()"`;
-        exec(command, {},
-            (err : Error, stdout : string | Buffer, stderr : string | Buffer) => {
-                let text = stdout.toString();
-                callback(text.includes(testString));
-            });
-    } else {
-        callback(false);
-    }
-}
-
 function askUser_BlenderPath(onSuccess : (path : string) => void, onError : (reason : string) => void) {
     vscode.window.showOpenDialog({
         canSelectFiles: true,
@@ -292,6 +202,65 @@ function askUser_BlenderPath(onSuccess : (path : string) => void, onError : (rea
     });
 }
 
+function createNewAddon(folder : string, addonName : string, authorName : string, onSuccess : (mainPath : string) => void) {
+    let initSourcePath = path.join(templateFilesDir, 'addon.py');
+    let initTargetPath = path.join(folder, "__init__.py");
+    readTextFile(initSourcePath, text => {
+        text = text.replace('ADDON_NAME', addonName);
+        text = text.replace('AUTHOR_NAME', authorName);
+
+        fs.writeFile(initTargetPath, text, (err : Error) => {
+            if (err !== null) {
+                vscode.window.showErrorMessage('Could not create the __init__.py file.');
+                return;
+            }
+            onSuccess(initTargetPath);
+        });
+    }, showErrorIfNotCancel);
+}
+
+/* Checking
+ ***************************************/
+
+function testIfPathIsBlender(filepath : string, callback : (isValid : boolean) => void) {
+    let name : string = path.basename(filepath);
+
+    if (name.toLowerCase().startsWith('blender')) {
+        /* not starting in background because some addons might
+         * crash Blender before the expression is executed */
+        let testString = '###TEST_BLENDER###';
+        let command = `${filepath} --python-expr "import sys;print('${testString}');sys.stdout.flush();sys.exit()"`;
+        exec(command, {},
+            (err : Error, stdout : string | Buffer, stderr : string | Buffer) => {
+                let text = stdout.toString();
+                callback(text.includes(testString));
+            });
+    } else {
+        callback(false);
+    }
+}
+
+function canAddonBeCreatedInFolder(folder : string, onSuccess : () => void, onError : (reason : string) => void) {
+    fs.stat(folder, (err : Error, stat : any) => {
+        if (err !== null) onError('Error when accesing the folder.');
+        if (!stat.isDirectory()) onError('Not a directory.');
+
+        fs.readdir(folder, {}, (err : Error, files : string[]) => {
+            for (let name of files) {
+                if (!name.startsWith('.')) {
+                    onError('The folder already contains some files.');
+                    return;
+                }
+            }
+            onSuccess();
+        });
+    });
+}
+
+
+/* Operator insertion
+ **************************************/
+
 class OperatorSettings {
     name : string;
     category : string;
@@ -308,27 +277,6 @@ class OperatorSettings {
     getClassName() {
         return nameToClassIdentifier(this.name) + 'Operator';
     }
-}
-
-function nameToIdentifier(name : string) {
-    return name.toLowerCase().replace(/\W+/, '_');
-}
-
-function nameToClassIdentifier(name : string) {
-    let parts = name.split(/\W+/);
-    let result = '';
-    let allowNumber = false;
-    for (let part of parts) {
-        if (part.length > 0 && (allowNumber || !startsWithNumber(part))) {
-            result += part.charAt(0).toUpperCase() + part.slice(1);
-            allowNumber = true;
-        }
-    }
-    return result;
-}
-
-function startsWithNumber(text : string) {
-    return text.charAt(0).match(/[0-9]/) !== null;
 }
 
 function insertTemplate_SimpleOperator(settings : OperatorSettings, onError : (reason : string) => void) {
@@ -348,6 +296,10 @@ function insertTemplate_SimpleOperator(settings : OperatorSettings, onError : (r
         insertTextBlock(text, onError);
     }, onError);
 }
+
+
+/* Text Block insertion
+ **************************************/
 
 function insertTextBlock(text : string, onError : (reason : string) => void) {
     let editor = vscode.window.activeTextEditor;
@@ -387,4 +339,66 @@ function findLastLineContainingText(document : vscode.TextDocument, start : numb
         }
     }
     return 0;
+}
+
+
+/* Utilities
+ *******************************************/
+
+function nameToIdentifier(name : string) {
+    return name.toLowerCase().replace(/\W+/, '_');
+}
+
+function nameToClassIdentifier(name : string) {
+    let parts = name.split(/\W+/);
+    let result = '';
+    let allowNumber = false;
+    for (let part of parts) {
+        if (part.length > 0 && (allowNumber || !startsWithNumber(part))) {
+            result += part.charAt(0).toUpperCase() + part.slice(1);
+            allowNumber = true;
+        }
+    }
+    return result;
+}
+
+function startsWithNumber(text : string) {
+    return text.charAt(0).match(/[0-9]/) !== null;
+}
+
+function getConfiguration() {
+    return vscode.workspace.getConfiguration('b3ddev');
+}
+
+function readTextFile(path : string, onSuccess : (text : string) => void, onError : (reason : string) => void) {
+    fs.readFile(path, 'utf8', (err : Error, data : any) => {
+        if (err != null) {
+            onError(`Could not read the file: ${path}`);
+            return;
+        }
+
+        onSuccess(data);
+    });
+}
+
+function runExternalCommand(command : string, args : string[], additionalEnv : any = {}) {
+    let env = Object.assign({}, process.env, additionalEnv);
+    let config = vscode.workspace.getConfiguration('terminal.external');
+    if (process.platform === 'linux') {
+        spawn(config.get('linuxExec'), ['-e', command, ...args], {env:env});
+    } else if (process.platform == 'win32') {
+        spawn('start', [command, ...args], {env:env})
+    }
+}
+
+function showErrorIfNotCancel(message : string) {
+    if (message !== CANCEL) {
+        vscode.window.showErrorMessage(message);
+    }
+}
+
+function getWorkspaceFolders() {
+    let folders = vscode.workspace.workspaceFolders;
+    if (folders === undefined) return [];
+    else return folders;
 }
