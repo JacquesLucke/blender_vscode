@@ -147,7 +147,12 @@ function installModulesForDebugging(blenderPath : string) {
 
 function runExternalCommand(command : string, args : string[], additionalEnv : any = {}) {
     let env = Object.assign({}, process.env, additionalEnv);
-    spawn('gnome-terminal', ['-x', command, ...args], {env:env});
+    let config = vscode.workspace.getConfiguration('terminal.external');
+    if (process.platform === 'linux') {
+        spawn(config.get('linuxExec'), ['-e', command, ...args], {env:env});
+    } else if (process.platform == 'win32') {
+        spawn('start', [command, ...args], {env:env})
+    }
 }
 
 function showErrorIfNotCancel(message : string) {
