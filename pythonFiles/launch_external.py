@@ -6,7 +6,12 @@ import time
 import random
 import threading
 import subprocess
-from bpy.props import StringProperty
+from pprint import pprint
+
+from bpy.props import (
+    StringProperty,
+    EnumProperty,
+)
 
 
 # Read Inputs
@@ -89,12 +94,14 @@ def get_random_port():
     return random.randint(2000, 10000)
 
 def send_connection_information(blender_port, debug_port):
-    data = {
+    send_dict_as_json({
         "type" : "setup",
         "blenderPort" : blender_port,
         "debugPort" : debug_port,
-    }
-    print(data)
+    })
+
+def send_dict_as_json(data):
+    print("Sending:", data)
     requests.post(external_url, json=data)
 
 blender_port = start_blender_server()
@@ -149,4 +156,39 @@ class UpdateAddonOperator(bpy.types.Operator):
             for area in window.screen.areas:
                 area.tag_redraw()
 
-bpy.utils.register_class(UpdateAddonOperator)
+class NewOperator(bpy.types.Operator):
+    bl_idname = "dev.new_operator"
+    bl_label = "New Operator"
+
+    category_items = [(name, name, "") for name in dir(bpy.ops)]
+
+    name: StringProperty(name="Name")
+    category: EnumProperty(name="Category", default="object", items=category_items)
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "name", text="Name")
+        layout.prop(self, "category", text="Category")
+
+    def execute(self, context):
+        send_dict_as_json({
+            "type" : "newOperator",
+            "name" : self.name,
+            "category" : self.category,
+        })
+        return {'FINISHED'}
+
+
+# Register Classes
+##############################################
+
+classes = (
+    UpdateAddonOperator,
+    NewOperator,
+)
+
+for cls in classes:
+    bpy.utils.register_class(cls)

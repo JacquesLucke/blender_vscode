@@ -8,6 +8,7 @@ var request = require('request');
 const { exec, spawn } = require('child_process');
 
 let pythonFilesDir = path.join(path.dirname(__dirname), 'pythonFiles');
+let templateFilesDir = path.join(pythonFilesDir, 'templates');
 let pipPath = path.join(pythonFilesDir, 'get-pip.py');
 let CANCEL = 'CANCEL';
 
@@ -113,10 +114,13 @@ function SERVER_handleRequest(request : any, response : any) {
         request.on('data', (chunk : any) => body += chunk.toString());
         request.on('end', () => {
             let res = JSON.parse(body);
-            console.log(res);
             if (res.type === 'setup') {
                 BLENDER_PORT = res.blenderPort;
                 startPythonDebugging(res.debugPort);
+                response.end('OK');
+            } else if (res.type == 'newOperator') {
+                let settings = new OperatorSettings(res.name, res.category);
+                insertTemplate_SimpleOperator(settings, showErrorIfNotCancel);
                 response.end('OK');
             }
         });
@@ -216,24 +220,30 @@ function canAddonBeCreatedInFolder(folder : string, onSuccess : () => void, onEr
 }
 
 function createNewAddon(folder : string, addonName : string, authorName : string, onSuccess : (mainPath : string) => void) {
-    let initSourcePath = path.join(pythonFilesDir, 'addon_template.py');
+    let initSourcePath = path.join(templateFilesDir, 'addon.py');
     let initTargetPath = path.join(folder, "__init__.py");
-    fs.readFile(initSourcePath, 'utf8', (err : Error, data : any) => {
-        if (err !== null) {
-            vscode.window.showErrorMessage('Could not read the template file.');
-            return;
-        }
-        let text : string = data;
+    readTextFile(initSourcePath, text => {
         text = text.replace('ADDON_NAME', addonName);
         text = text.replace('AUTHOR_NAME', authorName);
 
         fs.writeFile(initTargetPath, text, (err : Error) => {
             if (err !== null) {
-                vscode.window.showErrorMessage('Could not creat the __init__.py file.');
+                vscode.window.showErrorMessage('Could not create the __init__.py file.');
                 return;
             }
             onSuccess(initTargetPath);
         });
+    }, showErrorIfNotCancel);
+}
+
+function readTextFile(path : string, onSuccess : (text : string) => void, onError : (reason : string) => void) {
+    fs.readFile(path, 'utf8', (err : Error, data : any) => {
+        if (err != null) {
+            onError(`Could not read the file: ${path}`);
+            return;
+        }
+
+        onSuccess(data);
     });
 }
 
@@ -280,4 +290,101 @@ function askUser_BlenderPath(onSuccess : (path : string) => void, onError : (rea
             }
         });
     });
+}
+
+class OperatorSettings {
+    name : string;
+    category : string;
+
+    constructor(name : string, category : string) {
+        this.name = name;
+        this.category = category;
+    }
+
+    getIdName() {
+        return `${this.category}.${nameToIdentifier(this.name)}`;
+    }
+
+    getClassName() {
+        return nameToClassIdentifier(this.name) + 'Operator';
+    }
+}
+
+function nameToIdentifier(name : string) {
+    return name.toLowerCase().replace(/\W+/, '_');
+}
+
+function nameToClassIdentifier(name : string) {
+    let parts = name.split(/\W+/);
+    let result = '';
+    let allowNumber = false;
+    for (let part of parts) {
+        if (part.length > 0 && (allowNumber || !startsWithNumber(part))) {
+            result += part.charAt(0).toUpperCase() + part.slice(1);
+            allowNumber = true;
+        }
+    }
+    return result;
+}
+
+function startsWithNumber(text : string) {
+    return text.charAt(0).match(/[0-9]/) !== null;
+}
+
+function insertTemplate_SimpleOperator(settings : OperatorSettings, onError : (reason : string) => void) {
+    let editor = vscode.window.activeTextEditor;
+
+    if (editor === undefined) {
+        onError('No active text editor.');
+        return;
+    }
+
+    let sourcePath = path.join(templateFilesDir, 'operator_simple.py');
+    readTextFile(sourcePath, text => {
+        text = text.replace('LABEL', settings.name)
+        text = text.replace('OPERATOR_CLASS', 'bpy.types.Operator');
+        text = text.replace('IDNAME', settings.getIdName());
+        text = text.replace('CLASS_NAME', settings.getClassName())
+        insertTextBlock(text, onError);
+    }, onError);
+}
+
+function insertTextBlock(text : string, onError : (reason : string) => void) {
+    let editor = vscode.window.activeTextEditor;
+
+    if (editor === undefined) {
+        onError('No active text editor.');
+        return;
+    }
+
+    let endLine = findNextLineStartingInTheBeginning(editor.document, editor.selection.start.line + 1);
+    let startLine = findLastLineContainingText(editor.document, endLine - 1);
+
+    let position = new vscode.Position(startLine, editor.document.lineAt(startLine).text.length);
+    let range = new vscode.Range(position, position);
+
+    let textEdit = new vscode.TextEdit(range, '\n\n\n' + text);
+    let workspaceEdit = new vscode.WorkspaceEdit();
+    workspaceEdit.set(editor.document.uri, [textEdit]);
+    vscode.workspace.applyEdit(workspaceEdit);
+}
+
+function findNextLineStartingInTheBeginning(document : vscode.TextDocument, start : number) : number {
+    for (let i = start; i < document.lineCount; i++) {
+        let line = document.lineAt(i);
+        if (line.text.length > 0 &&line.firstNonWhitespaceCharacterIndex === 0) {
+            return i;
+        }
+    }
+    return document.lineCount;
+}
+
+function findLastLineContainingText(document : vscode.TextDocument, start : number ) : number {
+    for (let i = start; i >= 0; i--) {
+        let line = document.lineAt(i);
+        if (!line.isEmptyOrWhitespace) {
+            return i;
+        }
+    }
+    return 0;
 }
