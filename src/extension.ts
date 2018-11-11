@@ -122,9 +122,13 @@ function SERVER_handleRequest(request : any, response : any) {
                 BLENDER_PORT = res.blenderPort;
                 startPythonDebugging(res.debugPort);
                 response.end('OK');
-            } else if (res.type == 'newOperator') {
-                let settings = new OperatorSettings(res.name, res.category);
+            } else if (res.type === 'newOperator') {
+                let settings = new OperatorSettings(res.name, res.group);
                 insertTemplate_SimpleOperator(settings, showErrorIfNotCancel);
+                response.end('OK');
+            } else if (res.type === 'newPanel') {
+                let settings = new PanelSettings(res.name, res.spaceType, res.regionType, res.group);
+                insertTemplate_Panel(settings, showErrorIfNotCancel);
                 response.end('OK');
             }
         });
@@ -276,15 +280,15 @@ function canAddonBeCreatedInFolder(folder : string, onSuccess : () => void, onEr
 
 class OperatorSettings {
     name : string;
-    category : string;
+    group : string;
 
-    constructor(name : string, category : string) {
+    constructor(name : string, group : string) {
         this.name = name;
-        this.category = category;
+        this.group = group;
     }
 
     getIdName() {
-        return `${this.category}.${nameToIdentifier(this.name)}`;
+        return `${this.group}.${nameToIdentifier(this.name)}`;
     }
 
     getClassName() {
@@ -293,13 +297,6 @@ class OperatorSettings {
 }
 
 function insertTemplate_SimpleOperator(settings : OperatorSettings, onError : (reason : string) => void) {
-    let editor = vscode.window.activeTextEditor;
-
-    if (editor === undefined) {
-        onError('No active text editor.');
-        return;
-    }
-
     let sourcePath = path.join(templateFilesDir, 'operator_simple.py');
     readTextFile(sourcePath, text => {
         text = text.replace('LABEL', settings.name)
@@ -310,6 +307,44 @@ function insertTemplate_SimpleOperator(settings : OperatorSettings, onError : (r
     }, onError);
 }
 
+
+/* Panel Insertion
+**************************************/
+
+class PanelSettings {
+    name : string;
+    spaceType : string;
+    regionType : string;
+    group : string;
+
+    constructor(name : string, spaceType : string, regionType : string, group : string) {
+        this.name = name;
+        this.spaceType = spaceType;
+        this.regionType = regionType;
+        this.group = group;
+    }
+
+    getIdName() {
+        return `${this.group}_PT_${nameToIdentifier(this.name)}`;
+    }
+
+    getClassName() {
+        return nameToClassIdentifier(this.name) + 'Panel';
+    }
+}
+
+function insertTemplate_Panel(settings : PanelSettings, onError : (reason : string) => void) {
+    let sourcePath = path.join(templateFilesDir, 'panel_simple.py');
+    readTextFile(sourcePath, text => {
+        text = text.replace('LABEL', settings.name);
+        text = text.replace('PANEL_CLASS', 'bpy.types.Panel');
+        text = text.replace('SPACE_TYPE', settings.spaceType);
+        text = text.replace('REGION_TYPE', settings.regionType);
+        text = text.replace('CLASS_NAME', settings.getClassName());
+        text = text.replace('IDNAME', settings.getIdName());
+        insertTextBlock(text, onError);
+    }, onError);
+}
 
 /* Text Block insertion
  **************************************/

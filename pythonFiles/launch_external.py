@@ -156,30 +156,67 @@ class UpdateAddonOperator(bpy.types.Operator):
             for area in window.screen.areas:
                 area.tag_redraw()
 
-class NewOperator(bpy.types.Operator):
+class NewOperatorOperator(bpy.types.Operator):
     bl_idname = "dev.new_operator"
     bl_label = "New Operator"
 
-    category_items = [(name, name, "") for name in dir(bpy.ops)]
+    group_items = [(name, name, "") for name in dir(bpy.ops)]
 
     name: StringProperty(name="Name")
-    category: EnumProperty(name="Category", default="object", items=category_items)
+    group: EnumProperty(name="group", default="object", items=group_items)
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "name", text="Name")
-        layout.prop(self, "category", text="Category")
+        layout.prop(self, "name")
+        layout.prop(self, "group")
 
     def execute(self, context):
         send_dict_as_json({
             "type" : "newOperator",
             "name" : self.name,
-            "category" : self.category,
+            "group" : self.group,
         })
         return {'FINISHED'}
+
+class NewPanelOperator(bpy.types.Operator):
+    bl_idname = "dev.new_panel"
+    bl_label = "New Panel"
+
+    def get_group_items(self, context):
+        return [(group, group, "") for group in get_prefixes(dir(bpy.types), '_PT_')]
+
+    name: StringProperty(name="Name")
+    space_type: StringProperty(name="Space Type")
+    region_type: StringProperty(name="Region Type")
+    group : EnumProperty(name="Group", items=get_group_items)
+
+    def invoke(self, context, event):
+        self.space_type = context.space_data.type
+        self.region_type = context.region.type
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "name")
+        layout.prop(self, "group")
+        layout.prop(self, "space_type")
+        layout.prop(self, "region_type")
+
+    def execute(self, context):
+        send_dict_as_json({
+            "type" : "newPanel",
+            "name" : self.name,
+            "spaceType" : self.space_type,
+            "regionType" : self.region_type,
+            "group" : self.group,
+        })
+        return {'FINISHED'}
+
+def get_prefixes(all_names, separator):
+    return set(name.split(separator)[0] for name in all_names if separator in name)
 
 
 # Register Classes
@@ -187,7 +224,8 @@ class NewOperator(bpy.types.Operator):
 
 classes = (
     UpdateAddonOperator,
-    NewOperator,
+    NewOperatorOperator,
+    NewPanelOperator,
 )
 
 for cls in classes:
