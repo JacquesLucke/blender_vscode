@@ -21,6 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('b3ddev.newAddon', COMMAND_newAddon),
         vscode.commands.registerCommand('b3ddev.launchAddon', COMMAND_launchAddon),
         vscode.commands.registerCommand('b3ddev.updateAddon', COMMAND_updateAddon),
+        vscode.workspace.onDidSaveTextDocument(HANDLER_updateOnSave),
     ];
 
     context.subscriptions.push(...disposables);
@@ -84,15 +85,26 @@ function COMMAND_launchAddon() {
 
 }
 
-function COMMAND_updateAddon() {
+function COMMAND_updateAddon(onSuccess : (() => void) | undefined = undefined) {
     vscode.workspace.saveAll(false);
     request.post(
         `http://localhost:${BLENDER_PORT}`,
         {json: {type: 'update'}},
         function (err : any, response : any, body : any) {
-
+            if (err === null && onSuccess !== undefined) onSuccess();
         }
     );
+}
+
+/* Event Handlers
+ ***************************************/
+
+function HANDLER_updateOnSave(document : vscode.TextDocument) {
+    if (getConfiguration().get('updateOnSave')) {
+        COMMAND_updateAddon(() => {
+            vscode.window.showInformationMessage("Addon Updated");
+        });
+    }
 }
 
 
@@ -218,6 +230,7 @@ function createNewAddon(folder : string, addonName : string, authorName : string
         });
     }, showErrorIfNotCancel);
 }
+
 
 /* Checking
  ***************************************/

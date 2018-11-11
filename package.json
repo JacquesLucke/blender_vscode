@@ -43,6 +43,11 @@
                         "type": "string",
                         "default": "",
                         "description": "Path to the Blender executable."
+                    },
+                    "b3ddev.updateOnSave": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Reload addon in Blender when a document is saved."
                     }
                 }
             }
