@@ -27,19 +27,19 @@
         "commands": [
             {
                 "command": "b3ddev.startBlender",
-                "title": "Start Blender"
+                "title": "Blender: Start Blender"
             },
             {
                 "command": "b3ddev.newAddon",
-                "title": "New Blender Addon"
+                "title": "Blender: New Blender Addon"
             },
             {
                 "command": "b3ddev.launchAddon",
-                "title": "Launch Addon"
+                "title": "Blender: Launch Addon"
             },
             {
                 "command": "b3ddev.updateAddon",
-                "title": "Update Addon"
+                "title": "Blender: Update Addon"
             }
         ],
         "configuration": [
