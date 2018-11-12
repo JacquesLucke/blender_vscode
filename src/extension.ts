@@ -52,10 +52,10 @@ function COMMAND_newAddon() {
             openLabel: 'New Addon'
         }).then(value => {
             if (value === undefined) return;
-            tryMakeAddonInFolder(value[0].path, true);
+            tryMakeAddonInFolder(value[0].fsPath, true);
         });
     } else if (workspaceFolders.length === 1) {
-        tryMakeAddonInFolder(workspaceFolders[0].uri.path);
+        tryMakeAddonInFolder(workspaceFolders[0].uri.fsPath);
     } else {
         vscode.window.showErrorMessage('Can\'t create a new addon in a workspace with multiple folders yet.');
     }
@@ -80,7 +80,7 @@ function COMMAND_newAddon() {
 
 function COMMAND_launchAddon() {
     tryGetBlenderPath(true, blenderPath => {
-        launch_Single_External(blenderPath, (<vscode.WorkspaceFolder[]>vscode.workspace.workspaceFolders)[0].uri.path);
+        launch_Single_External(blenderPath, (<vscode.WorkspaceFolder[]>vscode.workspace.workspaceFolders)[0].uri.fsPath);
     }, showErrorIfNotCancel);
 
 }
@@ -206,7 +206,7 @@ function askUser_BlenderPath(onSuccess : (path : string) => void, onError : (rea
             onError(CANCEL);
             return;
         }
-        let filepath = value[0].path;
+        let filepath = value[0].fsPath;
         testIfPathIsBlender(filepath, is_valid => {
             if (is_valid) {
                 getConfiguration().update('blenderPath', filepath);
@@ -435,7 +435,11 @@ function runExternalCommand(command : string, args : string[], additionalEnv : a
     if (process.platform === 'linux') {
         spawn(config.get('linuxExec'), ['-e', command, ...args], {env:env});
     } else if (process.platform === 'win32') {
-        spawn('start', [command, ...args], {env:env});
+        let fullCommand = 'start "" "' + command.replace('"', '//"') + '" ';
+        for (let arg of args) {
+            fullCommand += ' "' + arg.replace('"', '//"') + '" ';
+        }
+        exec(fullCommand, {env:env});
     }
 }
 

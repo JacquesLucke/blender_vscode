@@ -125,7 +125,11 @@ if not os.path.exists(addon_directory):
 if os.path.exists(symlink_path):
     os.remove(symlink_path)
 
-os.symlink(external_addon_directory, symlink_path, target_is_directory=True)
+if sys.platform == "win32":
+    import _winapi
+    _winapi.CreateJunction(external_addon_directory, symlink_path)
+else:
+    os.symlink(external_addon_directory, symlink_path, target_is_directory=True)
 
 bpy.ops.wm.addon_enable(module=addon_folder_name)
 
