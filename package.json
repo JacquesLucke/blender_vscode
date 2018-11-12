@@ -42,7 +42,7 @@
                 "title": "Update Addon"
             }
         ],
-        "configuration":[
+        "configuration": [
             {
                 "title": "Blender",
                 "properties": {
@@ -76,5 +76,8 @@
     },
     "dependencies": {
         "request": "^2.87.0"
-    }
+    },
+    "extensionDependencies": [
+        "ms-python.python"
+    ]
 }
