@@ -440,6 +440,12 @@ function runExternalCommand(command : string, args : string[], additionalEnv : a
             fullCommand += ' "' + arg.replace('"', '//"') + '" ';
         }
         exec(fullCommand, {env:env});
+    } else if (process.platform === 'darwin') {
+        let fullCommand = command + ' ';
+        for (let arg of args) {
+            fullCommand += ' ' + arg;
+        }
+        exec(fullCommand, { env: env });
     }
 }
 
