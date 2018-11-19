@@ -430,17 +430,19 @@ function readTextFile(path : string, onSuccess : (text : string) => void, onErro
 }
 
 function runExternalCommand(command : string, args : string[], additionalEnv : any = {}) {
+    let folders = getWorkspaceFolders();
+    if (folders.length === 0) return;
+
     let env = Object.assign({}, process.env, additionalEnv);
-    let config = vscode.workspace.getConfiguration('terminal.external');
-    if (process.platform === 'linux') {
-        spawn(config.get('linuxExec'), ['-e', command, ...args], {env:env});
-    } else if (process.platform === 'win32') {
-        let fullCommand = 'start "" "' + command.replace('"', '//"') + '" ';
-        for (let arg of args) {
-            fullCommand += ' "' + arg.replace('"', '//"') + '" ';
-        }
-        exec(fullCommand, {env:env});
-    }
+
+    let taskDefinition = {type: 'b3ddev'};
+    let target = folders[0];
+    let name = 'b3ddev';
+    let source = 'b3ddev';
+    let execution = new vscode.ProcessExecution(command, args, {env:env});
+    let problemMatchers : string[] = [];
+    let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);
+    vscode.tasks.executeTask(task);
 }
 
 function showErrorIfNotCancel(message : string) {
