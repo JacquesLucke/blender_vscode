@@ -139,6 +139,16 @@ bpy.ops.wm.addon_enable(module=addon_folder_name)
 # Operators
 ########################################
 
+class DevelopmentPanel(bpy.types.Panel):
+    bl_idname = "DEV_PT_panel"
+    bl_label = "Development"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text=f"Debugger at Port {debug_port}")
+
 class UpdateAddonOperator(bpy.types.Operator):
     bl_idname = "dev.update_addon"
     bl_label = "Update Addon"
@@ -229,6 +239,7 @@ def get_prefixes(all_names, separator):
 ##############################################
 
 classes = (
+    DevelopmentPanel,
     UpdateAddonOperator,
     NewOperatorOperator,
     NewPanelOperator,
