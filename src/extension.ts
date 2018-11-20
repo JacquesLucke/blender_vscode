@@ -15,7 +15,6 @@ let pipPath = path.join(pythonFilesDir, 'get-pip.py');
 let CANCEL = 'CANCEL';
 
 let server : any = undefined;
-let BLENDER_PORT : number | undefined = undefined;
 let blenderPorts : any = {};
 
 export function activate(context: vscode.ExtensionContext) {
