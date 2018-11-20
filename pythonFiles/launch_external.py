@@ -20,6 +20,7 @@ from bpy.props import (
 external_port = os.environ["DEBUGGER_PORT"]
 pip_path = os.environ["PIP_PATH"]
 external_addon_directory = os.environ['ADDON_DEV_DIR']
+process_identifier = os.environ['BLENDER_PROCESS_IDENTIFIER']
 
 python_path = bpy.app.binary_path_python
 external_url = f"http://localhost:{external_port}"
@@ -98,6 +99,7 @@ def send_connection_information(blender_port, debug_port):
         "type" : "setup",
         "blenderPort" : blender_port,
         "debugPort" : debug_port,
+        "identifier" : process_identifier,
     })
 
 def send_dict_as_json(data):

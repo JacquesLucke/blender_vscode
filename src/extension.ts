@@ -16,6 +16,7 @@ let CANCEL = 'CANCEL';
 
 let server : any = undefined;
 let BLENDER_PORT : number | undefined = undefined;
+let blenderPorts : any = {};
 
 export function activate(context: vscode.ExtensionContext) {
     let commands : [string, () => Promise<void>][] = [
@@ -122,8 +123,8 @@ function SERVER_handleRequest(request : any, response : any) {
         request.on('end', () => {
             let res = JSON.parse(body);
             if (res.type === 'setup') {
-                BLENDER_PORT = res.blenderPort;
-                startPythonDebugging(res.debugPort);
+                blenderPorts[res.identifier] = res.blenderPort;
+                startRemotePythonDebugging(res.debugPort);
                 response.end('OK');
             } else if (res.type === 'newOperator') {
                 let settings = new OperatorSettings(res.name, res.group);
@@ -138,9 +139,9 @@ function SERVER_handleRequest(request : any, response : any) {
     }
 }
 
-function startPythonDebugging(port : number) {
+function startRemotePythonDebugging(port : number) {
     let configuration = {
-        name: "Debug Python in Blender",
+        name: `Debug Python at Port ${port}`,
         request: "attach",
         type: "python",
         port: port,
@@ -158,6 +159,7 @@ async function launchAddon(blenderPath : string, launchDirectory : string) {
             ADDON_DEV_DIR: launchDirectory,
             DEBUGGER_PORT: server.address().port,
             PIP_PATH: pipPath,
+            BLENDER_PROCESS_IDENTIFIER: getRandomString(16),
         }
     );
 }
