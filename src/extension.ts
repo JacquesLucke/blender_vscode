@@ -86,15 +86,16 @@ async function COMMAND_launchAddon() {
     }
 }
 
-async function COMMAND_updateAddon(onSuccess : (() => void) | undefined = undefined) {
+async function COMMAND_updateAddon() {
     vscode.workspace.saveAll(false);
-    request.post(
-        `http://localhost:${BLENDER_PORT}`,
-        {json: {type: 'update'}},
-        function (err : any, response : any, body : any) {
-            if (err === null && onSuccess !== undefined) onSuccess();
+
+    for (let property in blenderPorts) {
+        if (blenderPorts.hasOwnProperty(property)) {
+            request.post(
+                `http://localhost:${blenderPorts[property]}`,
+                {json: {type: 'update'}});
         }
-    );
+    }
 }
 
 /* Event Handlers
@@ -102,9 +103,7 @@ async function COMMAND_updateAddon(onSuccess : (() => void) | undefined = undefi
 
 function HANDLER_updateOnSave(document : vscode.TextDocument) {
     if (getConfiguration().get('updateOnSave')) {
-        COMMAND_updateAddon(() => {
-            vscode.window.showInformationMessage("Addon Updated");
-        });
+        COMMAND_updateAddon();
     }
 }
 
@@ -137,6 +136,17 @@ function SERVER_handleRequest(request : any, response : any) {
                 let settings = new PanelSettings(res.name, res.spaceType, res.regionType, res.group);
                 insertTemplate_Panel(settings, showErrorIfNotCancel);
                 response.end('OK');
+            } else if (res.type === 'enableFailure') {
+                vscode.window.showWarningMessage('Enabling the addon failed. See console.');
+                response.end('OK');
+            } else if (res.type === 'disableFailure') {
+                vscode.window.showWarningMessage('Disabling the addon failed. See console.');
+                response.end('OK');
+            } else if (res.type === 'addonUpdated') {
+                // vscode.window.showInformationMessage('Addon Updated');
+                response.end('OK');
+            } else {
+                throw Error('unknown type');
             }
         });
     }

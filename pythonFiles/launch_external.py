@@ -4,6 +4,7 @@ import bpy
 import json
 import time
 import random
+import traceback
 import threading
 import subprocess
 from pprint import pprint
@@ -133,7 +134,11 @@ if sys.platform == "win32":
 else:
     os.symlink(external_addon_directory, symlink_path, target_is_directory=True)
 
-bpy.ops.wm.addon_enable(module=addon_folder_name)
+try:
+    bpy.ops.wm.addon_enable(module=addon_folder_name)
+except:
+    traceback.print_exc()
+    send_dict_as_json({"type" : "enableFailure"})
 
 
 # Operators
@@ -156,13 +161,25 @@ class UpdateAddonOperator(bpy.types.Operator):
     module_name: StringProperty()
 
     def execute(self, context):
-        bpy.ops.wm.addon_disable(module=self.module_name)
+        try:
+            bpy.ops.wm.addon_disable(module=self.module_name)
+        except:
+            traceback.print_exc()
+            send_dict_as_json({"type" : "disableFailure"})
+            return {'CANCELLED'}
 
         for name in list(sys.modules.keys()):
             if name.startswith(self.module_name):
                 del sys.modules[name]
 
-        bpy.ops.wm.addon_enable(module=self.module_name)
+        try:
+            bpy.ops.wm.addon_enable(module=self.module_name)
+        except:
+            traceback.print_exc()
+            send_dict_as_json({"type" : "enableFailure"})
+            return {'CANCELLED'}
+
+        send_dict_as_json({"type" : "addonUpdated"})
 
         self.redraw_all(context)
         return {'FINISHED'}
