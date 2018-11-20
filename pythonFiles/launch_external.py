@@ -208,9 +208,12 @@ class NewOperatorOperator(bpy.types.Operator):
 
     def execute(self, context):
         send_dict_as_json({
-            "type" : "newOperator",
-            "name" : self.name,
-            "group" : self.group,
+            "type" : "insertTemplate",
+            "data" : {
+                "type" : "newOperator",
+                "name" : self.name,
+                "group" : self.group,
+            }
         })
         return {'FINISHED'}
 
@@ -240,11 +243,14 @@ class NewPanelOperator(bpy.types.Operator):
 
     def execute(self, context):
         send_dict_as_json({
-            "type" : "newPanel",
-            "name" : self.name,
-            "spaceType" : self.space_type,
-            "regionType" : self.region_type,
-            "group" : self.group,
+            "type" : "insertTemplate",
+            "data" : {
+                "type" : "newPanel",
+                "name" : self.name,
+                "spaceType" : self.space_type,
+                "regionType" : self.region_type,
+                "group" : self.group,
+            }
         })
         return {'FINISHED'}
 
