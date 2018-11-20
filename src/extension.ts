@@ -12,7 +12,7 @@ let templateFilesDir = path.join(pythonFilesDir, 'templates');
 let pipPath = path.join(pythonFilesDir, 'get-pip.py');
 let CANCEL = 'CANCEL';
 
-let SERVER_PORT = 6000;
+let server : any = undefined;
 let BLENDER_PORT : number | undefined = undefined;
 
 export function activate(context: vscode.ExtensionContext) {
@@ -34,11 +34,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(...disposables);
 
-    let server = http.createServer(SERVER_handleRequest);
-    server.listen(SERVER_PORT);
+    server = http.createServer(SERVER_handleRequest);
+    server.listen();
 }
 
 export function deactivate() {
+    server.close();
 }
 
 /* Commands
@@ -152,7 +153,7 @@ function launch_Single_External(blenderPath : string, launchDirectory : string) 
     let pyLaunchPath = path.join(pythonFilesDir, 'launch_external.py');
     runExternalCommand(blenderPath, ['--python', pyLaunchPath], {
         ADDON_DEV_DIR: launchDirectory,
-        DEBUGGER_PORT: SERVER_PORT,
+        DEBUGGER_PORT: server.address().port,
         PIP_PATH: pipPath,
     });
 }
