@@ -157,21 +157,28 @@ function launch_Single_External(blenderPath : string, launchDirectory : string) 
     });
 }
 
-async function tryGetBlenderPath(allowAskUser : boolean) {
+async function tryGetBlenderPath(allowAskUser : boolean = true) {
     let config = getConfiguration();
-    let savedBlenderPath = config.get('blenderPath');
+    let blenderPaths = <{path:string, name:string}[]>config.get('blenderPaths');
 
-    if (savedBlenderPath !== undefined && savedBlenderPath !== "") {
-        return <string>savedBlenderPath;
-    } else {
+    if (blenderPaths.length === 0) {
         if (allowAskUser) {
             let blenderPath = await askUser_BlenderPath();
-            config.update('blenderPath', blenderPath);
+            blenderPaths.push({path:blenderPath, name:path.basename(path.dirname(blenderPath))});
+            config.update('blenderPaths', blenderPaths, vscode.ConfigurationTarget.Global);
             return blenderPath;
-        } else {
-            throw new Error('Could not get path to Blender.');
+        }
+    } else if (blenderPaths.length === 1) {
+        return blenderPaths[0].path;
+    } else {
+        if (allowAskUser) {
+            let names = blenderPaths.map(item => item.name);
+            let selectedName = await vscode.window.showQuickPick(names);
+            return (<any>blenderPaths.find(item => item.name === selectedName)).path;
         }
     }
+
+    throw new Error('Could not get path to Blender.');
 }
 
 async function askUser_SettingsForNewAddon() {

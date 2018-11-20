@@ -46,10 +46,24 @@
             {
                 "title": "Blender",
                 "properties": {
-                    "blender.blenderPath": {
-                        "type": "string",
-                        "default": "",
-                        "description": "Path to the Blender executable."
+                    "blender.blenderPaths": {
+                        "type": "array",
+                        "scope": "application",
+                        "description": "Paths to Blender executables.",
+                        "items": {
+                            "type": "object",
+                            "title": "Single Blender Path",
+                            "properties": {
+                                "path": {
+                                    "type": "string",
+                                    "description": "Absolute file path to a Blender executable."
+                                },
+                                "name": {
+                                    "type": "string",
+                                    "description": "Custom name for this Blender version."
+                                }
+                            }
+                        }
                     },
                     "blender.updateOnSave": {
                         "type": "boolean",
