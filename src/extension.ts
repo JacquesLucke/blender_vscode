@@ -109,6 +109,10 @@ function HANDLER_updateOnSave(document : vscode.TextDocument) {
 }
 
 function HANDLER_taskEnds(e : vscode.TaskEndEvent) {
+    let identifier = e.execution.task.definition.type;
+    if (blenderPorts.hasOwnProperty(identifier)) {
+        delete blenderPorts[identifier];
+    }
 }
 
 
@@ -116,7 +120,6 @@ function HANDLER_taskEnds(e : vscode.TaskEndEvent) {
  ***************************************/
 
 function SERVER_handleRequest(request : any, response : any) {
-    console.log(request);
     if (request.method === 'POST') {
         let body = '';
         request.on('data', (chunk : any) => body += chunk.toString());
@@ -141,7 +144,7 @@ function SERVER_handleRequest(request : any, response : any) {
 
 function startRemotePythonDebugging(port : number) {
     let configuration = {
-        name: `Debug Python at Port ${port}`,
+        name: `Python at Port ${port}`,
         request: "attach",
         type: "python",
         port: port,
@@ -159,7 +162,6 @@ async function launchAddon(blenderPath : string, launchDirectory : string) {
             ADDON_DEV_DIR: launchDirectory,
             DEBUGGER_PORT: server.address().port,
             PIP_PATH: pipPath,
-            BLENDER_PROCESS_IDENTIFIER: getRandomString(16),
         }
     );
 }
@@ -437,9 +439,12 @@ function readTextFile(path : string) {
     });
 }
 
-async function startBlender(args : string[] = [], additionalEnv : {} = {}) {
+async function startBlender(args : string[] = [], additionalEnv : any = {}) {
     let blenderPath = await tryGetBlenderPath(true);
-    return startExternalProgram(blenderPath, args, additionalEnv);
+    let identifier = getRandomString(16);
+    additionalEnv = Object.assign(additionalEnv);
+    additionalEnv['BLENDER_PROCESS_IDENTIFIER'] = identifier;
+    return startExternalProgram(blenderPath, args, additionalEnv, undefined, identifier);
 }
 
 async function startExternalProgram(
@@ -459,10 +464,6 @@ async function startExternalProgram(
     let problemMatchers : string[] = [];
     let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);
     return vscode.tasks.executeTask(task);
-}
-
-function getTasksByThisExtension() {
-    return vscode.tasks.taskExecutions.filter(task => task.task.source === 'blender');
 }
 
 function showErrorIfNotCancel(message : string) {
