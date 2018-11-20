@@ -1,11 +1,13 @@
 'use strict';
 
 import * as vscode from 'vscode';
-var path = require('path');
-var fs = require('fs');
-var http = require('http');
-var request = require('request');
+const path = require('path');
+const fs = require('fs');
+const http = require('http');
+const request = require('request');
 const child_process = require('child_process');
+const crypto = require('crypto');
+
 
 let pythonFilesDir = path.join(path.dirname(__dirname), 'pythonFiles');
 let templateFilesDir = path.join(pythonFilesDir, 'templates');
@@ -25,6 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     let disposables = [
         vscode.workspace.onDidSaveTextDocument(HANDLER_updateOnSave),
+        vscode.tasks.onDidEndTask(HANDLER_taskEnds),
     ];
 
     for (let [identifier, func] of commands) {
@@ -46,13 +49,7 @@ export function deactivate() {
  *********************************************/
 
 async function COMMAND_startBlender() {
-    try {
-        let blenderPath = await tryGetBlenderPath(true);
-        runExternalCommand(blenderPath);
-    }
-    catch (err) {
-        showErrorIfNotCancel(err.message);
-    }
+    await startBlender();
 }
 
 async function COMMAND_newAddon() {
@@ -82,7 +79,7 @@ async function tryMakeAddonInFolder(folderPath : string, openWorkspace : boolean
 async function COMMAND_launchAddon() {
     try {
         let blenderPath = await tryGetBlenderPath(true);
-        launch_Single_External(blenderPath, getWorkspaceFolders()[0].uri.fsPath);
+        await launchAddon(blenderPath, getWorkspaceFolders()[0].uri.fsPath);
     } catch (err) {
         showErrorIfNotCancel(err.message);
     }
@@ -108,6 +105,9 @@ function HANDLER_updateOnSave(document : vscode.TextDocument) {
             vscode.window.showInformationMessage("Addon Updated");
         });
     }
+}
+
+function HANDLER_taskEnds(e : vscode.TaskEndEvent) {
 }
 
 
@@ -149,13 +149,17 @@ function startPythonDebugging(port : number) {
     vscode.debug.startDebugging(undefined, configuration);
 }
 
-function launch_Single_External(blenderPath : string, launchDirectory : string) {
+async function launchAddon(blenderPath : string, launchDirectory : string) {
     let pyLaunchPath = path.join(pythonFilesDir, 'launch_external.py');
-    runExternalCommand(blenderPath, ['--python', pyLaunchPath], {
-        ADDON_DEV_DIR: launchDirectory,
-        DEBUGGER_PORT: server.address().port,
-        PIP_PATH: pipPath,
-    });
+
+    await startBlender(
+        ['--python', pyLaunchPath],
+        {
+            ADDON_DEV_DIR: launchDirectory,
+            DEBUGGER_PORT: server.address().port,
+            PIP_PATH: pipPath,
+        }
+    );
 }
 
 async function tryGetBlenderPath(allowAskUser : boolean = true) {
@@ -175,7 +179,7 @@ async function tryGetBlenderPath(allowAskUser : boolean = true) {
         if (allowAskUser) {
             let names = blenderPaths.map(item => item.name);
             let selectedName = await vscode.window.showQuickPick(names);
-            return (<any>blenderPaths.find(item => item.name === selectedName)).path;
+            return <string>(<any>blenderPaths.find(item => item.name === selectedName)).path;
         }
     }
 
@@ -431,20 +435,32 @@ function readTextFile(path : string) {
     });
 }
 
-function runExternalCommand(command : string, args : string[] = [], additionalEnv : any = {}) {
+async function startBlender(args : string[] = [], additionalEnv : {} = {}) {
+    let blenderPath = await tryGetBlenderPath(true);
+    return startExternalProgram(blenderPath, args, additionalEnv);
+}
+
+async function startExternalProgram(
+        command : string, args : string[] = [], additionalEnv : any = {},
+        name : string = path.basename(command),
+        identifier : any = getRandomString())
+{
     let folders = getWorkspaceFolders();
-    if (folders.length === 0) return;
+    if (folders.length === 0) throw new Error('workspace required to run an external command');
 
     let env = Object.assign({}, process.env, additionalEnv);
 
-    let taskDefinition = {type: 'blender'};
+    let taskDefinition = {type: identifier};
     let target = folders[0];
-    let name = 'blender';
     let source = 'blender';
-    let execution = new vscode.ProcessExecution(command, args, {env:env});
+    let execution = new vscode.ProcessExecution(command, args, {env:env, });
     let problemMatchers : string[] = [];
     let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);
-    vscode.tasks.executeTask(task);
+    return vscode.tasks.executeTask(task);
+}
+
+function getTasksByThisExtension() {
+    return vscode.tasks.taskExecutions.filter(task => task.task.source === 'blender');
 }
 
 function showErrorIfNotCancel(message : string) {
@@ -469,4 +485,8 @@ function handleErrors(func : () => Promise<void>) {
             }
         }
     };
+}
+
+function getRandomString(length : number = 10) {
+    return crypto.randomBytes(length).toString('hex').substring(0, length);
 }
