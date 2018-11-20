@@ -17,10 +17,10 @@ let BLENDER_PORT : number | undefined = undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     let commands : [string, () => Promise<void>][] = [
-        ['b3ddev.startBlender', COMMAND_startBlender],
-        ['b3ddev.newAddon',     COMMAND_newAddon],
-        ['b3ddev.launchAddon',  COMMAND_launchAddon],
-        ['b3ddev.updateAddon',  COMMAND_updateAddon],
+        ['blender.startBlender', COMMAND_startBlender],
+        ['blender.newAddon',     COMMAND_newAddon],
+        ['blender.launchAddon',  COMMAND_launchAddon],
+        ['blender.updateAddon',  COMMAND_updateAddon],
     ];
 
     let disposables = [
@@ -408,7 +408,7 @@ function startsWithNumber(text : string) {
 }
 
 function getConfiguration() {
-    return vscode.workspace.getConfiguration('b3ddev');
+    return vscode.workspace.getConfiguration('blender');
 }
 
 function readTextFile(path : string) {
@@ -429,10 +429,10 @@ function runExternalCommand(command : string, args : string[] = [], additionalEn
 
     let env = Object.assign({}, process.env, additionalEnv);
 
-    let taskDefinition = {type: 'b3ddev'};
+    let taskDefinition = {type: 'blender'};
     let target = folders[0];
-    let name = 'b3ddev';
-    let source = 'b3ddev';
+    let name = 'blender';
+    let source = 'blender';
     let execution = new vscode.ProcessExecution(command, args, {env:env});
     let problemMatchers : string[] = [];
     let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);

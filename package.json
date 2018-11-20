@@ -11,9 +11,9 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:b3ddev.startBlender",
-        "onCommand:b3ddev.newAddon",
-        "onCommand:b3ddev.launchAddon"
+        "onCommand:blender.startBlender",
+        "onCommand:blender.newAddon",
+        "onCommand:blender.launchAddon"
     ],
     "main": "./out/extension",
     "repository": {
@@ -26,19 +26,19 @@
     "contributes": {
         "commands": [
             {
-                "command": "b3ddev.startBlender",
+                "command": "blender.startBlender",
                 "title": "Blender: Start Blender"
             },
             {
-                "command": "b3ddev.newAddon",
+                "command": "blender.newAddon",
                 "title": "Blender: New Blender Addon"
             },
             {
-                "command": "b3ddev.launchAddon",
+                "command": "blender.launchAddon",
                 "title": "Blender: Launch Addon"
             },
             {
-                "command": "b3ddev.updateAddon",
+                "command": "blender.updateAddon",
                 "title": "Blender: Update Addon"
             }
         ],
@@ -46,12 +46,12 @@
             {
                 "title": "Blender",
                 "properties": {
-                    "b3ddev.blenderPath": {
+                    "blender.blenderPath": {
                         "type": "string",
                         "default": "",
                         "description": "Path to the Blender executable."
                     },
-                    "b3ddev.updateOnSave": {
+                    "blender.updateOnSave": {
                         "type": "boolean",
                         "default": false,
                         "description": "Reload addon in Blender when a document is saved."
