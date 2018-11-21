@@ -45,7 +45,7 @@ async function COMMAND_startBlender() {
 async function COMMAND_launchAddon() {
     let blenderPath = await paths.getBlenderPath();
     await COMMAND_buildAddon();
-    let addonDirectory = getAddonDirectory();
+    let addonDirectory = paths.getAddonLoadDirectory();
     await startBlenderWithAddons(blenderPath, [addonDirectory]);
 }
 
@@ -85,15 +85,6 @@ function HANDLER_updateOnSave(document : vscode.TextDocument) {
 function HANDLER_taskEnds(e : vscode.TaskEndEvent) {
     let identifier = e.execution.task.definition.type;
     communication.unregisterBlenderPort(identifier);
-}
-
-function getAddonDirectory() {
-    let addonDirectory = <string>utils.getConfiguration().get('addonDirectory');
-    if (path.isAbsolute(addonDirectory)) {
-        return addonDirectory;
-    } else {
-        return path.join(utils.getWorkspaceFolders()[0].uri.fsPath, addonDirectory);
-    }
 }
 
 async function startBlenderWithAddons(blenderPath : string, addonDirectories : string[]) {

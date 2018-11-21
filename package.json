@@ -84,10 +84,15 @@
             "type": "string",
             "description": "Task that should be excuted before the addon can be loaded into Blender."
           },
-          "blender.addonDirectory": {
+          "blender.addonLoadDirectory": {
             "type": "string",
             "default": "./",
             "description": "Directory that contains the addon that should be loaded into Blender."
+          },
+          "blender.addonSourceDirectory": {
+            "type": "string",
+            "default": "./",
+            "description": "Directory that contains the source code of the addon (used for path mapping for the debugger)."
           }
         }
       }

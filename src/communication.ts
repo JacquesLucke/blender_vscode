@@ -1,6 +1,7 @@
 import * as http from 'http';
 import * as vscode from 'vscode';
 import * as request from 'request';
+import * as paths from './paths';
 import { attachPythonDebugger } from './python_debugging';
 import { insertTemplate } from './template_insertion';
 
@@ -48,7 +49,7 @@ function SERVER_handleRequest(request : any, response : any) {
             switch (req.type) {
                 case 'setup': {
                     registerBlenderPort(req.identifier, req.blenderPort);
-                    attachPythonDebugger(req.debugPort);
+                    attachPythonDebugger(req.debugPort, [paths.getAddonPathMapping()]);
                     response.end('OK');
                     break;
                 }

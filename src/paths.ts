@@ -61,3 +61,30 @@ async function testIfPathIsBlender(filepath : string) {
         });
     });
 }
+
+
+/* Get paths to addon code
+ *****************************************************/
+
+export function getAddonPathMapping() {
+    return {
+        localRoot: getAddonSourceDirectory(),
+        remoteRoot: getAddonLoadDirectory()
+    };
+}
+
+export function getAddonLoadDirectory() {
+    return makeAddonPathAbsolute(<string>utils.getConfiguration().get('addonLoadDirectory'));
+}
+
+export function getAddonSourceDirectory() {
+    return makeAddonPathAbsolute(<string>utils.getConfiguration().get('addonSourceDirectory'));
+}
+
+function makeAddonPathAbsolute(directory : string) {
+    if (path.isAbsolute(directory)) {
+        return directory;
+    } else {
+        return path.join(utils.getWorkspaceFolders()[0].uri.fsPath, directory);
+    }
+}
