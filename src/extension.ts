@@ -85,7 +85,7 @@ async function buildWorkspaceFolders(folders : vscode.WorkspaceFolder[]) {
 
 async function buildAddon(folder : vscode.WorkspaceFolder) {
     let config = utils.getConfiguration(folder.uri);
-    let taskName = <string>config.get('addonBuildTask');
+    let taskName = <string>config.get('addon.buildTaskName');
     if (taskName === '') return Promise.resolve();
 
     await vscode.commands.executeCommand('workbench.action.tasks.runTask', taskName);
@@ -94,7 +94,7 @@ async function buildAddon(folder : vscode.WorkspaceFolder) {
 
 async function buildBlender(folder : vscode.WorkspaceFolder) {
     let config = utils.getConfiguration(folder.uri);
-    let buildCommand = <string>config.get('blenderBuildCommand');
+    let buildCommand = <string>config.get('core.buildDebugCommand');
 
     await utils.startShellCommand(buildCommand, folder);
     await utils.waitUntilTaskEnds(buildCommand);
@@ -111,7 +111,7 @@ async function COMMAND_reloadAddons() {
  ***************************************/
 
 function HANDLER_updateOnSave(document : vscode.TextDocument) {
-    if (utils.getConfiguration().get('reloadAddonOnSave')) {
+    if (utils.getConfiguration().get('addon.reloadOnSave')) {
         COMMAND_reloadAddons();
     }
 }

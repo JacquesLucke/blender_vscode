@@ -74,11 +74,11 @@ export function getAddonPathMapping(root : vscode.Uri) {
 }
 
 export function getAddonLoadDirectory(uri : vscode.Uri) {
-    return makeAddonPathAbsolute(<string>utils.getConfiguration(uri).get('addonLoadDirectory'), uri.fsPath);
+    return makeAddonPathAbsolute(<string>utils.getConfiguration(uri).get('addon.loadDirectory'), uri.fsPath);
 }
 
 export function getAddonSourceDirectory(uri : vscode.Uri) {
-    return makeAddonPathAbsolute(<string>utils.getConfiguration(uri).get('addonSourceDirectory'), uri.fsPath);
+    return makeAddonPathAbsolute(<string>utils.getConfiguration(uri).get('addon.sourceDirectory'), uri.fsPath);
 }
 
 function makeAddonPathAbsolute(directory : string, root : string) {

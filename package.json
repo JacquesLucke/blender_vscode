@@ -71,39 +71,41 @@
               }
             }
           },
-          "blender.reloadAddonOnSave": {
-            "type": "boolean",
-            "scope": "resource",
-            "default": false,
-            "description": "Reload addon in Blender when a document is saved."
-          },
           "blender.allowModifyExternalPython": {
             "type": "boolean",
             "default": false,
             "description": "Allow automatically installing modules in Python distributions outside of Blender."
           },
-          "blender.addonBuildTask": {
+
+          "blender.addon.reloadOnSave": {
+            "type": "boolean",
+            "scope": "resource",
+            "default": false,
+            "description": "Reload addon in Blender when a document is saved."
+          },
+          "blender.addon.buildTaskName": {
             "type": "string",
             "scope": "resource",
             "description": "Task that should be executed before the addon can be loaded into Blender."
           },
-          "blender.blenderBuildCommand": {
-            "type": "string",
-            "scope": "resource",
-            "description": "Command used to compile Blender.",
-            "default": "make debug"
-          },
-          "blender.addonLoadDirectory": {
+          "blender.addon.loadDirectory": {
             "type": "string",
             "scope": "resource",
             "default": "./",
             "description": "Directory that contains the addon that should be loaded into Blender."
           },
-          "blender.addonSourceDirectory": {
+          "blender.addon.sourceDirectory": {
             "type": "string",
             "scope": "resource",
             "default": "./",
             "description": "Directory that contains the source code of the addon (used for path mapping for the debugger)."
+          },
+
+          "blender.core.buildDebugCommand": {
+            "type": "string",
+            "scope": "resource",
+            "description": "Command used to compile Blender.",
+            "default": "make debug"
           }
         }
       }
