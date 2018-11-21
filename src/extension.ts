@@ -7,6 +7,8 @@ import { handleErrors, getWorkspaceFolders, waitUntilTaskEnds } from './utils/ge
 import * as paths from './utils/paths';
 import * as utils from './utils/utils';
 import { getBlenderPath, getBlenderPath_Debug } from './blender_paths';
+import { AddonFolder } from './addon_folder';
+import { BlenderFolder } from './blender_folder';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands : [string, () => Promise<void>][] = [
@@ -59,7 +61,7 @@ async function COMMAND_launchAll() {
 }
 
 async function launchBlenderWithDebugger(folder : vscode.WorkspaceFolder) {
-    let addonData = await getStartAddonsData();
+    let launchData = await getBlenderLaunchData();
     let blenderPath = await getBlenderPath_Debug();
 
     let configuation = {
@@ -67,8 +69,8 @@ async function launchBlenderWithDebugger(folder : vscode.WorkspaceFolder) {
         type: 'cppdbg',
         request: 'launch',
         program: blenderPath,
-        args: ['--debug'].concat(addonData.args),
-        env: addonData.env,
+        args: ['--debug'].concat(launchData.args),
+        env: launchData.env,
         stopAtEntry: false,
         MIMode: 'gdb',
         cwd: folder.uri.fsPath,
@@ -77,42 +79,24 @@ async function launchBlenderWithDebugger(folder : vscode.WorkspaceFolder) {
 }
 
 async function COMMAND_buildAll() {
-    await buildWorkspaceFolders(getWorkspaceFolders());
-}
-
-async function buildWorkspaceFolders(folders : vscode.WorkspaceFolder[]) {
-    let promises = [];
-    for (let folder of folders) {
-        if (await utils.folderIsAddon(folder)) {
-            promises.push(buildAddon(folder));
-        } else if (await utils.folderIsBlender(folder)) {
-            promises.push(buildBlender(folder));
-        }
+    let addons = await AddonFolder.All();
+    await Promise.all(addons.map(a => a.build()));
+    let blender = await BlenderFolder.Get();
+    if (blender !== null) {
+        await blender.buildDebug();
     }
-    return Promise.all(promises);
-}
-
-async function buildAddon(folder : vscode.WorkspaceFolder) {
-    let config = utils.getConfiguration(folder.uri);
-    let taskName = <string>config.get('addon.buildTaskName');
-    if (taskName === '') return Promise.resolve();
-
-    await vscode.commands.executeCommand('workbench.action.tasks.runTask', taskName);
-    await waitUntilTaskEnds(taskName);
-}
-
-async function buildBlender(folder : vscode.WorkspaceFolder) {
-    let config = utils.getConfiguration(folder.uri);
-    let buildCommand = <string>config.get('core.buildDebugCommand');
-
-    await startShellCommand(buildCommand, folder);
-    await waitUntilTaskEnds(buildCommand);
 }
 
 async function COMMAND_reloadAddons() {
-    let addonFolders = await utils.getAddonWorkspaceFolders();
-    await buildWorkspaceFolders(addonFolders);
-    communication.sendToAllBlenderPorts({type: 'update'});
+    let addons = await AddonFolder.All();
+    let addonsToReload = addons.filter(a => a.reloadOnSave);
+
+    if (addonsToReload.length === 0) return;
+    if (!(await communication.isAnyBlenderConnected())) return;
+
+    await Promise.all(addonsToReload.map(a => a.build()));
+    let names = addonsToReload.map(a => a.name);
+    communication.sendToAllBlenderPorts({type: 'reload', names: names});
 }
 
 
@@ -120,22 +104,25 @@ async function COMMAND_reloadAddons() {
  ***************************************/
 
 function HANDLER_updateOnSave(document : vscode.TextDocument) {
-    if (utils.getConfiguration().get('addon.reloadOnSave')) {
-        COMMAND_reloadAddons();
-    }
+    COMMAND_reloadAddons();
 }
 
 async function startBlenderWithAddons() {
-    let data = await getStartAddonsData();
+    let data = await getBlenderLaunchData();
     await startBlender(data.args, data.env);
 }
 
-async function getStartAddonsData() {
-    let config = utils.getConfiguration();
-    let folders = await utils.getAddonWorkspaceFolders();
-    let loadDirs = folders.map(f => paths.getAddonLoadDirectory(f.uri));
+interface BlenderLaunchData {
+    args : string[];
+    env : any;
+}
 
-    return {
+async function getBlenderLaunchData() {
+    let config = utils.getConfiguration();
+    let addons = await AddonFolder.All();
+    let loadDirs = addons.map(a => a.getLoadDirectory());
+
+    return <BlenderLaunchData>{
         args: ['--python', paths.launchPath],
         env: {
             ADDON_DIRECTORIES_TO_LOAD: JSON.stringify(loadDirs),

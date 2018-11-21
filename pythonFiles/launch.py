@@ -92,13 +92,22 @@ def start_blender_server():
 
     def server_thread_function():
         app = Flask("Blender Server")
+
         @app.route("/", methods=['POST'])
         def handle_post():
             data = flask.request.get_json()
             print("Got POST:", data)
-            if data["type"] == "update":
-                for path in addons_to_load:
-                    bpy.ops.dev.update_addon(module_name=path.name)
+            if data["type"] == "reload":
+                for name in data["names"]:
+                    bpy.ops.dev.update_addon(module_name=name)
+            return "OK"
+
+        @app.route("/", methods=['GET'])
+        def handle_get():
+            data = flask.request.get_json()
+            print("Got GET:", data)
+            if data["type"] == "ping":
+                pass
             return "OK"
 
         while True:
@@ -197,6 +206,7 @@ class DevelopmentPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.label(text=f"Debugger at Port {debug_port}")
+        layout.label(text=f"Blender at Port {blender_port}")
 
 class UpdateAddonOperator(bpy.types.Operator):
     bl_idname = "dev.update_addon"

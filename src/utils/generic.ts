@@ -19,6 +19,13 @@ export async function waitUntilTaskEnds(taskName : string) {
     });
 }
 
+export async function executeTask(taskName : string, wait : boolean = false) {
+    await vscode.commands.executeCommand('workbench.action.tasks.runTask', taskName);
+    if (wait) {
+        await waitUntilTaskEnds(taskName);
+    }
+}
+
 export function getWorkspaceFolders() {
     let folders = vscode.workspace.workspaceFolders;
     if (folders === undefined) return [];

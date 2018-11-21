@@ -1,22 +1,10 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as paths from './paths';
 import * as generic from './generic';
 
 
 export function getConfiguration(resource : vscode.Uri | undefined = undefined) {
     return vscode.workspace.getConfiguration('blender', resource);
-}
-
-export async function folderIsAddon(folder : vscode.WorkspaceFolder) {
-    let sourceDir = paths.getAddonSourceDirectory(folder.uri);
-    let initPath = path.join(sourceDir, '__init__.py');
-    try {
-        let content = await generic.readTextFile(initPath);
-        return content.includes('bl_info');
-    } catch (err) {
-        return false;
-    }
 }
 
 export async function folderIsBlender(folder : vscode.WorkspaceFolder) {
@@ -31,14 +19,4 @@ export async function getBlenderWorkspaceFolder() {
         }
     }
     return null;
-}
-
-export async function getAddonWorkspaceFolders() {
-    let folders = [];
-    for (let folder of generic.getWorkspaceFolders()) {
-        if (await folderIsAddon(folder)) {
-            folders.push(folder);
-        }
-    }
-    return folders;
 }
