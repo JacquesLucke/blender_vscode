@@ -2,10 +2,11 @@
 
 import * as vscode from 'vscode';
 import * as communication from './communication';
-import { startBlender, startShellCommand } from './utils/tasks';
+import { startExternalProgram, startShellCommand } from './utils/tasks';
 import { handleErrors, getWorkspaceFolders, waitUntilTaskEnds } from './utils/generic';
 import * as paths from './utils/paths';
 import * as utils from './utils/utils';
+import { getBlenderPath, getBlenderPath_Debug } from './blender_paths';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands : [string, () => Promise<void>][] = [
@@ -42,6 +43,11 @@ async function COMMAND_startBlender() {
     await startBlender();
 }
 
+export async function startBlender(args : string[] = [], additionalEnv : any = {}) {
+    let blenderPath = await getBlenderPath();
+    return startExternalProgram(blenderPath, args, additionalEnv);
+}
+
 async function COMMAND_launchAll() {
     await COMMAND_buildAll();
     let blenderFolder = await utils.getBlenderWorkspaceFolder();
@@ -54,7 +60,7 @@ async function COMMAND_launchAll() {
 
 async function launchBlenderWithDebugger(folder : vscode.WorkspaceFolder) {
     let addonData = await getStartAddonsData();
-    let blenderPath = await paths.getBlenderPath_Debug();
+    let blenderPath = await getBlenderPath_Debug();
 
     let configuation = {
         name: 'Debug Blender',

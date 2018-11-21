@@ -1,12 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as generic from './generic';
-import { getBlenderPath } from './paths';
-
-export async function startBlender(args : string[] = [], additionalEnv : any = {}) {
-    let blenderPath = await getBlenderPath();
-    return startExternalProgram(blenderPath, args, additionalEnv);
-}
 
 export async function startExternalProgram(
     command : string, args : string[] = [], additionalEnv : any = {},
