@@ -4,9 +4,11 @@ import bpy
 import json
 import time
 import random
+import textwrap
 import traceback
 import threading
 import subprocess
+from pathlib import Path
 from pprint import pprint
 
 from bpy.props import (
@@ -22,34 +24,60 @@ external_port = os.environ["DEBUGGER_PORT"]
 pip_path = os.environ["PIP_PATH"]
 external_addon_directory = os.environ['ADDON_DEV_DIR']
 process_identifier = os.environ['BLENDER_PROCESS_IDENTIFIER']
+allow_modify_external_python = bool(os.environ['ALLOW_MODIFY_EXTERNAL_PYTHON'])
 
-python_path = bpy.app.binary_path_python
 external_url = f"http://localhost:{external_port}"
+
+python_path = Path(bpy.app.binary_path_python)
+blender_path = Path(bpy.app.binary_path)
+blender_directory = blender_path.parent
+use_own_python = blender_directory in python_path.parents
 
 
 # Install Required Packages
 ##########################################
 
-try: import pip
-except ModuleNotFoundError:
-    subprocess.run([python_path, pip_path])
+required_packages = ["ptvsd", "flask", "requests"]
+
+def install_packages(package_names):
+    if not use_own_python and not allow_modify_external_python:
+        raise Exception(textwrap.dedent(f'''\
+            Installing packages in Python distributions, that don't
+            come with Blender, is not allowed currently.
+            Please enable 'blender.allowModifyExternalPython' in VS Code
+            or make sure that those packages are installed by yourself:
+            {package_names}
+        '''))
+
+    try: import pip
+    except ModuleNotFoundError:
+        subprocess.run([python_path, pip_path])
+
+    for name in package_names:
+        ensure_package_is_installed(name)
+
+def ensure_package_is_installed(name):
+    try: __import__(name)
+    except ModuleNotFoundError:
+        install_package(name)
+        __import__(name)
 
 def install_package(name):
     subprocess.run([python_path, "-m", "pip", "install", name])
 
-def get_package(name):
-    try: return __import__(name)
-    except ModuleNotFoundError:
-        install_package(name)
-        return __import__(name)
-
-ptvsd = get_package("ptvsd")
-flask = get_package("flask")
-requests = get_package("requests")
+try:
+    for name in required_packages:
+        __import__(name)
+except ModuleNotFoundError:
+    install_packages(required_packages)
 
 
 # Setup Communication
 #########################################
+
+import flask
+import ptvsd
+import requests
 
 def start_blender_server():
     from flask import Flask, jsonify

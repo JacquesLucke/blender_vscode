@@ -65,10 +65,15 @@
               }
             }
           },
-          "blender.updateOnSave": {
+          "blender.reloadAddonOnSave": {
             "type": "boolean",
             "default": false,
             "description": "Reload addon in Blender when a document is saved."
+          },
+          "blender.allowModifyExternalPython": {
+            "type": "boolean",
+            "default": false,
+            "description": "Allow automatically installing modules in Python distributions outside of Blender."
           }
         }
       }

@@ -54,7 +54,7 @@ async function COMMAND_updateAddon() {
  ***************************************/
 
 function HANDLER_updateOnSave(document : vscode.TextDocument) {
-    if (utils.getConfiguration().get('updateOnSave')) {
+    if (utils.getConfiguration().get('reloadAddonOnSave')) {
         COMMAND_updateAddon();
     }
 }
@@ -67,6 +67,7 @@ function HANDLER_taskEnds(e : vscode.TaskEndEvent) {
 
 async function launchAddon(blenderPath : string, launchDirectory : string) {
     let pyLaunchPath = path.join(paths.pythonFilesDir, 'launch_external.py');
+    let config = utils.getConfiguration();
 
     await utils.startBlender(
         ['--python', pyLaunchPath],
@@ -74,6 +75,7 @@ async function launchAddon(blenderPath : string, launchDirectory : string) {
             ADDON_DEV_DIR: launchDirectory,
             DEBUGGER_PORT: communication.getServerPort(),
             PIP_PATH: paths.pipPath,
+            ALLOW_MODIFY_EXTERNAL_PYTHON: <boolean>config.get('allowModifyExternalPython'),
         }
     );
 }
