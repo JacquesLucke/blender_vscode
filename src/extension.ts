@@ -2,8 +2,10 @@
 
 import * as vscode from 'vscode';
 import * as communication from './communication';
-import * as paths from './paths';
-import * as utils from './utils';
+import { startBlender, startShellCommand } from './utils/tasks';
+import { handleErrors, getWorkspaceFolders, waitUntilTaskEnds } from './utils/generic';
+import * as paths from './utils/paths';
+import * as utils from './utils/utils';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands : [string, () => Promise<void>][] = [
@@ -19,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
     ];
 
     for (let [identifier, func] of commands) {
-        let command = vscode.commands.registerCommand(identifier, utils.handleErrors(func));
+        let command = vscode.commands.registerCommand(identifier, handleErrors(func));
         disposables.push(command);
     }
 
@@ -37,7 +39,7 @@ export function deactivate() {
  *********************************************/
 
 async function COMMAND_startBlender() {
-    await utils.startBlender();
+    await startBlender();
 }
 
 async function COMMAND_launchAll() {
@@ -69,7 +71,7 @@ async function launchBlenderWithDebugger(folder : vscode.WorkspaceFolder) {
 }
 
 async function COMMAND_buildAll() {
-    await buildWorkspaceFolders(utils.getWorkspaceFolders());
+    await buildWorkspaceFolders(getWorkspaceFolders());
 }
 
 async function buildWorkspaceFolders(folders : vscode.WorkspaceFolder[]) {
@@ -90,15 +92,15 @@ async function buildAddon(folder : vscode.WorkspaceFolder) {
     if (taskName === '') return Promise.resolve();
 
     await vscode.commands.executeCommand('workbench.action.tasks.runTask', taskName);
-    await utils.waitUntilTaskEnds(taskName);
+    await waitUntilTaskEnds(taskName);
 }
 
 async function buildBlender(folder : vscode.WorkspaceFolder) {
     let config = utils.getConfiguration(folder.uri);
     let buildCommand = <string>config.get('core.buildDebugCommand');
 
-    await utils.startShellCommand(buildCommand, folder);
-    await utils.waitUntilTaskEnds(buildCommand);
+    await startShellCommand(buildCommand, folder);
+    await waitUntilTaskEnds(buildCommand);
 }
 
 async function COMMAND_reloadAddons() {
@@ -119,7 +121,7 @@ function HANDLER_updateOnSave(document : vscode.TextDocument) {
 
 async function startBlenderWithAddons() {
     let data = await getStartAddonsData();
-    await utils.startBlender(data.args, data.env);
+    await startBlender(data.args, data.env);
 }
 
 async function getStartAddonsData() {

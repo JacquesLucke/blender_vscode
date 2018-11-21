@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import * as utils from './utils';
-import * as paths from './paths';
+import * as utils from './utils/utils';
+import * as paths from './utils/paths';
 import * as path from 'path';
 
 export async function attachPythonDebuggerToBlender(port : number, blenderPath : string, scriptsFolder : string) {

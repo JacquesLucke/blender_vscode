@@ -1,9 +1,14 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
+import * as generic from './generic';
 import * as utils from './utils';
 
-export const pythonFilesDir = path.join(path.dirname(__dirname), 'pythonFiles');
+
+/* Constant paths
+ *********************************************/
+
+export const pythonFilesDir = path.join(path.dirname(path.dirname(__dirname)), 'pythonFiles');
 export const templateFilesDir = path.join(pythonFilesDir, 'templates');
 export const pipPath = path.join(pythonFilesDir, 'get-pip.py');
 export const launchPath = path.join(pythonFilesDir, 'launch.py');
@@ -66,7 +71,7 @@ async function askUser_BlenderPath(openLabel : string) {
             canSelectMany: false,
             openLabel: openLabel
         });
-    if (value === undefined) return Promise.reject(utils.cancel());
+    if (value === undefined) return Promise.reject(generic.cancel());
     let filepath = value[0].fsPath;
     await testIfPathIsBlender(filepath);
     return filepath;
@@ -95,12 +100,8 @@ async function testIfPathIsBlender(filepath : string) {
 }
 
 
-export function getAddonPathMapping(root : vscode.Uri) {
-    return {
-        localRoot: getAddonSourceDirectory(root),
-        remoteRoot: getAddonLoadDirectory(root)
-    };
-}
+/* Addon paths
+ *********************************************/
 
 export function getAddonLoadDirectory(uri : vscode.Uri) {
     return makePathAbsolute(<string>utils.getConfiguration(uri).get('addon.loadDirectory'), uri.fsPath);

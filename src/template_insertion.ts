@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as paths from './paths';
-import * as utils from './utils';
+import { readTextFile } from './utils/generic';
+import { templateFilesDir } from './utils/paths';
+import { nameToIdentifier, nameToClassIdentifier } from './utils/strings';
 
 export async function insertTemplate(data : any) {
     try {
@@ -40,8 +41,8 @@ class OperatorSettings {
 }
 
 async function insertTemplate_SimpleOperator(settings : OperatorSettings) {
-    let sourcePath = path.join(paths.templateFilesDir, 'operator_simple.py');
-    let text = await utils.readTextFile(sourcePath);
+    let sourcePath = path.join(templateFilesDir, 'operator_simple.py');
+    let text = await readTextFile(sourcePath);
     text = text.replace('LABEL', settings.name);
     text = text.replace('OPERATOR_CLASS', 'bpy.types.Operator');
     text = text.replace('IDNAME', settings.getIdName());
@@ -76,8 +77,8 @@ class PanelSettings {
 }
 
 async function insertTemplate_Panel(settings : PanelSettings) {
-    let sourcePath = path.join(paths.templateFilesDir, 'panel_simple.py');
-    let text = await utils.readTextFile(sourcePath);
+    let sourcePath = path.join(templateFilesDir, 'panel_simple.py');
+    let text = await readTextFile(sourcePath);
     text = text.replace('LABEL', settings.name);
     text = text.replace('PANEL_CLASS', 'bpy.types.Panel');
     text = text.replace('SPACE_TYPE', settings.spaceType);
@@ -124,25 +125,4 @@ function findLastLineContainingText(document : vscode.TextDocument, start : numb
         }
     }
     return 0;
-}
-
-function nameToIdentifier(name : string) {
-    return name.toLowerCase().replace(/\W+/, '_');
-}
-
-function nameToClassIdentifier(name : string) {
-    let parts = name.split(/\W+/);
-    let result = '';
-    let allowNumber = false;
-    for (let part of parts) {
-        if (part.length > 0 && (allowNumber || !startsWithNumber(part))) {
-            result += part.charAt(0).toUpperCase() + part.slice(1);
-            allowNumber = true;
-        }
-    }
-    return result;
-}
-
-function startsWithNumber(text : string) {
-    return text.charAt(0).match(/[0-9]/) !== null;
 }

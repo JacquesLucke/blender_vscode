@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import * as utils from './utils';
-import * as paths from './paths';
 import * as path from 'path';
 import * as fs from 'fs';
+import { templateFilesDir } from './utils/paths';
+import { cancel, readTextFile, getWorkspaceFolders } from './utils/generic';
 
 export async function COMMAND_newAddon() {
-    let workspaceFolders = utils.getWorkspaceFolders();
+    let workspaceFolders = getWorkspaceFolders();
     if (workspaceFolders.length === 0) {
         let value = await vscode.window.showOpenDialog({
             canSelectFiles: false,
@@ -51,14 +51,14 @@ async function testIfAddonCanBeCreatedInFolder(folder : string) {
 async function askUser_SettingsForNewAddon() {
     let addonName = await vscode.window.showInputBox({placeHolder: 'Addon Name'});
     if (addonName === undefined) {
-        return Promise.reject(utils.cancel());
+        return Promise.reject(cancel());
     } else if (addonName === "") {
         return Promise.reject(new Error('Can\'t create an addon without a name.'));
     }
 
     let authorName = await vscode.window.showInputBox({placeHolder: 'Your Name'});
     if (authorName === undefined) {
-        return Promise.reject(utils.cancel());
+        return Promise.reject(cancel());
     } else if (authorName === "") {
         return Promise.reject(new Error('Can\'t create an addon without an author name.'));
     }
@@ -67,9 +67,9 @@ async function askUser_SettingsForNewAddon() {
 }
 
 async function createNewAddon(folder : string, addonName : string, authorName : string) {
-    let initSourcePath = path.join(paths.templateFilesDir, 'addon.py');
+    let initSourcePath = path.join(templateFilesDir, 'addon.py');
     let initTargetPath = path.join(folder, "__init__.py");
-    let text = await utils.readTextFile(initSourcePath);
+    let text = await readTextFile(initSourcePath);
     text = text.replace('ADDON_NAME', addonName);
     text = text.replace('AUTHOR_NAME', authorName);
 
