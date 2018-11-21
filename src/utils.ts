@@ -25,7 +25,7 @@ export async function startExternalProgram(
         identifier : any = getRandomString())
 {
     let folders = getWorkspaceFolders();
-    if (folders.length === 0) throw new Error('workspace required to run an external command');
+    if (folders.length === 0) return Promise.reject(new Error('workspace required to run an external command'));
 
     let env = Object.assign({}, process.env, additionalEnv);
 

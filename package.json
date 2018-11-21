@@ -67,6 +67,11 @@
                 "name": {
                   "type": "string",
                   "description": "Custom name for this Blender version."
+                },
+                "isDebug": {
+                  "type": "boolean",
+                  "description": "Is this executable a debug build.",
+                  "default": false
                 }
               }
             }

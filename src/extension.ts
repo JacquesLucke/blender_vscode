@@ -44,20 +44,21 @@ async function COMMAND_launchAll() {
     await COMMAND_buildAll();
     let blenderFolder = await utils.getBlenderWorkspaceFolder();
     if (blenderFolder === null) {
-        startBlenderWithAddons();
+        await startBlenderWithAddons();
     } else {
-        launchBlenderWithDebugger(blenderFolder);
+        await launchBlenderWithDebugger(blenderFolder);
     }
 }
 
 async function launchBlenderWithDebugger(folder : vscode.WorkspaceFolder) {
     let addonData = await getStartAddonsData();
+    let blenderPath = await paths.getBlenderPath_Debug();
 
     let configuation = {
         name: 'Debug Blender',
         type: 'cppdbg',
         request: 'launch',
-        program: '/home/jacques/blender-git/build_linux_debug/bin/blender',
+        program: blenderPath,
         args: ['--debug'].concat(addonData.args),
         env: addonData.env,
         stopAtEntry: false,

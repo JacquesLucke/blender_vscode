@@ -12,32 +12,61 @@ export const launchPath = path.join(pythonFilesDir, 'launch.py');
 /* Get Path to Blender Executable
  *********************************************/
 
-export async function getBlenderPath() {
-    let config = utils.getConfiguration();
-    let blenderPaths = <{path:string, name:string}[]>config.get('blenderPaths');
+interface BlenderPath {
+    path : string;
+    name : string;
+    isDebug : boolean;
+}
 
-    if (blenderPaths.length === 0) {
-        let blenderPath = await askUser_BlenderPath();
-        blenderPaths.push({path:blenderPath, name:path.basename(path.dirname(blenderPath))});
-        config.update('blenderPaths', blenderPaths, vscode.ConfigurationTarget.Global);
+export async function getBlenderPath() {
+    return await getFilteredBlenderPath('Blender Executable', () => true, () => {});
+}
+
+export async function getBlenderPath_Debug() {
+    return await getFilteredBlenderPath(
+        'Debug Build',
+        item => item.isDebug,
+        item => { item.isDebug = true; }
+    );
+}
+
+async function getFilteredBlenderPath(
+        openLabel: string,
+        predicate : (item : BlenderPath) => boolean,
+        setSettings : (item : BlenderPath) => void)
+{
+    let config = utils.getConfiguration();
+    let allBlenderPaths = <BlenderPath[]>config.get('blenderPaths');
+    let usableBlenderPaths = allBlenderPaths.filter(predicate);
+
+    if (usableBlenderPaths.length === 0) {
+        let blenderPath = await askUser_BlenderPath(openLabel);
+        let item = {
+            path: blenderPath,
+            name: path.basename(path.dirname(blenderPath)),
+            isDebug: false
+        };
+        setSettings(item);
+        allBlenderPaths.push(item);
+        config.update('blenderPaths', allBlenderPaths, vscode.ConfigurationTarget.Global);
         return blenderPath;
-    } else if (blenderPaths.length === 1) {
-        return blenderPaths[0].path;
+    } else if (usableBlenderPaths.length === 1) {
+        return usableBlenderPaths[0].path;
     } else {
-        let names = blenderPaths.map(item => item.name);
+        let names = usableBlenderPaths.map(item => item.name);
         let selectedName = await vscode.window.showQuickPick(names);
-        return <string>(<any>blenderPaths.find(item => item.name === selectedName)).path;
+        return <string>(<BlenderPath>usableBlenderPaths.find(item => item.name === selectedName)).path;
     }
 }
 
-async function askUser_BlenderPath() {
+async function askUser_BlenderPath(openLabel : string) {
     let value = await vscode.window.showOpenDialog({
             canSelectFiles: true,
             canSelectFolders: false,
             canSelectMany: false,
-            openLabel: 'Blender Executable'
+            openLabel: openLabel
         });
-    if (value === undefined) throw utils.cancel();
+    if (value === undefined) return Promise.reject(utils.cancel());
     let filepath = value[0].fsPath;
     await testIfPathIsBlender(filepath);
     return filepath;
@@ -47,7 +76,7 @@ async function testIfPathIsBlender(filepath : string) {
     let name : string = path.basename(filepath);
 
     if (!name.toLowerCase().startsWith('blender')) {
-        throw new Error('Expected executable name to begin with \'blender\'');
+        return Promise.reject(new Error('Expected executable name to begin with \'blender\''));
     }
 
     let testString = '###TEST_BLENDER###';
@@ -56,15 +85,15 @@ async function testIfPathIsBlender(filepath : string) {
     return new Promise<void>((resolve, reject) => {
         child_process.exec(command, {}, (err, stdout, stderr) => {
             let text = stdout.toString();
-            if (!text.includes(testString)) throw new Error('Path is not Blender.');
-            resolve();
+            if (!text.includes(testString)) {
+                reject(new Error('Path is not Blender.'));
+            } else {
+                resolve();
+            }
         });
     });
 }
 
-
-/* Get paths to addon code
- *****************************************************/
 
 export function getAddonPathMapping(root : vscode.Uri) {
     return {
@@ -74,14 +103,14 @@ export function getAddonPathMapping(root : vscode.Uri) {
 }
 
 export function getAddonLoadDirectory(uri : vscode.Uri) {
-    return makeAddonPathAbsolute(<string>utils.getConfiguration(uri).get('addon.loadDirectory'), uri.fsPath);
+    return makePathAbsolute(<string>utils.getConfiguration(uri).get('addon.loadDirectory'), uri.fsPath);
 }
 
 export function getAddonSourceDirectory(uri : vscode.Uri) {
-    return makeAddonPathAbsolute(<string>utils.getConfiguration(uri).get('addon.sourceDirectory'), uri.fsPath);
+    return makePathAbsolute(<string>utils.getConfiguration(uri).get('addon.sourceDirectory'), uri.fsPath);
 }
 
-function makeAddonPathAbsolute(directory : string, root : string) {
+function makePathAbsolute(directory : string, root : string) {
     if (path.isAbsolute(directory)) {
         return directory;
     } else {
