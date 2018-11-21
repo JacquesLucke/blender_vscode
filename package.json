@@ -13,7 +13,8 @@
   "activationEvents": [
     "onCommand:blender.startBlender",
     "onCommand:blender.newAddon",
-    "onCommand:blender.launchAddon"
+    "onCommand:blender.launchAddon",
+    "onCommand:blender.buildAddon"
   ],
   "main": "./out/extension",
   "repository": {
@@ -40,6 +41,10 @@
       {
         "command": "blender.updateAddon",
         "title": "Blender: Update Addon"
+      },
+      {
+        "command": "blender.buildAddon",
+        "title": "Blender: Build Addon"
       }
     ],
     "configuration": [
@@ -74,6 +79,15 @@
             "type": "boolean",
             "default": false,
             "description": "Allow automatically installing modules in Python distributions outside of Blender."
+          },
+          "blender.addonBuildTask": {
+            "type": "string",
+            "description": "Task that should be excuted before the addon can be loaded into Blender."
+          },
+          "blender.addonDirectory": {
+            "type": "string",
+            "default": "./",
+            "description": "Directory that contains the addon that should be loaded into Blender."
           }
         }
       }

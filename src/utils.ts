@@ -6,8 +6,8 @@ import * as paths from './paths';
 
 const CANCEL = 'CANCEL';
 
-export function getConfiguration() {
-    return vscode.workspace.getConfiguration('blender');
+export function getConfiguration(resource : vscode.Uri | undefined = undefined) {
+    return vscode.workspace.getConfiguration('blender', resource);
 }
 
 export function cancel() {

@@ -4,6 +4,7 @@ import bpy
 import json
 import time
 import random
+import typing
 import textwrap
 import traceback
 import threading
@@ -20,11 +21,11 @@ from bpy.props import (
 # Read Inputs
 #########################################
 
-external_port = os.environ["DEBUGGER_PORT"]
+external_port = os.environ["EDITOR_PORT"]
 pip_path = os.environ["PIP_PATH"]
-external_addon_directory = os.environ['ADDON_DEV_DIR']
+addons_to_load = [Path(p) for p in json.loads(os.environ.get('ADDON_DIRECTORIES_TO_LOAD', []))]
 process_identifier = os.environ['BLENDER_PROCESS_IDENTIFIER']
-allow_modify_external_python = bool(os.environ['ALLOW_MODIFY_EXTERNAL_PYTHON'])
+allow_modify_external_python = bool(os.environ.get('ALLOW_MODIFY_EXTERNAL_PYTHON', False))
 
 external_url = f"http://localhost:{external_port}"
 
@@ -91,7 +92,8 @@ def start_blender_server():
             data = flask.request.get_json()
             print("Got POST:", data)
             if data["type"] == "update":
-                bpy.ops.dev.update_addon(module_name=addon_folder_name)
+                for path in addons_to_load:
+                    bpy.ops.dev.update_addon(module_name=path.name)
             return "OK"
 
         while True:
@@ -144,29 +146,33 @@ ptvsd.wait_for_attach()
 print("Debug cliend attached.")
 
 
-# Load Addon
+# Load Addons
 ########################################
 
 addon_directory = bpy.utils.user_resource('SCRIPTS', "addons")
-addon_folder_name = os.path.basename(external_addon_directory)
-symlink_path = os.path.join(addon_directory, addon_folder_name)
-
 if not os.path.exists(addon_directory):
     os.makedirs(addon_directory)
-if os.path.exists(symlink_path):
-    os.remove(symlink_path)
 
-if sys.platform == "win32":
-    import _winapi
-    _winapi.CreateJunction(external_addon_directory, symlink_path)
-else:
-    os.symlink(external_addon_directory, symlink_path, target_is_directory=True)
+def create_link_in_addon_directory(directory):
+    link_path = os.path.join(addon_directory, directory.name)
 
-try:
-    bpy.ops.wm.addon_enable(module=addon_folder_name)
-except:
-    traceback.print_exc()
-    send_dict_as_json({"type" : "enableFailure"})
+    if os.path.exists(link_path):
+        os.remove(link_path)
+
+    if sys.platform == "win32":
+        import _winapi
+        _winapi.CreateJunction(directory, link_path)
+    else:
+        os.symlink(directory, link_path, target_is_directory=True)
+
+for addon_to_load in addons_to_load:
+    create_link_in_addon_directory(addon_to_load)
+
+    try:
+        bpy.ops.wm.addon_enable(module=addon_to_load.name)
+    except:
+        traceback.print_exc()
+        send_dict_as_json({"type" : "enableFailure", "addonPath" : str(addon_to_load)})
 
 
 # Operators

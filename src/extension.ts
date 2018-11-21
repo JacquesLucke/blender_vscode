@@ -12,6 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.newAddon',     require('./new_addon').COMMAND_newAddon],
         ['blender.launchAddon',  COMMAND_launchAddon],
         ['blender.updateAddon',  COMMAND_updateAddon],
+        ['blender.buildAddon',  COMMAND_buildAddon],
     ];
 
     let disposables = [
@@ -33,6 +34,7 @@ export function deactivate() {
     communication.stopServer();
 }
 
+
 /* Commands
  *********************************************/
 
@@ -42,13 +44,34 @@ async function COMMAND_startBlender() {
 
 async function COMMAND_launchAddon() {
     let blenderPath = await paths.getBlenderPath();
-    await launchAddon(blenderPath, utils.getWorkspaceFolders()[0].uri.fsPath);
+    await COMMAND_buildAddon();
+    let addonDirectory = getAddonDirectory();
+    await startBlenderWithAddons(blenderPath, [addonDirectory]);
 }
 
 async function COMMAND_updateAddon() {
     vscode.workspace.saveAll(false);
+    await COMMAND_buildAddon();
     communication.sendToAllBlenderPorts({type: 'update'});
 }
+
+async function COMMAND_buildAddon() {
+    let config = utils.getConfiguration();
+    let taskName = config.get('addonBuildTask');
+    if (taskName !== '') {
+        await vscode.commands.executeCommand('workbench.action.tasks.runTask', taskName);
+        return new Promise<void>(resolve => {
+            let disposable = vscode.tasks.onDidEndTask(e => {
+                if (e.execution.task.name === taskName) {
+                    disposable.dispose();
+                    resolve();
+                }
+            });
+        });
+    }
+    return Promise.resolve();
+}
+
 
 /* Event Handlers
  ***************************************/
@@ -64,16 +87,23 @@ function HANDLER_taskEnds(e : vscode.TaskEndEvent) {
     communication.unregisterBlenderPort(identifier);
 }
 
+function getAddonDirectory() {
+    let addonDirectory = <string>utils.getConfiguration().get('addonDirectory');
+    if (path.isAbsolute(addonDirectory)) {
+        return addonDirectory;
+    } else {
+        return path.join(utils.getWorkspaceFolders()[0].uri.fsPath, addonDirectory);
+    }
+}
 
-async function launchAddon(blenderPath : string, launchDirectory : string) {
-    let pyLaunchPath = path.join(paths.pythonFilesDir, 'launch_external.py');
+async function startBlenderWithAddons(blenderPath : string, addonDirectories : string[]) {
     let config = utils.getConfiguration();
 
     await utils.startBlender(
-        ['--python', pyLaunchPath],
+        ['--python', paths.launchPath],
         {
-            ADDON_DEV_DIR: launchDirectory,
-            DEBUGGER_PORT: communication.getServerPort(),
+            ADDON_DIRECTORIES_TO_LOAD: JSON.stringify(addonDirectories),
+            EDITOR_PORT: communication.getServerPort(),
             PIP_PATH: paths.pipPath,
             ALLOW_MODIFY_EXTERNAL_PYTHON: <boolean>config.get('allowModifyExternalPython'),
         }
