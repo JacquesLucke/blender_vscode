@@ -133,3 +133,22 @@ export async function folderIsBlender(folder : vscode.WorkspaceFolder) {
     let paths = ['doc', 'source', 'release'].map(n => path.join(folder.uri.fsPath, n));
     return pathsExist(paths);
 }
+
+export async function getBlenderWorkspaceFolder() {
+    for (let folder of getWorkspaceFolders()) {
+        if (await folderIsBlender(folder)) {
+            return folder;
+        }
+    }
+    return null;
+}
+
+export async function getAddonWorkspaceFolders() {
+    let folders = [];
+    for (let folder of getWorkspaceFolders()) {
+        if (await folderIsAddon(folder)) {
+            folders.push(folder);
+        }
+    }
+    return folders;
+}

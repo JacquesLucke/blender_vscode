@@ -1,9 +1,7 @@
 import * as http from 'http';
 import * as vscode from 'vscode';
 import * as request from 'request';
-import * as paths from './paths';
-import * as utils from './utils';
-import { attachPythonDebugger } from './python_debugging';
+import { attachPythonDebuggerToBlender } from './python_debugging';
 import { insertTemplate } from './template_insertion';
 
 var server : any = undefined;
@@ -49,13 +47,7 @@ function SERVER_handleRequest(request : any, response : any) {
             switch (req.type) {
                 case 'setup': {
                     registerBlenderPort(req.blenderPort);
-                    let mappings = [];
-                    for (let folder of utils.getWorkspaceFolders()) {
-                        if (utils.folderIsAddon(folder)) {
-                            mappings.push(paths.getAddonPathMapping(folder.uri));
-                        }
-                    }
-                    attachPythonDebugger(req.debugPort, mappings);
+                    attachPythonDebuggerToBlender(req.debugPort, req.blenderPath, req.scriptsFolder);
                     response.end('OK');
                     break;
                 }

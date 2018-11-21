@@ -135,11 +135,17 @@ def send_connection_information(blender_port, debug_port):
         "type" : "setup",
         "blenderPort" : blender_port,
         "debugPort" : debug_port,
+        "blenderPath" : str(blender_path),
+        "scriptsFolder" : str(get_blender_scripts_folder()),
     })
 
 def send_dict_as_json(data):
     print("Sending:", data)
     requests.post(external_url, json=data)
+
+def get_blender_scripts_folder():
+    version = bpy.app.version
+    return blender_path.parent / f"{version[0]}.{version[1]}" / "scripts"
 
 blender_port = start_blender_server()
 debug_port = start_debug_server()
