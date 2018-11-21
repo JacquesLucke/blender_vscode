@@ -13,8 +13,9 @@
   "activationEvents": [
     "onCommand:blender.startBlender",
     "onCommand:blender.newAddon",
-    "onCommand:blender.launchAddon",
-    "onCommand:blender.buildAddon"
+    "onCommand:blender.buildAll",
+    "onCommand:blender.launchAll",
+    "onCommand:blender.reloadAddons"
   ],
   "main": "./out/extension",
   "repository": {
@@ -35,16 +36,16 @@
         "title": "Blender: New Blender Addon"
       },
       {
-        "command": "blender.launchAddon",
-        "title": "Blender: Launch Addon"
+        "command": "blender.buildAll",
+        "title": "Blender: Build All"
       },
       {
-        "command": "blender.updateAddon",
-        "title": "Blender: Update Addon"
+        "command": "blender.launchAll",
+        "title": "Blender: Launch All"
       },
       {
-        "command": "blender.buildAddon",
-        "title": "Blender: Build Addon"
+        "command": "blender.reloadAddons",
+        "title": "Blender: Reload Addons"
       }
     ],
     "configuration": [
@@ -72,6 +73,7 @@
           },
           "blender.reloadAddonOnSave": {
             "type": "boolean",
+            "scope": "resource",
             "default": false,
             "description": "Reload addon in Blender when a document is saved."
           },
@@ -82,15 +84,24 @@
           },
           "blender.addonBuildTask": {
             "type": "string",
-            "description": "Task that should be excuted before the addon can be loaded into Blender."
+            "scope": "resource",
+            "description": "Task that should be executed before the addon can be loaded into Blender."
+          },
+          "blender.blenderBuildCommand": {
+            "type": "string",
+            "scope": "resource",
+            "description": "Command used to compile Blender.",
+            "default": "make debug"
           },
           "blender.addonLoadDirectory": {
             "type": "string",
+            "scope": "resource",
             "default": "./",
             "description": "Directory that contains the addon that should be loaded into Blender."
           },
           "blender.addonSourceDirectory": {
             "type": "string",
+            "scope": "resource",
             "default": "./",
             "description": "Directory that contains the source code of the addon (used for path mapping for the debugger)."
           }

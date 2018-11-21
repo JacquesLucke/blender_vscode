@@ -2,11 +2,12 @@ import * as http from 'http';
 import * as vscode from 'vscode';
 import * as request from 'request';
 import * as paths from './paths';
+import * as utils from './utils';
 import { attachPythonDebugger } from './python_debugging';
 import { insertTemplate } from './template_insertion';
 
 var server : any = undefined;
-let blenderPorts : any = {};
+let blenderPorts : number[] = [];
 
 export function startServer() {
     server = http.createServer(SERVER_handleRequest);
@@ -17,14 +18,12 @@ export function stopServer() {
     server.close();
 }
 
-export function registerBlenderPort(identifier : string, port : number) {
-    blenderPorts[identifier] = port;
+export function registerBlenderPort(port : number) {
+    blenderPorts.push(port);
 }
 
-export function unregisterBlenderPort(identifier : string) {
-    if (blenderPorts.hasOwnProperty(identifier)) {
-        delete blenderPorts[identifier];
-    }
+export function unregisterBlenderPort(port : number) {
+    blenderPorts.splice(blenderPorts.indexOf(port), 1);
 }
 
 export function getServerPort() : number {
@@ -32,10 +31,11 @@ export function getServerPort() : number {
 }
 
 export function sendToAllBlenderPorts(data : any) {
-    for (let property in blenderPorts) {
-        if (blenderPorts.hasOwnProperty(property)) {
-            request.post(`http://localhost:${blenderPorts[property]}`, {json: data});
-        }
+    for (let port of blenderPorts) {
+        let req = request.post(`http://localhost:${port}`, {json:data, timeout:10});
+        req.on('error', err => {
+            unregisterBlenderPort(port);
+        });
     }
 }
 
@@ -48,8 +48,14 @@ function SERVER_handleRequest(request : any, response : any) {
 
             switch (req.type) {
                 case 'setup': {
-                    registerBlenderPort(req.identifier, req.blenderPort);
-                    attachPythonDebugger(req.debugPort, [paths.getAddonPathMapping()]);
+                    registerBlenderPort(req.blenderPort);
+                    let mappings = [];
+                    for (let folder of utils.getWorkspaceFolders()) {
+                        if (utils.folderIsAddon(folder)) {
+                            mappings.push(paths.getAddonPathMapping(folder.uri));
+                        }
+                    }
+                    attachPythonDebugger(req.debugPort, mappings);
                     response.end('OK');
                     break;
                 }

@@ -24,8 +24,7 @@ from bpy.props import (
 external_port = os.environ["EDITOR_PORT"]
 pip_path = os.environ["PIP_PATH"]
 addons_to_load = [Path(p) for p in json.loads(os.environ.get('ADDON_DIRECTORIES_TO_LOAD', []))]
-process_identifier = os.environ['BLENDER_PROCESS_IDENTIFIER']
-allow_modify_external_python = bool(os.environ.get('ALLOW_MODIFY_EXTERNAL_PYTHON', False))
+allow_modify_external_python = os.environ.get('ALLOW_MODIFY_EXTERNAL_PYTHON', "") == "yes"
 
 external_url = f"http://localhost:{external_port}"
 
@@ -41,15 +40,6 @@ use_own_python = blender_directory in python_path.parents
 required_packages = ["ptvsd", "flask", "requests"]
 
 def install_packages(package_names):
-    if not use_own_python and not allow_modify_external_python:
-        raise Exception(textwrap.dedent(f'''\
-            Installing packages in Python distributions, that don't
-            come with Blender, is not allowed currently.
-            Please enable 'blender.allowModifyExternalPython' in VS Code
-            or make sure that those packages are installed by yourself:
-            {package_names}
-        '''))
-
     try: import pip
     except ModuleNotFoundError:
         subprocess.run([python_path, pip_path])
@@ -64,12 +54,27 @@ def ensure_package_is_installed(name):
         __import__(name)
 
 def install_package(name):
-    subprocess.run([python_path, "-m", "pip", "install", name])
+    target = get_package_install_directory()
+    subprocess.run([python_path, "-m", "pip", "install", name, '--target', target])
+
+def get_package_install_directory():
+    for path in sys.path:
+        if "dist-packages" in path:
+            return path
+    raise Exception("Don't know where to install packages.")
 
 try:
     for name in required_packages:
         __import__(name)
 except ModuleNotFoundError:
+    if not use_own_python and not allow_modify_external_python:
+        raise Exception(textwrap.dedent(f'''\
+            Installing packages in Python distributions, that don't
+            come with Blender, is not allowed currently.
+            Please enable 'blender.allowModifyExternalPython' in VS Code
+            or make sure that those packages are installed by yourself:
+            {required_packages}
+        '''))
     install_packages(required_packages)
 
 
@@ -130,7 +135,6 @@ def send_connection_information(blender_port, debug_port):
         "type" : "setup",
         "blenderPort" : blender_port,
         "debugPort" : debug_port,
-        "identifier" : process_identifier,
     })
 
 def send_dict_as_json(data):

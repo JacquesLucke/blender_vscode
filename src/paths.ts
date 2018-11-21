@@ -66,25 +66,25 @@ async function testIfPathIsBlender(filepath : string) {
 /* Get paths to addon code
  *****************************************************/
 
-export function getAddonPathMapping() {
+export function getAddonPathMapping(root : vscode.Uri) {
     return {
-        localRoot: getAddonSourceDirectory(),
-        remoteRoot: getAddonLoadDirectory()
+        localRoot: getAddonSourceDirectory(root),
+        remoteRoot: getAddonLoadDirectory(root)
     };
 }
 
-export function getAddonLoadDirectory() {
-    return makeAddonPathAbsolute(<string>utils.getConfiguration().get('addonLoadDirectory'));
+export function getAddonLoadDirectory(uri : vscode.Uri) {
+    return makeAddonPathAbsolute(<string>utils.getConfiguration(uri).get('addonLoadDirectory'), uri.fsPath);
 }
 
-export function getAddonSourceDirectory() {
-    return makeAddonPathAbsolute(<string>utils.getConfiguration().get('addonSourceDirectory'));
+export function getAddonSourceDirectory(uri : vscode.Uri) {
+    return makeAddonPathAbsolute(<string>utils.getConfiguration(uri).get('addonSourceDirectory'), uri.fsPath);
 }
 
-function makeAddonPathAbsolute(directory : string) {
+function makeAddonPathAbsolute(directory : string, root : string) {
     if (path.isAbsolute(directory)) {
         return directory;
     } else {
-        return path.join(utils.getWorkspaceFolders()[0].uri.fsPath, directory);
+        return path.join(root, directory);
     }
 }
