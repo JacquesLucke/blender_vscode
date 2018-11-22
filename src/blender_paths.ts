@@ -140,5 +140,5 @@ async function getBlenderLaunchEnv() {
         EDITOR_PORT: communication.getServerPort(),
         PIP_PATH: paths.pipPath,
         ALLOW_MODIFY_EXTERNAL_PYTHON: <boolean>config.get('allowModifyExternalPython') ? 'yes' : 'no',
-    }
+    };
 }
