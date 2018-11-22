@@ -77,7 +77,7 @@ async function getFilteredBlenderPath(
         let blenderPath = await askUser_BlenderPath(openLabel);
         let item = {
             path: blenderPath,
-            name: path.basename(path.dirname(blenderPath)),
+            name: '',
             isDebug: false
         };
         setSettings(item);
@@ -89,11 +89,16 @@ async function getFilteredBlenderPath(
         return usableBlenderPaths[0];
     }
     else {
-        let names = usableBlenderPaths.map(item => item.name);
-        let selectedName = await vscode.window.showQuickPick(names);
-        if (selectedName === undefined) return Promise.reject(cancel());
-        return <BlenderPathData>usableBlenderPaths.find(item => item.name === selectedName);
+        let names = usableBlenderPaths.map(item => getPathIdentifier(item));
+        let selected = await vscode.window.showQuickPick(names);
+        if (selected === undefined) return Promise.reject(cancel());
+        return <BlenderPathData>usableBlenderPaths.find(item => getPathIdentifier(item) === selected);
     }
+}
+
+function getPathIdentifier(data : BlenderPathData) {
+    if (data.name !== '') return data.name;
+    return data.path;
 }
 
 async function askUser_BlenderPath(openLabel: string) {
