@@ -5,18 +5,19 @@ import { cancel } from './utils/generic';
 import { getConfiguration } from './utils/utils';
 
 
-export async function getBlenderPath() {
-    return await getFilteredBlenderPath('Blender Executable', () => true, () => {});
-}
+export class BlenderPaths {
+    public static async GetAny() {
+        return getFilteredBlenderPath('Blender Executable', () => true, () => {});
+    }
 
-export async function getBlenderPath_Debug() {
-    return await getFilteredBlenderPath(
-        'Debug Build',
-        item => item.isDebug,
-        item => { item.isDebug = true; }
-    );
+    public static async GetDebug() {
+        return getFilteredBlenderPath(
+            'Debug Build',
+            item => item.isDebug,
+            item => { item.isDebug = true; }
+        );
+    }
 }
-
 
 interface BlenderPath {
     path : string;
