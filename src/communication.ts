@@ -20,7 +20,7 @@ export function getServerPort(): number {
     return server.address().port;
 }
 
-export function sendToAllBlenderPorts(data: any) {
+export function sendToBlender(data: any) {
     for (let port of blenderPorts) {
         let req = request.post(getAddress(port), { json: data });
         req.on('error', err => {

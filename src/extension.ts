@@ -6,7 +6,8 @@ import { handleErrors } from './utils';
 import { COMMAND_newAddon } from './new_addon';
 import { BlenderFolder } from './blender_folder';
 import { BlenderExecutable } from './blender_executable';
-import { startServer, stopServer, isAnyBlenderConnected, sendToAllBlenderPorts } from './communication';
+import { startServer, stopServer, isAnyBlenderConnected, sendToBlender } from './communication';
+import { COMMAND_RunScript } from './script_folder';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands: [string, () => Promise<void>][] = [
@@ -15,6 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.buildAndStart', COMMAND_buildAndStart],
         ['blender.reloadAddons', COMMAND_reloadAddons],
         ['blender.newAddon', COMMAND_newAddon],
+        ['blender.runScript', COMMAND_RunScript],
     ];
 
     let disposables = [
@@ -74,7 +76,7 @@ async function reloadAddons(addons: AddonFolder[]) {
 
     await rebuildAddons(addons);
     let names = addons.map(a => a.moduleName);
-    sendToAllBlenderPorts({ type: 'reload', names: names });
+    sendToBlender({ type: 'reload', names: names });
 }
 
 async function rebuildAddons(addons: AddonFolder[]) {

@@ -51,6 +51,11 @@
         "command": "blender.newAddon",
         "title": "New Addon",
         "category": "Blender"
+      },
+      {
+        "command": "blender.runScript",
+        "title": "Run Script",
+        "category": "Blender"
       }
     ],
     "configuration": [
@@ -81,6 +86,26 @@
               }
             }
           },
+          "blender.scriptFolders": {
+            "type": "array",
+            "scope": "application",
+            "description": "Folders to store individual Blender scripts in.",
+            "items": {
+              "type": "object",
+              "title": "Single Script Folder",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "Absolute file path to the folder"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Custom name for this script folder"
+                }
+              }
+            }
+          },
+
           "blender.allowModifyExternalPython": {
             "type": "boolean",
             "default": false,

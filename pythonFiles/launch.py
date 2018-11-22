@@ -3,6 +3,7 @@ import sys
 import bpy
 import json
 import time
+import runpy
 import random
 import typing
 import textwrap
@@ -60,7 +61,7 @@ def install_package(name):
 
 def get_package_install_directory():
     for path in sys.path:
-        if "dist-packages" in path:
+        if Path(path).name in ("dist-packages", "site-packages"):
             return path
     raise Exception("Don't know where to install packages.")
 
@@ -101,6 +102,8 @@ def start_blender_server():
             if data["type"] == "reload":
                 for name in data["names"]:
                     execute_in_main_thread(partial(bpy.ops.dev.update_addon, module_name=name))
+            elif data["type"] == "script":
+                execute_in_main_thread(partial(bpy.ops.dev.run_script, filepath=data["path"]))
             return "OK"
 
         @app.route("/", methods=['GET'])
@@ -247,14 +250,24 @@ class UpdateAddonOperator(bpy.types.Operator):
 
         send_dict_as_json({"type" : "addonUpdated"})
 
-        self.redraw_all(context)
+        redraw_all()
         return {'FINISHED'}
 
-    def redraw_all(self, context):
-        for window in context.window_manager.windows:
-            for area in window.screen.areas:
-                area.tag_redraw()
+def redraw_all():
+    for window in bpy.context.window_manager.windows:
+        for area in window.screen.areas:
+            area.tag_redraw()
 
+class RunScriptOperator(bpy.types.Operator):
+    bl_idname = "dev.run_script"
+    bl_label = "Run Script"
+
+    filepath: StringProperty()
+
+    def execute(self, context):
+        runpy.run_path(self.filepath)
+        redraw_all()
+        return {'FINISHED'}
 
 class NewOperatorOperator(bpy.types.Operator):
     bl_idname = "dev.new_operator"
@@ -331,6 +344,7 @@ def get_prefixes(all_names, separator):
 classes = (
     DevelopmentPanel,
     UpdateAddonOperator,
+    RunScriptOperator,
     NewOperatorOperator,
     NewPanelOperator,
 )
