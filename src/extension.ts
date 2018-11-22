@@ -10,10 +10,10 @@ import { BlenderExecutable } from './blender_executable';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands : [string, () => Promise<void>][] = [
-        ['blender.startBlender', COMMAND_startBlender],
+        ['blender.start', COMMAND_start],
         ['blender.newAddon',     COMMAND_newAddon],
-        ['blender.launchAll',    COMMAND_launchAll],
-        ['blender.buildAll',     COMMAND_buildAll],
+        ['blender.buildAndStart',    COMMAND_buildAndStart],
+        ['blender.build',     COMMAND_build],
         ['blender.reloadAddons', COMMAND_reloadAddons],
     ];
 
@@ -39,12 +39,12 @@ export function deactivate() {
 /* Commands
  *********************************************/
 
-async function COMMAND_startBlender() {
+async function COMMAND_start() {
     await (await BlenderExecutable.GetAny()).launch();
 }
 
-async function COMMAND_launchAll() {
-    await COMMAND_buildAll();
+async function COMMAND_buildAndStart() {
+    await COMMAND_build();
 
     let blender = await BlenderFolder.Get();
     if (blender === null) {
@@ -54,7 +54,7 @@ async function COMMAND_launchAll() {
     }
 }
 
-async function COMMAND_buildAll() {
+async function COMMAND_build() {
     let addons = await AddonFolder.All();
     await Promise.all(addons.map(a => a.buildIfNecessary()));
 

@@ -11,11 +11,11 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:blender.startBlender",
-    "onCommand:blender.newAddon",
-    "onCommand:blender.buildAll",
-    "onCommand:blender.launchAll",
-    "onCommand:blender.reloadAddons"
+    "onCommand:blender.start",
+    "onCommand:blender.build",
+    "onCommand:blender.buildAndStart",
+    "onCommand:blender.reloadAddons",
+    "onCommand:blender.newAddon"
   ],
   "main": "./out/extension",
   "repository": {
@@ -28,24 +28,29 @@
   "contributes": {
     "commands": [
       {
-        "command": "blender.startBlender",
-        "title": "Blender: Start Blender"
+        "command": "blender.start",
+        "title": "Start",
+        "category": "Blender"
       },
       {
-        "command": "blender.newAddon",
-        "title": "Blender: New Blender Addon"
+        "command": "blender.build",
+        "title": "Build",
+        "category": "Blender"
       },
       {
-        "command": "blender.buildAll",
-        "title": "Blender: Build All"
-      },
-      {
-        "command": "blender.launchAll",
-        "title": "Blender: Launch All"
+        "command": "blender.buildAndStart",
+        "title": "Build and Start",
+        "category": "Blender"
       },
       {
         "command": "blender.reloadAddons",
-        "title": "Blender: Reload Addons"
+        "title": "Reload Addons",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.newAddon",
+        "title": "New Addon",
+        "category": "Blender"
       }
     ],
     "configuration": [
