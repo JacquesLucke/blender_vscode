@@ -1,8 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { templateFilesDir } from './paths';
-import { readTextFile } from './utils/generic';
-import { nameToIdentifier, nameToClassIdentifier } from './utils/strings';
+import { nameToIdentifier, nameToClassIdentifier, readTextFile } from './utils';
 
 export async function insertTemplate(data : any) {
     try {

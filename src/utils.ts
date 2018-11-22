@@ -81,3 +81,55 @@ export async function pathsExist(paths : string[]) {
     let results = await Promise.all(promises);
     return results.every(v => v);
 }
+
+export function getConfig(resource : vscode.Uri | undefined = undefined) {
+    return vscode.workspace.getConfiguration('blender', resource);
+}
+
+export async function runTask(
+    name : string,
+    execution : vscode.ProcessExecution | vscode.ShellExecution,
+    wait : boolean = false,
+    target : vscode.WorkspaceFolder = getAnyWorkspaceFolder(),
+    identifier : string = getRandomString())
+{
+    let taskDefinition = {type: identifier};
+    let source = 'blender';
+    let problemMatchers : string[] = [];
+    let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);
+    let taskExecution = await vscode.tasks.executeTask(task);
+
+    if (wait) {
+        return new Promise<vscode.TaskExecution>(resolve => {
+            let disposable = vscode.tasks.onDidEndTask(e => {
+                if (e.execution.task.definition.type === identifier) {
+                    disposable.dispose();
+                    resolve(taskExecution);
+                }
+            });
+        });
+    } else {
+        return taskExecution;
+    }
+}
+
+export function nameToIdentifier(name : string) {
+    return name.toLowerCase().replace(/\W+/, '_');
+}
+
+export function nameToClassIdentifier(name : string) {
+    let parts = name.split(/\W+/);
+    let result = '';
+    let allowNumber = false;
+    for (let part of parts) {
+        if (part.length > 0 && (allowNumber || !startsWithNumber(part))) {
+            result += part.charAt(0).toUpperCase() + part.slice(1);
+            allowNumber = true;
+        }
+    }
+    return result;
+}
+
+export function startsWithNumber(text : string) {
+    return text.charAt(0).match(/[0-9]/) !== null;
+}

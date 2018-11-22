@@ -1,13 +1,11 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
-import { runTask } from './utils/tasks';
-import { cancel } from './utils/generic';
 import { pipPath, launchPath} from './paths';
 import { AddonFolder } from './addon_folder';
 import { getServerPort } from './communication';
 import { BlenderFolder } from './blender_folder';
-import { getConfiguration } from './utils/utils';
+import { getConfig, cancel, runTask } from './utils';
 
 
 export class BlenderExecutable {
@@ -72,7 +70,7 @@ async function getFilteredBlenderPath(
         predicate : (item : BlenderPathData) => boolean,
         setSettings : (item : BlenderPathData) => void) : Promise<BlenderPathData>
 {
-    let config = getConfiguration();
+    let config = getConfig();
     let allBlenderPaths = <BlenderPathData[]>config.get('blenderPaths');
     let usableBlenderPaths = allBlenderPaths.filter(predicate);
 
@@ -137,7 +135,7 @@ function getBlenderLaunchArgs() {
 }
 
 async function getBlenderLaunchEnv() {
-    let config = getConfiguration();
+    let config = getConfig();
     let addons = await AddonFolder.All();
     let loadDirs = addons.map(a => a.getLoadDirectory());
 

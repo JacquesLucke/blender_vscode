@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getConfiguration } from './utils/utils';
-import { readTextFile, getWorkspaceFolders, executeTask } from './utils/generic';
+import { getConfig, readTextFile, getWorkspaceFolders, executeTask } from './utils';
 
 export class AddonFolder {
     folder : vscode.WorkspaceFolder;
@@ -55,15 +54,15 @@ export class AddonFolder {
     }
 
     public getConfig() {
-        return getConfiguration(this.uri);
+        return getConfig(this.uri);
     }
 
     public getLoadDirectory() {
-        return this.makePathAbsolute(<string>getConfiguration(this.uri).get('addon.loadDirectory'));
+        return this.makePathAbsolute(<string>getConfig(this.uri).get('addon.loadDirectory'));
     }
 
     public getSourceDirectory() {
-        return this.makePathAbsolute(<string>getConfiguration(this.uri).get('addon.sourceDirectory'));
+        return this.makePathAbsolute(<string>getConfig(this.uri).get('addon.sourceDirectory'));
     }
 
     private makePathAbsolute(directory : string) {

@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode';
 import { AddonFolder } from './addon_folder';
-import { handleErrors } from './utils/generic';
+import { handleErrors } from './utils';
 import { COMMAND_newAddon } from './new_addon';
 import { BlenderFolder } from './blender_folder';
 import { BlenderExecutable } from './blender_executable';

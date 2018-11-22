@@ -1,8 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { runTask } from './utils/tasks';
-import { getConfiguration } from './utils/utils';
-import { getWorkspaceFolders, pathsExist } from './utils/generic';
+import { runTask, getConfig, getWorkspaceFolders, pathsExist } from './utils';
 
 export class BlenderFolder {
     folder : vscode.WorkspaceFolder;
@@ -43,6 +41,6 @@ export class BlenderFolder {
     }
 
     public getConfig() {
-        return getConfiguration(this.uri);
+        return getConfig(this.uri);
     }
 }
