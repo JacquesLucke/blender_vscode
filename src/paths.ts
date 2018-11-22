@@ -1,9 +1,6 @@
-import * as path from 'path';
+import { join, dirname } from 'path';
 
-/* Constant paths
- *********************************************/
-
-export const pythonFilesDir = path.join(path.dirname(__dirname), 'pythonFiles');
-export const templateFilesDir = path.join(pythonFilesDir, 'templates');
-export const pipPath = path.join(pythonFilesDir, 'get-pip.py');
-export const launchPath = path.join(pythonFilesDir, 'launch.py');
+export const pythonFilesDir = join(dirname(__dirname), 'pythonFiles');
+export const templateFilesDir = join(pythonFilesDir, 'templates');
+export const pipPath = join(pythonFilesDir, 'get-pip.py');
+export const launchPath = join(pythonFilesDir, 'launch.py');
