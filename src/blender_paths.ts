@@ -86,6 +86,7 @@ async function getFilteredBlenderPath(
     } else {
         let names = usableBlenderPaths.map(item => item.name);
         let selectedName = await vscode.window.showQuickPick(names);
+        if (selectedName === undefined) return Promise.reject(cancel());
         return <BlenderPathData>usableBlenderPaths.find(item => item.name === selectedName);
     }
 }

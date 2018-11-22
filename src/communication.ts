@@ -30,7 +30,7 @@ export function getServerPort() : number {
 
 export function sendToAllBlenderPorts(data : any) {
     for (let port of blenderPorts) {
-        let req = request.post(getAddress(port), {json:data, timeout:100});
+        let req = request.post(getAddress(port), {json: data});
         req.on('error', err => {
             unregisterBlenderPort(port);
         });
@@ -48,11 +48,12 @@ export async function isAnyBlenderConnected() {
         let errorAmount = 0;
 
         for (let port of blenderPorts) {
-            let req = request.get(getAddress(port), {json: {type:'ping', timeout:100}});
+            let req = request.get(getAddress(port), {json: {type:'ping'}});
             req.on('end', () => {
                 resolve(true);
             });
-            req.on('error', () => {
+            req.on('error', err => {
+                unregisterBlenderPort(port);
                 errorAmount += 1;
                 if (errorAmount === sendAmount) {
                     resolve(false);

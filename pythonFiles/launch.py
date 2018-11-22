@@ -11,6 +11,7 @@ import threading
 import subprocess
 from pathlib import Path
 from pprint import pprint
+from functools import partial
 
 from bpy.props import (
     StringProperty,
@@ -99,7 +100,7 @@ def start_blender_server():
             print("Got POST:", data)
             if data["type"] == "reload":
                 for name in data["names"]:
-                    bpy.ops.dev.update_addon(module_name=name)
+                    execute_in_main_thread(partial(bpy.ops.dev.update_addon, module_name=name))
             return "OK"
 
         @app.route("/", methods=['GET'])
@@ -197,6 +198,17 @@ for addon_to_load in addons_to_load:
 # Operators
 ########################################
 
+def execute_in_main_thread(function):
+    '''
+    This function is not actually what the name says currently.
+    However, the name says what this function is supposed to do.
+    The correct behavior will be implemented when Blender has
+    a good way to implement this.
+    '''
+    thread = threading.Thread(target=function)
+    thread.daemon = True
+    thread.start()
+
 class DevelopmentPanel(bpy.types.Panel):
     bl_idname = "DEV_PT_panel"
     bl_label = "Development"
@@ -242,6 +254,7 @@ class UpdateAddonOperator(bpy.types.Operator):
         for window in context.window_manager.windows:
             for area in window.screen.areas:
                 area.tag_redraw()
+
 
 class NewOperatorOperator(bpy.types.Operator):
     bl_idname = "dev.new_operator"
