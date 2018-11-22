@@ -1,33 +1,29 @@
-import * as path from 'path';
 import * as vscode from 'vscode';
-import * as generic from './generic';
+import { getRandomString, getAnyWorkspaceFolder } from './generic';
 
-export async function startExternalProgram(
-    command : string, args : string[] = [], additionalEnv : any = {},
-    name : string = path.basename(command),
-    identifier : any = generic.getRandomString())
+export async function runTask(
+    name : string,
+    execution : vscode.ProcessExecution | vscode.ShellExecution,
+    wait : boolean = false,
+    target : vscode.WorkspaceFolder = getAnyWorkspaceFolder(),
+    identifier : string = getRandomString())
 {
-    let folders = generic.getWorkspaceFolders();
-    if (folders.length === 0) return Promise.reject(new Error('workspace required to run an external command'));
-
-    let env = Object.assign({}, process.env, additionalEnv);
-
     let taskDefinition = {type: identifier};
-    let target = folders[0];
     let source = 'blender';
-    let execution = new vscode.ProcessExecution(command, args, {env:env, });
     let problemMatchers : string[] = [];
     let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);
-    return vscode.tasks.executeTask(task);
-}
+    let taskExecution = await vscode.tasks.executeTask(task);
 
-export async function startShellCommand(command : string, workspaceFolder : vscode.WorkspaceFolder) {
-    let taskDefinition = {type: command};
-    let target = workspaceFolder;
-    let name = command;
-    let source = 'blender';
-    let execution = new vscode.ShellExecution(command, {cwd:workspaceFolder.uri.fsPath});
-    let problemMatchers : string[] = [];
-    let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);
-    return vscode.tasks.executeTask(task);
+    if (wait) {
+        return new Promise<vscode.TaskExecution>(resolve => {
+            let disposable = vscode.tasks.onDidEndTask(e => {
+                if (e.execution.task.definition.type === identifier) {
+                    disposable.dispose();
+                    resolve(taskExecution);
+                }
+            });
+        });
+    } else {
+        return taskExecution;
+    }
 }

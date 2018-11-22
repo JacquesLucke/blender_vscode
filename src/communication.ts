@@ -1,8 +1,8 @@
 import * as http from 'http';
 import * as vscode from 'vscode';
 import * as request from 'request';
-import { attachPythonDebuggerToBlender } from './python_debugging';
 import { insertTemplate } from './template_insertion';
+import { attachPythonDebuggerToBlender } from './python_debugging';
 
 var server : any = undefined;
 let blenderPorts : number[] = [];
@@ -14,14 +14,6 @@ export function startServer() {
 
 export function stopServer() {
     server.close();
-}
-
-export function registerBlenderPort(port : number) {
-    blenderPorts.push(port);
-}
-
-export function unregisterBlenderPort(port : number) {
-    blenderPorts.splice(blenderPorts.indexOf(port), 1);
 }
 
 export function getServerPort() : number {
@@ -61,10 +53,6 @@ export async function isAnyBlenderConnected() {
             });
         }
     });
-}
-
-function getAddress(port : number) {
-    return `http://localhost:${port}`;
 }
 
 
@@ -107,4 +95,16 @@ function SERVER_handleRequest(request : any, response : any) {
             }
         });
     }
+}
+
+function registerBlenderPort(port : number) {
+    blenderPorts.push(port);
+}
+
+function unregisterBlenderPort(port : number) {
+    blenderPorts.splice(blenderPorts.indexOf(port), 1);
+}
+
+function getAddress(port : number) {
+    return `http://localhost:${port}`;
 }

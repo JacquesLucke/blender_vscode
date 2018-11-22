@@ -1,13 +1,13 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
+import { runTask } from './utils/tasks';
 import { cancel } from './utils/generic';
-import { getConfiguration } from './utils/utils';
-import { startExternalProgram } from './utils/tasks';
+import { pipPath, launchPath} from './paths';
 import { AddonFolder } from './addon_folder';
+import { getServerPort } from './communication';
 import { BlenderFolder } from './blender_folder';
-import * as paths from './utils/paths';
-import * as communication from './communication';
+import { getConfiguration } from './utils/utils';
 
 
 export class BlenderExecutable {
@@ -31,12 +31,18 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
+    get path() {
+        return this.data.path;
+    }
+
     public async launch() {
-        return startExternalProgram(
-            this.data.path,
+        let execution = new vscode.ProcessExecution(
+            this.path,
             getBlenderLaunchArgs(),
-            await getBlenderLaunchEnv()
+            {env: await getBlenderLaunchEnv()}
         );
+
+        await runTask('blender', execution);
     }
 
     public async launchDebug(folder : BlenderFolder) {
@@ -127,7 +133,7 @@ async function testIfPathIsBlender(filepath : string) {
 }
 
 function getBlenderLaunchArgs() {
-    return ['--python', paths.launchPath];
+    return ['--python', launchPath];
 }
 
 async function getBlenderLaunchEnv() {
@@ -137,8 +143,8 @@ async function getBlenderLaunchEnv() {
 
     return {
         ADDON_DIRECTORIES_TO_LOAD: JSON.stringify(loadDirs),
-        EDITOR_PORT: communication.getServerPort(),
-        PIP_PATH: paths.pipPath,
+        EDITOR_PORT: getServerPort().toString(),
+        PIP_PATH: pipPath,
         ALLOW_MODIFY_EXTERNAL_PYTHON: <boolean>config.get('allowModifyExternalPython') ? 'yes' : 'no',
     };
 }

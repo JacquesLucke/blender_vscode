@@ -32,6 +32,14 @@ export function getWorkspaceFolders() {
     else return folders;
 }
 
+export function getAnyWorkspaceFolder() {
+    let folders = getWorkspaceFolders();
+    if (folders.length === 0) {
+        throw new Error('no workspace folder found');
+    }
+    return folders[0];
+}
+
 export function handleErrors(func : () => Promise<void>) {
     return async () => {
         try {

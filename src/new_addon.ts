@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { templateFilesDir } from './utils/paths';
+import { templateFilesDir } from './paths';
 import { cancel, readTextFile, getWorkspaceFolders } from './utils/generic';
 
 export async function COMMAND_newAddon() {

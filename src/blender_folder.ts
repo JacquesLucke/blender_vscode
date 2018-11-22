@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
+import * as vscode from 'vscode';
+import { runTask } from './utils/tasks';
 import { getConfiguration } from './utils/utils';
-import { getWorkspaceFolders, pathsExist, waitUntilTaskEnds } from './utils/generic';
-import { startShellCommand } from './utils/tasks';
+import { getWorkspaceFolders, pathsExist } from './utils/generic';
 
 export class BlenderFolder {
     folder : vscode.WorkspaceFolder;
@@ -35,8 +35,11 @@ export class BlenderFolder {
     }
 
     public async buildDebug() {
-        await startShellCommand(this.buildDebugCommand, this.folder);
-        await waitUntilTaskEnds(this.buildDebugCommand);
+        let execution = new vscode.ShellExecution(
+            this.buildDebugCommand,
+            {cwd: this.uri.fsPath}
+        );
+        await runTask('Build Blender', execution, true, this.folder);
     }
 
     public getConfig() {
