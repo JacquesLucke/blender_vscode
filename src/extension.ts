@@ -1,20 +1,20 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as communication from './communication';
 import { AddonFolder } from './addon_folder';
 import { handleErrors } from './utils/generic';
 import { COMMAND_newAddon } from './new_addon';
 import { BlenderFolder } from './blender_folder';
 import { BlenderExecutable } from './blender_executable';
+import { startServer, stopServer, isAnyBlenderConnected, sendToAllBlenderPorts } from './communication';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands : [string, () => Promise<void>][] = [
-        ['blender.start', COMMAND_start],
-        ['blender.newAddon',     COMMAND_newAddon],
-        ['blender.buildAndStart',    COMMAND_buildAndStart],
-        ['blender.build',     COMMAND_build],
-        ['blender.reloadAddons', COMMAND_reloadAddons],
+        ['blender.start',         COMMAND_start],
+        ['blender.build',         COMMAND_build],
+        ['blender.buildAndStart', COMMAND_buildAndStart],
+        ['blender.reloadAddons',  COMMAND_reloadAddons],
+        ['blender.newAddon',      COMMAND_newAddon],
     ];
 
     let disposables = [
@@ -28,11 +28,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(...disposables);
 
-    communication.startServer();
+    startServer();
 }
 
 export function deactivate() {
-    communication.stopServer();
+    stopServer();
 }
 
 
@@ -55,8 +55,7 @@ async function COMMAND_buildAndStart() {
 }
 
 async function COMMAND_build() {
-    let addons = await AddonFolder.All();
-    await Promise.all(addons.map(a => a.buildIfNecessary()));
+    await rebuildAddons(await AddonFolder.All());
 
     let blender = await BlenderFolder.Get();
     if (blender !== null) {
@@ -65,21 +64,27 @@ async function COMMAND_build() {
 }
 
 async function COMMAND_reloadAddons() {
-    let addons = await AddonFolder.All();
-    let addonsToReload = addons.filter(a => a.reloadOnSave);
+    await reloadAddons(await AddonFolder.All());
+}
 
-    if (addonsToReload.length === 0) return;
-    if (!(await communication.isAnyBlenderConnected())) return;
+async function reloadAddons(addons : AddonFolder[]) {
+    if (addons.length === 0) return;
+    if (!(await isAnyBlenderConnected())) return;
 
-    await Promise.all(addonsToReload.map(a => a.buildIfNecessary()));
-    let names = addonsToReload.map(a => a.name);
-    communication.sendToAllBlenderPorts({type: 'reload', names: names});
+    await rebuildAddons(addons);
+    let names = addons.map(a => a.moduleName);
+    sendToAllBlenderPorts({type: 'reload', names: names});
+}
+
+async function rebuildAddons(addons : AddonFolder[]) {
+    await Promise.all(addons.map(a => a.buildIfNecessary()));
 }
 
 
 /* Event Handlers
  ***************************************/
 
-function HANDLER_updateOnSave(document : vscode.TextDocument) {
-    COMMAND_reloadAddons();
+async function HANDLER_updateOnSave(document : vscode.TextDocument) {
+    let addons = await AddonFolder.All();
+    await reloadAddons(addons.filter(a => a.reloadOnSave));
 }

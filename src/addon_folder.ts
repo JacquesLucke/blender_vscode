@@ -29,7 +29,7 @@ export class AddonFolder {
         return <string>this.getConfig().get('addon.buildTaskName');
     }
 
-    get name() {
+    get moduleName() {
         return path.basename(this.getLoadDirectory());
     }
 
