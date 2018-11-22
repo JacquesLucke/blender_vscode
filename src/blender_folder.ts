@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { runTask, getConfig, getWorkspaceFolders, pathsExist } from './utils';
 
-export class BlenderFolder {
+export class BlenderWorkspaceFolder {
     folder: vscode.WorkspaceFolder;
 
     constructor(folder: vscode.WorkspaceFolder) {
@@ -11,7 +11,7 @@ export class BlenderFolder {
 
     public static async Get() {
         for (let folder of getWorkspaceFolders()) {
-            let blender = new BlenderFolder(folder);
+            let blender = new BlenderWorkspaceFolder(folder);
             if (await blender.isValid()) {
                 return blender;
             }

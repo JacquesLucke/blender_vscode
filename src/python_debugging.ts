@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { AddonFolder } from './addon_folder';
-import { BlenderFolder } from './blender_folder';
+import { AddonWorkspaceFolder } from './addon_folder';
+import { BlenderWorkspaceFolder } from './blender_folder';
 
 export async function attachPythonDebuggerToBlender(
     port: number, blenderPath: string, scriptsFolder: string) {
@@ -23,13 +23,13 @@ function attachPythonDebugger(port: number, pathMappings: { localRoot: string, r
 
 async function getPythonPathMappings(blenderPath: string, scriptsFolder: string) {
     let mappings = [];
-    for (let addon of await AddonFolder.All()) {
+    for (let addon of await AddonWorkspaceFolder.All()) {
         mappings.push({
             localRoot: addon.getSourceDirectory(),
             remoteRoot: addon.getLoadDirectory(),
         });
     }
-    let blender = await BlenderFolder.Get();
+    let blender = await BlenderWorkspaceFolder.Get();
     if (blender !== null) {
         mappings.push({
             localRoot: path.join(blender.uri.fsPath, 'release', 'scripts'),

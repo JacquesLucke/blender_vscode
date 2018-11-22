@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { getConfig, readTextFile, getWorkspaceFolders, executeTask } from './utils';
 
-export class AddonFolder {
+export class AddonWorkspaceFolder {
     folder: vscode.WorkspaceFolder;
 
     constructor(folder: vscode.WorkspaceFolder) {
@@ -12,7 +12,7 @@ export class AddonFolder {
     public static async All() {
         let folders = [];
         for (let folder of getWorkspaceFolders()) {
-            let addon = new AddonFolder(folder);
+            let addon = new AddonWorkspaceFolder(folder);
             if (await addon.isLoadable()) {
                 folders.push(addon);
             }

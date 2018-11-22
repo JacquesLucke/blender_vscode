@@ -2,9 +2,9 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 import { pipPath, launchPath } from './paths';
-import { AddonFolder } from './addon_folder';
+import { AddonWorkspaceFolder } from './addon_folder';
 import { getServerPort } from './communication';
-import { BlenderFolder } from './blender_folder';
+import { BlenderWorkspaceFolder } from './blender_folder';
 import { getConfig, cancel, runTask } from './utils';
 
 
@@ -43,7 +43,7 @@ export class BlenderExecutable {
         await runTask('blender', execution);
     }
 
-    public async launchDebug(folder: BlenderFolder) {
+    public async launchDebug(folder: BlenderWorkspaceFolder) {
         let configuration = {
             name: 'Debug Blender',
             type: 'cppdbg',
@@ -143,7 +143,7 @@ function getBlenderLaunchArgs() {
 
 async function getBlenderLaunchEnv() {
     let config = getConfig();
-    let addons = await AddonFolder.All();
+    let addons = await AddonWorkspaceFolder.All();
     let loadDirs = addons.map(a => a.getLoadDirectory());
 
     return {
