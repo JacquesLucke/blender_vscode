@@ -48,7 +48,7 @@ export class AddonFolder {
         }
     }
 
-    public async build() {
+    public async buildIfNecessary() {
         let taskName = this.buildTaskName;
         if (taskName === '') return Promise.resolve();
         await executeTask(taskName, true);

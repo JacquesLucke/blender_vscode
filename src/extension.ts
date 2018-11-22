@@ -2,11 +2,8 @@
 
 import * as vscode from 'vscode';
 import * as communication from './communication';
-import { startExternalProgram } from './utils/tasks';
 import { handleErrors } from './utils/generic';
-import * as paths from './utils/paths';
-import * as utils from './utils/utils';
-import { BlenderPaths } from './blender_paths';
+import { BlenderExecutable } from './blender_paths';
 import { AddonFolder } from './addon_folder';
 import { BlenderFolder } from './blender_folder';
 
@@ -42,45 +39,24 @@ export function deactivate() {
  *********************************************/
 
 async function COMMAND_startBlender() {
-    await startBlender();
-}
-
-export async function startBlender(args : string[] = [], additionalEnv : any = {}) {
-    let blenderPath = await BlenderPaths.GetAny();
-    return startExternalProgram(blenderPath, args, additionalEnv);
+    await (await BlenderExecutable.GetAny()).launch();
 }
 
 async function COMMAND_launchAll() {
     await COMMAND_buildAll();
-    let blenderFolder = await utils.getBlenderWorkspaceFolder();
-    if (blenderFolder === null) {
-        await startBlenderWithAddons();
+
+    let blender = await BlenderFolder.Get();
+    if (blender === null) {
+        await (await BlenderExecutable.GetAny()).launch();
     } else {
-        await launchBlenderWithDebugger(blenderFolder);
+        await (await BlenderExecutable.GetDebug()).launchDebug(blender);
     }
-}
-
-async function launchBlenderWithDebugger(folder : vscode.WorkspaceFolder) {
-    let launchData = await getBlenderLaunchData();
-    let blenderPath = await BlenderPaths.GetDebug();
-
-    let configuation = {
-        name: 'Debug Blender',
-        type: 'cppdbg',
-        request: 'launch',
-        program: blenderPath,
-        args: ['--debug'].concat(launchData.args),
-        env: launchData.env,
-        stopAtEntry: false,
-        MIMode: 'gdb',
-        cwd: folder.uri.fsPath,
-    };
-    vscode.debug.startDebugging(folder, configuation);
 }
 
 async function COMMAND_buildAll() {
     let addons = await AddonFolder.All();
-    await Promise.all(addons.map(a => a.build()));
+    await Promise.all(addons.map(a => a.buildIfNecessary()));
+
     let blender = await BlenderFolder.Get();
     if (blender !== null) {
         await blender.buildDebug();
@@ -94,7 +70,7 @@ async function COMMAND_reloadAddons() {
     if (addonsToReload.length === 0) return;
     if (!(await communication.isAnyBlenderConnected())) return;
 
-    await Promise.all(addonsToReload.map(a => a.build()));
+    await Promise.all(addonsToReload.map(a => a.buildIfNecessary()));
     let names = addonsToReload.map(a => a.name);
     communication.sendToAllBlenderPorts({type: 'reload', names: names});
 }
@@ -105,30 +81,4 @@ async function COMMAND_reloadAddons() {
 
 function HANDLER_updateOnSave(document : vscode.TextDocument) {
     COMMAND_reloadAddons();
-}
-
-async function startBlenderWithAddons() {
-    let data = await getBlenderLaunchData();
-    await startBlender(data.args, data.env);
-}
-
-interface BlenderLaunchData {
-    args : string[];
-    env : any;
-}
-
-async function getBlenderLaunchData() {
-    let config = utils.getConfiguration();
-    let addons = await AddonFolder.All();
-    let loadDirs = addons.map(a => a.getLoadDirectory());
-
-    return <BlenderLaunchData>{
-        args: ['--python', paths.launchPath],
-        env: {
-            ADDON_DIRECTORIES_TO_LOAD: JSON.stringify(loadDirs),
-            EDITOR_PORT: communication.getServerPort(),
-            PIP_PATH: paths.pipPath,
-            ALLOW_MODIFY_EXTERNAL_PYTHON: <boolean>config.get('allowModifyExternalPython') ? 'yes' : 'no',
-        }
-    };
 }
