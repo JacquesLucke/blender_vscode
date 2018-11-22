@@ -2,18 +2,19 @@
 
 import * as vscode from 'vscode';
 import * as communication from './communication';
-import { handleErrors } from './utils/generic';
-import { BlenderExecutable } from './blender_paths';
 import { AddonFolder } from './addon_folder';
+import { handleErrors } from './utils/generic';
+import { COMMAND_newAddon } from './new_addon';
 import { BlenderFolder } from './blender_folder';
+import { BlenderExecutable } from './blender_executable';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands : [string, () => Promise<void>][] = [
         ['blender.startBlender', COMMAND_startBlender],
-        ['blender.newAddon',     require('./new_addon').COMMAND_newAddon],
+        ['blender.newAddon',     COMMAND_newAddon],
         ['blender.launchAll',    COMMAND_launchAll],
         ['blender.buildAll',     COMMAND_buildAll],
-        ['blender.reloadAddons', COMMAND_reloadAddons]
+        ['blender.reloadAddons', COMMAND_reloadAddons],
     ];
 
     let disposables = [
