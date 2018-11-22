@@ -8,7 +8,7 @@ export function cancel() {
     return new Error(CANCEL);
 }
 
-export async function waitUntilTaskEnds(taskName : string) {
+export async function waitUntilTaskEnds(taskName: string) {
     return new Promise<void>(resolve => {
         let disposable = vscode.tasks.onDidEndTask(e => {
             if (e.execution.task.name === taskName) {
@@ -19,7 +19,7 @@ export async function waitUntilTaskEnds(taskName : string) {
     });
 }
 
-export async function executeTask(taskName : string, wait : boolean = false) {
+export async function executeTask(taskName: string, wait: boolean = false) {
     await vscode.commands.executeCommand('workbench.action.tasks.runTask', taskName);
     if (wait) {
         await waitUntilTaskEnds(taskName);
@@ -40,11 +40,12 @@ export function getAnyWorkspaceFolder() {
     return folders[0];
 }
 
-export function handleErrors(func : () => Promise<void>) {
+export function handleErrors(func: () => Promise<void>) {
     return async () => {
         try {
             await func();
-        } catch (err) {
+        }
+        catch (err) {
             if (err.message !== CANCEL) {
                 vscode.window.showErrorMessage(err.message);
             }
@@ -52,23 +53,24 @@ export function handleErrors(func : () => Promise<void>) {
     };
 }
 
-export function getRandomString(length : number = 10) {
+export function getRandomString(length: number = 10) {
     return crypto.randomBytes(length).toString('hex').substring(0, length);
 }
 
-export function readTextFile(path : string) {
+export function readTextFile(path: string) {
     return new Promise<string>((resolve, reject) => {
         fs.readFile(path, 'utf8', (err, data) => {
             if (err !== null) {
                 reject(new Error(`Could not read the file: ${path}`));
-            } else {
+            }
+            else {
                 resolve(data);
             }
         });
     });
 }
 
-export async function pathExists(path : string) {
+export async function pathExists(path: string) {
     return new Promise<boolean>(resolve => {
         fs.stat(path, (err, stats) => {
             resolve(err === null);
@@ -76,26 +78,25 @@ export async function pathExists(path : string) {
     });
 }
 
-export async function pathsExist(paths : string[]) {
+export async function pathsExist(paths: string[]) {
     let promises = paths.map(p => pathExists(p));
     let results = await Promise.all(promises);
     return results.every(v => v);
 }
 
-export function getConfig(resource : vscode.Uri | undefined = undefined) {
+export function getConfig(resource: vscode.Uri | undefined = undefined) {
     return vscode.workspace.getConfiguration('blender', resource);
 }
 
 export async function runTask(
-    name : string,
-    execution : vscode.ProcessExecution | vscode.ShellExecution,
-    wait : boolean = false,
-    target : vscode.WorkspaceFolder = getAnyWorkspaceFolder(),
-    identifier : string = getRandomString())
-{
-    let taskDefinition = {type: identifier};
+    name: string,
+    execution: vscode.ProcessExecution | vscode.ShellExecution,
+    wait: boolean = false,
+    target: vscode.WorkspaceFolder = getAnyWorkspaceFolder(),
+    identifier: string = getRandomString()) {
+    let taskDefinition = { type: identifier };
     let source = 'blender';
-    let problemMatchers : string[] = [];
+    let problemMatchers: string[] = [];
     let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);
     let taskExecution = await vscode.tasks.executeTask(task);
 
@@ -108,16 +109,17 @@ export async function runTask(
                 }
             });
         });
-    } else {
+    }
+    else {
         return taskExecution;
     }
 }
 
-export function nameToIdentifier(name : string) {
+export function nameToIdentifier(name: string) {
     return name.toLowerCase().replace(/\W+/, '_');
 }
 
-export function nameToClassIdentifier(name : string) {
+export function nameToClassIdentifier(name: string) {
     let parts = name.split(/\W+/);
     let result = '';
     let allowNumber = false;
@@ -130,6 +132,6 @@ export function nameToClassIdentifier(name : string) {
     return result;
 }
 
-export function startsWithNumber(text : string) {
+export function startsWithNumber(text: string) {
     return text.charAt(0).match(/[0-9]/) !== null;
 }

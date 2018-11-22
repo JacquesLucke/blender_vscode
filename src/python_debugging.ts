@@ -4,13 +4,12 @@ import { AddonFolder } from './addon_folder';
 import { BlenderFolder } from './blender_folder';
 
 export async function attachPythonDebuggerToBlender(
-    port : number, blenderPath : string, scriptsFolder : string)
-{
+    port: number, blenderPath: string, scriptsFolder: string) {
     let mappings = await getPythonPathMappings(blenderPath, scriptsFolder);
     attachPythonDebugger(port, mappings);
 }
 
-function attachPythonDebugger(port : number, pathMappings : {localRoot:string, remoteRoot:string}[] = []) {
+function attachPythonDebugger(port: number, pathMappings: { localRoot: string, remoteRoot: string }[] = []) {
     let configuration = {
         name: `Python at Port ${port}`,
         request: "attach",
@@ -22,7 +21,7 @@ function attachPythonDebugger(port : number, pathMappings : {localRoot:string, r
     vscode.debug.startDebugging(undefined, configuration);
 }
 
-async function getPythonPathMappings(blenderPath : string, scriptsFolder : string) {
+async function getPythonPathMappings(blenderPath: string, scriptsFolder: string) {
     let mappings = [];
     for (let addon of await AddonFolder.All()) {
         mappings.push({

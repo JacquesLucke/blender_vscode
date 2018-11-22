@@ -3,9 +3,9 @@ import * as vscode from 'vscode';
 import { runTask, getConfig, getWorkspaceFolders, pathsExist } from './utils';
 
 export class BlenderFolder {
-    folder : vscode.WorkspaceFolder;
+    folder: vscode.WorkspaceFolder;
 
-    constructor(folder : vscode.WorkspaceFolder) {
+    constructor(folder: vscode.WorkspaceFolder) {
         this.folder = folder;
     }
 
@@ -35,7 +35,7 @@ export class BlenderFolder {
     public async buildDebug() {
         let execution = new vscode.ShellExecution(
             this.buildDebugCommand,
-            {cwd: this.uri.fsPath}
+            { cwd: this.uri.fsPath }
         );
         await runTask('Build Blender', execution, true, this.folder);
     }

@@ -4,8 +4,8 @@ import * as request from 'request';
 import { insertTemplate } from './template_insertion';
 import { attachPythonDebuggerToBlender } from './python_debugging';
 
-var server : any = undefined;
-let blenderPorts : number[] = [];
+var server: any = undefined;
+let blenderPorts: number[] = [];
 
 export function startServer() {
     server = http.createServer(SERVER_handleRequest);
@@ -16,13 +16,13 @@ export function stopServer() {
     server.close();
 }
 
-export function getServerPort() : number {
+export function getServerPort(): number {
     return server.address().port;
 }
 
-export function sendToAllBlenderPorts(data : any) {
+export function sendToAllBlenderPorts(data: any) {
     for (let port of blenderPorts) {
-        let req = request.post(getAddress(port), {json: data});
+        let req = request.post(getAddress(port), { json: data });
         req.on('error', err => {
             unregisterBlenderPort(port);
         });
@@ -40,7 +40,7 @@ export async function isAnyBlenderConnected() {
         let errorAmount = 0;
 
         for (let port of blenderPorts) {
-            let req = request.get(getAddress(port), {json: {type:'ping'}});
+            let req = request.get(getAddress(port), { json: { type: 'ping' } });
             req.on('end', () => {
                 resolve(true);
             });
@@ -56,10 +56,10 @@ export async function isAnyBlenderConnected() {
 }
 
 
-function SERVER_handleRequest(request : any, response : any) {
+function SERVER_handleRequest(request: any, response: any) {
     if (request.method === 'POST') {
         let body = '';
-        request.on('data', (chunk : any) => body += chunk.toString());
+        request.on('data', (chunk: any) => body += chunk.toString());
         request.on('end', () => {
             let req = JSON.parse(body);
 
@@ -97,14 +97,14 @@ function SERVER_handleRequest(request : any, response : any) {
     }
 }
 
-function registerBlenderPort(port : number) {
+function registerBlenderPort(port: number) {
     blenderPorts.push(port);
 }
 
-function unregisterBlenderPort(port : number) {
+function unregisterBlenderPort(port: number) {
     blenderPorts.splice(blenderPorts.indexOf(port), 1);
 }
 
-function getAddress(port : number) {
+function getAddress(port: number) {
     return `http://localhost:${port}`;
 }

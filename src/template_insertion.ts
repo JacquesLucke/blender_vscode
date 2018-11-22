@@ -3,12 +3,13 @@ import * as vscode from 'vscode';
 import { templateFilesDir } from './paths';
 import { nameToIdentifier, nameToClassIdentifier, readTextFile } from './utils';
 
-export async function insertTemplate(data : any) {
+export async function insertTemplate(data: any) {
     try {
         if (data.type === 'newOperator') {
             let settings = new OperatorSettings(data.name, data.group);
             insertTemplate_SimpleOperator(settings);
-        } else if (data.type === 'newPanel') {
+        }
+        else if (data.type === 'newPanel') {
             let settings = new PanelSettings(data.name, data.spaceType, data.regionType, data.group);
             insertTemplate_Panel(settings);
         }
@@ -22,10 +23,10 @@ export async function insertTemplate(data : any) {
  **************************************/
 
 class OperatorSettings {
-    name : string;
-    group : string;
+    name: string;
+    group: string;
 
-    constructor(name : string, group : string) {
+    constructor(name: string, group: string) {
         this.name = name;
         this.group = group;
     }
@@ -39,7 +40,7 @@ class OperatorSettings {
     }
 }
 
-async function insertTemplate_SimpleOperator(settings : OperatorSettings) {
+async function insertTemplate_SimpleOperator(settings: OperatorSettings) {
     let sourcePath = path.join(templateFilesDir, 'operator_simple.py');
     let text = await readTextFile(sourcePath);
     text = text.replace('LABEL', settings.name);
@@ -54,12 +55,12 @@ async function insertTemplate_SimpleOperator(settings : OperatorSettings) {
 **************************************/
 
 class PanelSettings {
-    name : string;
-    spaceType : string;
-    regionType : string;
-    group : string;
+    name: string;
+    spaceType: string;
+    regionType: string;
+    group: string;
 
-    constructor(name : string, spaceType : string, regionType : string, group : string) {
+    constructor(name: string, spaceType: string, regionType: string, group: string) {
         this.name = name;
         this.spaceType = spaceType;
         this.regionType = regionType;
@@ -75,7 +76,7 @@ class PanelSettings {
     }
 }
 
-async function insertTemplate_Panel(settings : PanelSettings) {
+async function insertTemplate_Panel(settings: PanelSettings) {
     let sourcePath = path.join(templateFilesDir, 'panel_simple.py');
     let text = await readTextFile(sourcePath);
     text = text.replace('LABEL', settings.name);
@@ -90,7 +91,7 @@ async function insertTemplate_Panel(settings : PanelSettings) {
 /* Text Block insertion
  **************************************/
 
-function insertTextBlock(text : string) {
+function insertTextBlock(text: string) {
     let editor = vscode.window.activeTextEditor;
     if (editor === undefined) throw new Error('No active text editor.');
 
@@ -106,17 +107,17 @@ function insertTextBlock(text : string) {
     vscode.workspace.applyEdit(workspaceEdit);
 }
 
-function findNextLineStartingInTheBeginning(document : vscode.TextDocument, start : number) : number {
+function findNextLineStartingInTheBeginning(document: vscode.TextDocument, start: number): number {
     for (let i = start; i < document.lineCount; i++) {
         let line = document.lineAt(i);
-        if (line.text.length > 0 &&line.firstNonWhitespaceCharacterIndex === 0) {
+        if (line.text.length > 0 && line.firstNonWhitespaceCharacterIndex === 0) {
             return i;
         }
     }
     return document.lineCount;
 }
 
-function findLastLineContainingText(document : vscode.TextDocument, start : number ) : number {
+function findLastLineContainingText(document: vscode.TextDocument, start: number): number {
     for (let i = start; i >= 0; i--) {
         let line = document.lineAt(i);
         if (!line.isEmptyOrWhitespace) {

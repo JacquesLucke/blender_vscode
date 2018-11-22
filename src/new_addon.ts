@@ -11,26 +11,29 @@ export async function COMMAND_newAddon() {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
-            openLabel: 'New Addon'});
+            openLabel: 'New Addon'
+        });
         if (value === undefined) return;
         await tryMakeAddonInFolder(value[0].fsPath, true);
         return Promise.resolve();
-    } else if (workspaceFolders.length === 1) {
+    }
+    else if (workspaceFolders.length === 1) {
         await tryMakeAddonInFolder(workspaceFolders[0].uri.fsPath);
         return Promise.resolve();
-    } else {
+    }
+    else {
         return Promise.reject(new Error('Can\'t create a new addon in a workspace with multiple folders yet.'));
     }
 }
 
-async function tryMakeAddonInFolder(folderPath : string, openWorkspace : boolean = false) {
+async function tryMakeAddonInFolder(folderPath: string, openWorkspace: boolean = false) {
     await testIfAddonCanBeCreatedInFolder(folderPath);
     let [addonName, authorName] = await askUser_SettingsForNewAddon();
     await createNewAddon(folderPath, addonName, authorName);
     await vscode.commands.executeCommand("vscode.openFolder", vscode.Uri.file(folderPath));
 }
 
-async function testIfAddonCanBeCreatedInFolder(folder : string) {
+async function testIfAddonCanBeCreatedInFolder(folder: string) {
     return new Promise<void>((resolve, reject) => {
         fs.stat(folder, (err, stat) => {
             if (err !== null) return reject(new Error('Error when accesing the folder.'));
@@ -49,24 +52,26 @@ async function testIfAddonCanBeCreatedInFolder(folder : string) {
 }
 
 async function askUser_SettingsForNewAddon() {
-    let addonName = await vscode.window.showInputBox({placeHolder: 'Addon Name'});
+    let addonName = await vscode.window.showInputBox({ placeHolder: 'Addon Name' });
     if (addonName === undefined) {
         return Promise.reject(cancel());
-    } else if (addonName === "") {
+    }
+    else if (addonName === "") {
         return Promise.reject(new Error('Can\'t create an addon without a name.'));
     }
 
-    let authorName = await vscode.window.showInputBox({placeHolder: 'Your Name'});
+    let authorName = await vscode.window.showInputBox({ placeHolder: 'Your Name' });
     if (authorName === undefined) {
         return Promise.reject(cancel());
-    } else if (authorName === "") {
+    }
+    else if (authorName === "") {
         return Promise.reject(new Error('Can\'t create an addon without an author name.'));
     }
 
     return [<string>addonName, <string>authorName];
 }
 
-async function createNewAddon(folder : string, addonName : string, authorName : string) {
+async function createNewAddon(folder: string, addonName: string, authorName: string) {
     let initSourcePath = path.join(templateFilesDir, 'addon.py');
     let initTargetPath = path.join(folder, "__init__.py");
     let text = await readTextFile(initSourcePath);
@@ -77,7 +82,8 @@ async function createNewAddon(folder : string, addonName : string, authorName : 
         fs.writeFile(initTargetPath, text, err => {
             if (err !== null) {
                 return reject(new Error('Could not create the __init__.py file.'));
-            } else {
+            }
+            else {
                 resolve(initTargetPath);
             }
         });

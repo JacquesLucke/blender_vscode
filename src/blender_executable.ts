@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
-import { pipPath, launchPath} from './paths';
+import { pipPath, launchPath } from './paths';
 import { AddonFolder } from './addon_folder';
 import { getServerPort } from './communication';
 import { BlenderFolder } from './blender_folder';
@@ -9,14 +9,14 @@ import { getConfig, cancel, runTask } from './utils';
 
 
 export class BlenderExecutable {
-    data : BlenderPathData;
+    data: BlenderPathData;
 
-    constructor(data : BlenderPathData) {
+    constructor(data: BlenderPathData) {
         this.data = data;
     }
 
     public static async GetAny() {
-        let data = await getFilteredBlenderPath('Blender Executable', () => true, () => {});
+        let data = await getFilteredBlenderPath('Blender Executable', () => true, () => { });
         return new BlenderExecutable(data);
     }
 
@@ -37,13 +37,13 @@ export class BlenderExecutable {
         let execution = new vscode.ProcessExecution(
             this.path,
             getBlenderLaunchArgs(),
-            {env: await getBlenderLaunchEnv()}
+            { env: await getBlenderLaunchEnv() }
         );
 
         await runTask('blender', execution);
     }
 
-    public async launchDebug(folder : BlenderFolder) {
+    public async launchDebug(folder: BlenderFolder) {
         let configuration = {
             name: 'Debug Blender',
             type: 'cppdbg',
@@ -60,16 +60,15 @@ export class BlenderExecutable {
 }
 
 interface BlenderPathData {
-    path : string;
-    name : string;
-    isDebug : boolean;
+    path: string;
+    name: string;
+    isDebug: boolean;
 }
 
 async function getFilteredBlenderPath(
-        openLabel: string,
-        predicate : (item : BlenderPathData) => boolean,
-        setSettings : (item : BlenderPathData) => void) : Promise<BlenderPathData>
-{
+    openLabel: string,
+    predicate: (item: BlenderPathData) => boolean,
+    setSettings: (item: BlenderPathData) => void): Promise<BlenderPathData> {
     let config = getConfig();
     let allBlenderPaths = <BlenderPathData[]>config.get('blenderPaths');
     let usableBlenderPaths = allBlenderPaths.filter(predicate);
@@ -85,9 +84,11 @@ async function getFilteredBlenderPath(
         allBlenderPaths.push(item);
         config.update('blenderPaths', allBlenderPaths, vscode.ConfigurationTarget.Global);
         return item;
-    } else if (usableBlenderPaths.length === 1) {
+    }
+    else if (usableBlenderPaths.length === 1) {
         return usableBlenderPaths[0];
-    } else {
+    }
+    else {
         let names = usableBlenderPaths.map(item => item.name);
         let selectedName = await vscode.window.showQuickPick(names);
         if (selectedName === undefined) return Promise.reject(cancel());
@@ -95,21 +96,21 @@ async function getFilteredBlenderPath(
     }
 }
 
-async function askUser_BlenderPath(openLabel : string) {
+async function askUser_BlenderPath(openLabel: string) {
     let value = await vscode.window.showOpenDialog({
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            openLabel: openLabel
-        });
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        openLabel: openLabel
+    });
     if (value === undefined) return Promise.reject(cancel());
     let filepath = value[0].fsPath;
     await testIfPathIsBlender(filepath);
     return filepath;
 }
 
-async function testIfPathIsBlender(filepath : string) {
-    let name : string = path.basename(filepath);
+async function testIfPathIsBlender(filepath: string) {
+    let name: string = path.basename(filepath);
 
     if (!name.toLowerCase().startsWith('blender')) {
         return Promise.reject(new Error('Expected executable name to begin with \'blender\''));
@@ -123,7 +124,8 @@ async function testIfPathIsBlender(filepath : string) {
             let text = stdout.toString();
             if (!text.includes(testString)) {
                 reject(new Error('Path is not Blender.'));
-            } else {
+            }
+            else {
                 resolve();
             }
         });

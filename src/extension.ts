@@ -9,12 +9,12 @@ import { BlenderExecutable } from './blender_executable';
 import { startServer, stopServer, isAnyBlenderConnected, sendToAllBlenderPorts } from './communication';
 
 export function activate(context: vscode.ExtensionContext) {
-    let commands : [string, () => Promise<void>][] = [
-        ['blender.start',         COMMAND_start],
-        ['blender.build',         COMMAND_build],
+    let commands: [string, () => Promise<void>][] = [
+        ['blender.start', COMMAND_start],
+        ['blender.build', COMMAND_build],
         ['blender.buildAndStart', COMMAND_buildAndStart],
-        ['blender.reloadAddons',  COMMAND_reloadAddons],
-        ['blender.newAddon',      COMMAND_newAddon],
+        ['blender.reloadAddons', COMMAND_reloadAddons],
+        ['blender.newAddon', COMMAND_newAddon],
     ];
 
     let disposables = [
@@ -49,7 +49,8 @@ async function COMMAND_buildAndStart() {
     let blender = await BlenderFolder.Get();
     if (blender === null) {
         await (await BlenderExecutable.GetAny()).launch();
-    } else {
+    }
+    else {
         await (await BlenderExecutable.GetDebug()).launchDebug(blender);
     }
 }
@@ -67,16 +68,16 @@ async function COMMAND_reloadAddons() {
     await reloadAddons(await AddonFolder.All());
 }
 
-async function reloadAddons(addons : AddonFolder[]) {
+async function reloadAddons(addons: AddonFolder[]) {
     if (addons.length === 0) return;
     if (!(await isAnyBlenderConnected())) return;
 
     await rebuildAddons(addons);
     let names = addons.map(a => a.moduleName);
-    sendToAllBlenderPorts({type: 'reload', names: names});
+    sendToAllBlenderPorts({ type: 'reload', names: names });
 }
 
-async function rebuildAddons(addons : AddonFolder[]) {
+async function rebuildAddons(addons: AddonFolder[]) {
     await Promise.all(addons.map(a => a.buildIfNecessary()));
 }
 
@@ -84,7 +85,7 @@ async function rebuildAddons(addons : AddonFolder[]) {
 /* Event Handlers
  ***************************************/
 
-async function HANDLER_updateOnSave(document : vscode.TextDocument) {
+async function HANDLER_updateOnSave(document: vscode.TextDocument) {
     let addons = await AddonFolder.All();
     await reloadAddons(addons.filter(a => a.reloadOnSave));
 }

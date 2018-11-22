@@ -3,9 +3,9 @@ import * as vscode from 'vscode';
 import { getConfig, readTextFile, getWorkspaceFolders, executeTask } from './utils';
 
 export class AddonFolder {
-    folder : vscode.WorkspaceFolder;
+    folder: vscode.WorkspaceFolder;
 
-    constructor(folder : vscode.WorkspaceFolder) {
+    constructor(folder: vscode.WorkspaceFolder) {
         this.folder = folder;
     }
 
@@ -42,7 +42,8 @@ export class AddonFolder {
         try {
             let content = await readTextFile(initPath);
             return content.includes('bl_info');
-        } catch {
+        }
+        catch {
             return false;
         }
     }
@@ -65,10 +66,11 @@ export class AddonFolder {
         return this.makePathAbsolute(<string>getConfig(this.uri).get('addon.sourceDirectory'));
     }
 
-    private makePathAbsolute(directory : string) {
+    private makePathAbsolute(directory: string) {
         if (path.isAbsolute(directory)) {
             return directory;
-        } else {
+        }
+        else {
             return path.join(this.uri.fsPath, directory);
         }
     }
