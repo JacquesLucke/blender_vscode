@@ -4,3 +4,4 @@ node_modules
 *.vsix
 npm-debug.log
 package-lock.json
+__pycache__
