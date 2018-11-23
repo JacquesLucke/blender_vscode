@@ -15,13 +15,13 @@ def load(addon_paths):
             create_link_in_addon_directory(addon_path)
 
         try:
-            bpy.ops.wm.addon_enable(module=addon_path.name)
+            bpy.ops.wm.addon_enable(module=Path(addon_path).name)
         except:
             traceback.print_exc()
             send_dict_as_json({"type" : "enableFailure", "addonPath" : str(addon_path)})
 
 def create_link_in_addon_directory(directory):
-    link_path = os.path.join(addon_directory, os.path.basename(directory))
+    link_path = os.path.join(addon_directory, Path(directory).name)
 
     if os.path.exists(link_path):
         os.remove(link_path)

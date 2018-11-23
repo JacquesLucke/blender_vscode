@@ -4,6 +4,7 @@ import runpy
 import traceback
 from bpy.props import *
 from . utils import redraw_all
+from . operators import script_runner
 from . communication import send_dict_as_json, register_post_action
 
 class UpdateAddonOperator(bpy.types.Operator):
@@ -36,16 +37,6 @@ class UpdateAddonOperator(bpy.types.Operator):
         redraw_all()
         return {'FINISHED'}
 
-class RunScriptOperator(bpy.types.Operator):
-    bl_idname = "dev.run_script"
-    bl_label = "Run Script"
-
-    filepath: StringProperty()
-
-    def execute(self, context):
-        runpy.run_path(self.filepath)
-        redraw_all()
-        return {'FINISHED'}
 
 class NewOperatorOperator(bpy.types.Operator):
     bl_idname = "dev.new_operator"
@@ -74,6 +65,7 @@ class NewOperatorOperator(bpy.types.Operator):
             }
         })
         return {'FINISHED'}
+
 
 class NewPanelOperator(bpy.types.Operator):
     bl_idname = "dev.new_panel"
@@ -117,20 +109,17 @@ def reload_action(data):
     for name in data["names"]:
         bpy.ops.dev.update_addon(module_name=name)
 
-def run_script_action(data):
-    bpy.ops.dev.run_script(filepath=data["path"])
-
 
 classes = (
     UpdateAddonOperator,
-    RunScriptOperator,
     NewOperatorOperator,
     NewPanelOperator,
 )
 
 def register():
     register_post_action("reload", reload_action)
-    register_post_action("script", run_script_action)
+
+    script_runner.register()
 
     for cls in classes:
         bpy.utils.register_class(cls)
