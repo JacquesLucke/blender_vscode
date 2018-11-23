@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { templateFilesDir } from './paths';
-import { cancel, readTextFile, getWorkspaceFolders } from './utils';
+import { cancel, readTextFile, writeTextFile, getWorkspaceFolders } from './utils';
 
 export async function COMMAND_newAddon() {
     let workspaceFolders = getWorkspaceFolders();
@@ -30,7 +30,7 @@ async function tryMakeAddonInFolder(folderPath: string, openWorkspace: boolean =
     await testIfAddonCanBeCreatedInFolder(folderPath);
     let [addonName, authorName] = await askUser_SettingsForNewAddon();
     await createNewAddon(folderPath, addonName, authorName);
-    await vscode.commands.executeCommand("vscode.openFolder", vscode.Uri.file(folderPath));
+    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(folderPath));
 }
 
 async function testIfAddonCanBeCreatedInFolder(folder: string) {
@@ -77,15 +77,5 @@ async function createNewAddon(folder: string, addonName: string, authorName: str
     let text = await readTextFile(initSourcePath);
     text = text.replace('ADDON_NAME', addonName);
     text = text.replace('AUTHOR_NAME', authorName);
-
-    return new Promise<string>((resolve, reject) => {
-        fs.writeFile(initTargetPath, text, err => {
-            if (err !== null) {
-                return reject(new Error('Could not create the __init__.py file.'));
-            }
-            else {
-                resolve(initTargetPath);
-            }
-        });
-    });
+    await writeTextFile(initTargetPath, text);
 }

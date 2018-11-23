@@ -15,7 +15,8 @@
     "onCommand:blender.build",
     "onCommand:blender.buildAndStart",
     "onCommand:blender.reloadAddons",
-    "onCommand:blender.newAddon"
+    "onCommand:blender.newAddon",
+    "onCommand:blender.runScript"
   ],
   "main": "./out/extension",
   "repository": {
@@ -82,25 +83,6 @@
                   "type": "boolean",
                   "description": "Is this executable a debug build.",
                   "default": false
-                }
-              }
-            }
-          },
-          "blender.scriptFolders": {
-            "type": "array",
-            "scope": "application",
-            "description": "Folders to store individual Blender scripts in.",
-            "items": {
-              "type": "object",
-              "title": "Single Script Folder",
-              "properties": {
-                "path": {
-                  "type": "string",
-                  "description": "Absolute file path to the folder"
-                },
-                "name": {
-                  "type": "string",
-                  "description": "Custom name for this script folder"
                 }
               }
             }

@@ -70,6 +70,19 @@ export function readTextFile(path: string) {
     });
 }
 
+export async function writeTextFile(path: string, content: string) {
+    return new Promise<void>((resove, reject) => {
+        fs.writeFile(path, content, err => {
+            if (err !== null) {
+                return reject(err);
+            }
+            else {
+                resove();
+            }
+        });
+    });
+}
+
 export async function pathExists(path: string) {
     return new Promise<boolean>(resolve => {
         fs.stat(path, (err, stats) => {
