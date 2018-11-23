@@ -2,7 +2,7 @@
   "name": "blender-development",
   "displayName": "Blender Development",
   "description": "Tools to simplify Blender development.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "JacquesLucke",
   "engines": {
     "vscode": "^1.28.0"
