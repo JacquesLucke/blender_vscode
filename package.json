@@ -147,6 +147,7 @@
     "request": "^2.87.0"
   },
   "extensionDependencies": [
-    "ms-python.python"
+    "ms-python.python",
+    "ms-vscode.cpptools"
   ]
 }
