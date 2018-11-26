@@ -42,7 +42,13 @@ export function deactivate() {
  *********************************************/
 
 async function COMMAND_start() {
-    await (await BlenderExecutable.GetAny()).launch();
+    let blender = await BlenderWorkspaceFolder.Get();
+    if (blender === null) {
+        await (await BlenderExecutable.GetAny()).launch();
+    }
+    else {
+        await (await BlenderExecutable.GetDebug()).launchDebug(blender);
+    }
 }
 
 async function COMMAND_buildAndStart() {

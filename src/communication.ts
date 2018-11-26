@@ -66,7 +66,7 @@ function SERVER_handleRequest(request: any, response: any) {
             switch (req.type) {
                 case 'setup': {
                     registerBlenderPort(req.blenderPort);
-                    attachPythonDebuggerToBlender(req.debugPort, req.blenderPath, req.scriptsFolder);
+                    attachPythonDebuggerToBlender(req.ptvsdPort, req.blenderPath, req.scriptsFolder);
                     response.end('OK');
                     break;
                 }

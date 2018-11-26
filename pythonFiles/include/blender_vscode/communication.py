@@ -102,7 +102,7 @@ def send_connection_information():
     send_dict_as_json({
         "type" : "setup",
         "blenderPort" : OWN_SERVER_PORT,
-        "debugPort" : PTVSD_PORT,
+        "ptvsdPort" : PTVSD_PORT,
         "blenderPath" : str(blender_path),
         "scriptsFolder" : str(scripts_folder),
     })
