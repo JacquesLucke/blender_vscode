@@ -7,7 +7,7 @@ import { COMMAND_newAddon } from './new_addon';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { BlenderExecutable } from './blender_executable';
 import { startServer, stopServer, isAnyBlenderConnected, sendToBlender } from './communication';
-import { COMMAND_runScript } from './script_folder';
+import { COMMAND_runScript } from './scripts';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands: [string, () => Promise<void>][] = [
