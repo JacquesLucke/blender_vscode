@@ -1,8 +1,8 @@
-def startup(editor_address, get_pip_path, addon_paths, allow_modify_external_python):
+def startup(editor_address, addon_paths, allow_modify_external_python):
     from . import installation
     installation.ensure_packages_are_installed(
         ["ptvsd", "flask", "requests"],
-        get_pip_path, allow_modify_external_python)
+        allow_modify_external_python)
 
     from . import communication
     communication.setup(editor_address)

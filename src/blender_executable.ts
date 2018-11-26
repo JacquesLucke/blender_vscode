@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
-import { pipPath, launchPath } from './paths';
+import { launchPath } from './paths';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { getServerPort } from './communication';
 import { BlenderWorkspaceFolder } from './blender_folder';
@@ -149,7 +149,6 @@ async function getBlenderLaunchEnv() {
     return {
         ADDON_DIRECTORIES_TO_LOAD: JSON.stringify(loadDirs),
         EDITOR_PORT: getServerPort().toString(),
-        PIP_PATH: pipPath,
         ALLOW_MODIFY_EXTERNAL_PYTHON: <boolean>config.get('allowModifyExternalPython') ? 'yes' : 'no',
     };
 }

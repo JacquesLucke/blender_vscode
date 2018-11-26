@@ -3,23 +3,25 @@ import sys
 import bpy
 import textwrap
 import subprocess
+from pathlib import Path
 from . environment import python_path, use_own_python
 
-def ensure_packages_are_installed(package_names, get_pip_path, allow_modify_external_python):
+def ensure_packages_are_installed(package_names, allow_modify_external_python):
     if packages_are_installed(package_names):
         return
 
     if not use_own_python and not allow_modify_external_python:
         raise cannot_install_exception(package_names)
 
-    install_packages(package_names, get_pip_path)
+    install_packages(package_names)
 
 def packages_are_installed(package_names):
     return all(module_can_be_imported(name) for name in package_names)
 
-def install_packages(package_names, get_pip_path):
+def install_packages(package_names):
     if not module_can_be_imported("pip"):
-        subprocess.run([python_path, get_pip_path])
+        get_pip_path = Path(__file__).parent / "external" / "get-pip.py"
+        subprocess.run([python_path, str(get_pip_path)])
 
     for name in package_names:
         ensure_package_is_installed(name)

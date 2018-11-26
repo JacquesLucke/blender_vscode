@@ -10,7 +10,6 @@ import blender_vscode
 
 blender_vscode.startup(
     editor_address=f"http://localhost:{os.environ['EDITOR_PORT']}",
-    get_pip_path=os.environ["PIP_PATH"],
     addon_paths=json.loads(os.environ['ADDON_DIRECTORIES_TO_LOAD']),
     allow_modify_external_python=os.environ['ALLOW_MODIFY_EXTERNAL_PYTHON'] == "yes",
 )
