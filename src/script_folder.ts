@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { sendToBlender } from './communication';
 
-export async function COMMAND_RunScript() {
+export async function COMMAND_runScript() {
     let editor = vscode.window.activeTextEditor;
     if (editor === undefined) return Promise.reject(new Error('no active script'));
 
