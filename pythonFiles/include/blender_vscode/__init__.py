@@ -11,7 +11,7 @@ def startup(editor_address, get_pip_path, addon_paths, allow_modify_external_pyt
     load_addons.load(addon_paths)
 
     from . import ui
-    from . import ops
+    from . import operators
 
     ui.register()
-    ops.register()
+    operators.register()

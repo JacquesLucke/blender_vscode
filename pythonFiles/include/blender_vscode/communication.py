@@ -73,6 +73,17 @@ def handle_post():
 
     return "OK"
 
+@server.route("/", methods=['GET'])
+def handle_get():
+    flask.request
+    data = flask.request.get_json()
+    print("Got GET:", data)
+
+    if data["type"] == "ping":
+        pass
+    return "OK"
+
+
 def register_post_handler(type, handler):
     assert type not in post_handlers
     post_handlers[type] = handler
@@ -82,16 +93,6 @@ def register_post_action(type, handler):
         run_in_main_thread(partial(handler, data))
         return "OK"
     register_post_handler(type, request_handler_wrapper)
-
-@server.route("/", methods=['GET'])
-def handle_get():
-    data = flask.request.get_json()
-    print("Got GET:", data)
-
-    if data["type"] == "ping":
-        pass
-    return "OK"
-
 
 
 # Sending Data
