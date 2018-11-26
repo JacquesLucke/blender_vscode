@@ -6,7 +6,7 @@ import random
 import requests
 import threading
 from functools import partial
-from bpy_extras.callback_utils import run_in_main_thread
+from . utils import run_in_main_thread
 from . environment import blender_path, scripts_folder
 
 EDITOR_ADDRESS = None
