@@ -14,6 +14,7 @@
     "onCommand:blender.start",
     "onCommand:blender.build",
     "onCommand:blender.buildAndStart",
+    "onCommand:blender.startWithoutCDebugger",
     "onCommand:blender.reloadAddons",
     "onCommand:blender.newAddon",
     "onCommand:blender.runScript"
@@ -41,6 +42,11 @@
       {
         "command": "blender.buildAndStart",
         "title": "Build and Start",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.startWithoutCDebugger",
+        "title": "Start without C Debugger",
         "category": "Blender"
       },
       {

@@ -14,6 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.start', COMMAND_start],
         ['blender.build', COMMAND_build],
         ['blender.buildAndStart', COMMAND_buildAndStart],
+        ['blender.startWithoutCDebugger', COMMAND_startWithoutCDebugger],
         ['blender.reloadAddons', COMMAND_reloadAddons],
         ['blender.newAddon', COMMAND_newAddon],
         ['blender.runScript', COMMAND_RunScript],
@@ -41,35 +42,32 @@ export function deactivate() {
 /* Commands
  *********************************************/
 
-async function COMMAND_start() {
-    let blender = await BlenderWorkspaceFolder.Get();
-    if (blender === null) {
-        await (await BlenderExecutable.GetAny()).launch();
-    }
-    else {
-        await (await BlenderExecutable.GetDebug()).launchDebug(blender);
-    }
-}
-
 async function COMMAND_buildAndStart() {
     await COMMAND_build();
+    await COMMAND_start();
+}
 
-    let blender = await BlenderWorkspaceFolder.Get();
-    if (blender === null) {
-        await (await BlenderExecutable.GetAny()).launch();
+async function COMMAND_start() {
+    let blenderFolder = await BlenderWorkspaceFolder.Get();
+    if (blenderFolder === null) {
+        await BlenderExecutable.LaunchAny();
     }
     else {
-        await (await BlenderExecutable.GetDebug()).launchDebug(blender);
+        await BlenderExecutable.LaunchDebug(blenderFolder);
     }
 }
 
 async function COMMAND_build() {
     await rebuildAddons(await AddonWorkspaceFolder.All());
 
-    let blender = await BlenderWorkspaceFolder.Get();
-    if (blender !== null) {
-        await blender.buildDebug();
+    let blenderFolder = await BlenderWorkspaceFolder.Get();
+    if (blenderFolder !== null) {
+        await blenderFolder.buildDebug();
     }
+}
+
+async function COMMAND_startWithoutCDebugger() {
+    await BlenderExecutable.LaunchAny();
 }
 
 async function COMMAND_reloadAddons() {

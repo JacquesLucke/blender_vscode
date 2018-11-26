@@ -29,6 +29,14 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
+    public static async LaunchAny() {
+        await (await this.GetAny()).launch();
+    }
+
+    public static async LaunchDebug(folder : BlenderWorkspaceFolder) {
+        await (await this.GetDebug()).launchDebug(folder);
+    }
+
     get path() {
         return this.data.path;
     }
