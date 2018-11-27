@@ -1,3 +1,5 @@
+!!! still work in progress, a more stable version will be published soon !!!
+
 # Blender Development in VS Code
 
 The only key combination you have to remember is `ctrl+shift+P`.
