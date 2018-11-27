@@ -1,7 +1,6 @@
 import * as http from 'http';
 import * as vscode from 'vscode';
 import * as request from 'request';
-import { insertTemplate } from './template_insertion';
 import { attachPythonDebuggerToBlender } from './python_debugging';
 
 var server: any = undefined;
@@ -67,11 +66,6 @@ function SERVER_handleRequest(request: any, response: any) {
                 case 'setup': {
                     registerBlenderPort(req.blenderPort);
                     attachPythonDebuggerToBlender(req.ptvsdPort, req.blenderPath, req.scriptsFolder);
-                    response.end('OK');
-                    break;
-                }
-                case 'insertTemplate': {
-                    insertTemplate(req.data);
                     response.end('OK');
                     break;
                 }

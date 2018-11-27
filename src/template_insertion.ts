@@ -3,22 +3,6 @@ import * as vscode from 'vscode';
 import { templateFilesDir } from './paths';
 import { nameToIdentifier, nameToClassIdentifier, readTextFile } from './utils';
 
-export async function insertTemplate(data: any) {
-    try {
-        if (data.type === 'newOperator') {
-            let settings = new OperatorSettings(data.name, data.group);
-            insertTemplate_SimpleOperator(settings);
-        }
-        else if (data.type === 'newPanel') {
-            let settings = new PanelSettings(data.name, data.spaceType, data.regionType, data.group);
-            insertTemplate_Panel(settings);
-        }
-    }
-    catch (err) {
-        vscode.window.showErrorMessage(`Could not insert template (${err.message}).`);
-    }
-}
-
 /* Operator insertion
  **************************************/
 
