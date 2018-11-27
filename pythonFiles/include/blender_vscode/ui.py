@@ -8,8 +8,9 @@ from . communication import (
 class DevelopmentPanel(bpy.types.Panel):
     bl_idname = "DEV_PT_panel"
     bl_label = "Development"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Dev"
 
     def draw(self, context):
         layout = self.layout
