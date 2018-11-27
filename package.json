@@ -103,6 +103,7 @@
 
           "blender.allowModifyExternalPython": {
             "type": "boolean",
+            "scope": "application",
             "default": false,
             "description": "Allow automatically installing modules in Python distributions outside of Blender."
           },
