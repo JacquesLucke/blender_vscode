@@ -6,6 +6,7 @@ import { AddonWorkspaceFolder } from './addon_folder';
 import { getServerPort } from './communication';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { getConfig, cancel, runTask } from './utils';
+import { letUserPickItem } from './select_utils';
 
 
 export class BlenderExecutable {
@@ -16,16 +17,20 @@ export class BlenderExecutable {
     }
 
     public static async GetAny() {
-        let data = await getFilteredBlenderPath('Blender Executable', () => true, () => { });
+        let data = await getFilteredBlenderPath({
+            label: 'Blender Executable',
+            predicate: () => true,
+            setSettings: () => { }
+        });
         return new BlenderExecutable(data);
     }
 
     public static async GetDebug() {
-        let data = await getFilteredBlenderPath(
-            'Debug Build',
-            item => item.isDebug,
-            item => { item.isDebug = true; }
-        );
+        let data = await getFilteredBlenderPath({
+            label: 'Debug Build',
+            predicate: item => item.isDebug,
+            setSettings: item => { item.isDebug = true; }
+        });
         return new BlenderExecutable(data);
     }
 
@@ -33,7 +38,7 @@ export class BlenderExecutable {
         await (await this.GetAny()).launch();
     }
 
-    public static async LaunchDebug(folder : BlenderWorkspaceFolder) {
+    public static async LaunchDebug(folder: BlenderWorkspaceFolder) {
         await (await this.GetDebug()).launchDebug(folder);
     }
 
@@ -82,40 +87,48 @@ interface BlenderPathData {
     isDebug: boolean;
 }
 
-async function getFilteredBlenderPath(
-    openLabel: string,
-    predicate: (item: BlenderPathData) => boolean,
-    setSettings: (item: BlenderPathData) => void): Promise<BlenderPathData> {
-    let config = getConfig();
-    let allBlenderPaths = <BlenderPathData[]>config.get('blenderPaths');
-    let usableBlenderPaths = allBlenderPaths.filter(predicate);
-
-    if (usableBlenderPaths.length === 0) {
-        let blenderPath = await askUser_BlenderPath(openLabel);
-        let item = {
-            path: blenderPath,
-            name: '',
-            isDebug: false
-        };
-        setSettings(item);
-        allBlenderPaths.push(item);
-        config.update('blenderPaths', allBlenderPaths, vscode.ConfigurationTarget.Global);
-        return item;
-    }
-    else if (usableBlenderPaths.length === 1) {
-        return usableBlenderPaths[0];
-    }
-    else {
-        let names = usableBlenderPaths.map(item => getPathIdentifier(item));
-        let selected = await vscode.window.showQuickPick(names);
-        if (selected === undefined) return Promise.reject(cancel());
-        return <BlenderPathData>usableBlenderPaths.find(item => getPathIdentifier(item) === selected);
-    }
+interface BlenderType {
+    label: string;
+    predicate: (item: BlenderPathData) => boolean;
+    setSettings: (item: BlenderPathData) => void;
 }
 
-function getPathIdentifier(data : BlenderPathData) {
-    if (data.name !== '') return data.name;
-    return data.path;
+async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
+    let config = getConfig();
+    let allBlenderPaths = <BlenderPathData[]>config.get('blenderPaths');
+    let usableBlenderPaths = allBlenderPaths.filter(type.predicate);
+
+    let items = [];
+    for (let pathData of usableBlenderPaths) {
+        let useCustomName = pathData.name !== '';
+        items.push({
+            data: async () => pathData,
+            label: useCustomName ? pathData.name : pathData.path
+        });
+    }
+
+    items.push({ label: "New...", data: async () => askUser_FilteredBlenderPath(type) });
+
+    let item = await letUserPickItem(items);
+    let pathData: BlenderPathData = await item.data();
+
+    if (allBlenderPaths.find(data => data.path === pathData.path) === undefined) {
+        allBlenderPaths.push(pathData);
+        config.update('blenderPaths', allBlenderPaths, vscode.ConfigurationTarget.Global);
+    }
+
+    return pathData;
+}
+
+async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
+    let filepath = await askUser_BlenderPath(type.label);
+    let pathData: BlenderPathData = {
+        path: filepath,
+        name: '',
+        isDebug: false,
+    };
+    type.setSettings(pathData);
+    return pathData;
 }
 
 async function askUser_BlenderPath(openLabel: string) {

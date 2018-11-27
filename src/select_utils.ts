@@ -5,6 +5,7 @@ export interface PickItem {
     data?: any;
     label: string;
     description?: string;
+    detail?: string;
 }
 
 export async function letUserPickItem(items: PickItem[]) : Promise<PickItem> {
