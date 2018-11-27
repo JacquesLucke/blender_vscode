@@ -4,6 +4,7 @@
   "description": "Tools to simplify Blender development.",
   "version": "0.0.4",
   "publisher": "JacquesLucke",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.28.0"
   },
