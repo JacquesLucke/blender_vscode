@@ -11,7 +11,7 @@ def ensure_packages_are_installed(package_names, allow_modify_external_python):
         return
 
     if not use_own_python and not allow_modify_external_python:
-        raise cannot_install_exception(package_names)
+        handle_cannot_install_packages(package_names)
 
     install_packages(package_names)
 
@@ -49,11 +49,16 @@ def module_can_be_imported(name):
     except ModuleNotFoundError:
         return False
 
-def cannot_install_exception(package_names):
-    return Exception(textwrap.dedent(f'''\
-        Installing packages in Python distributions, that don't
-        come with Blender, is not allowed currently.
-        Please enable 'blender.allowModifyExternalPython' in VS Code
-        or make sure that those packages are installed by yourself:
-        {package_names}
+def handle_cannot_install_packages(package_names):
+    print(textwrap.dedent(f'''\
+
+        ##########################################################
+        >   Installing packages in Python distributions, that    <
+        >   don't come with Blender, is not allowed currently.   <
+        >   Please enable 'blender.allowModifyExternalPython'    <
+        >   in VS Code or install those packages yourself:       <
+        >                                                        <
+        >   {str(package_names):53}<
+        ##########################################################
     '''))
+    sys.exit()
