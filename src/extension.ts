@@ -82,7 +82,12 @@ async function COMMAND_buildPythonApiDocs() {
     await folder.buildPythonDocs(part);
 }
 
+let isSavingForReload = false;
+
 async function COMMAND_reloadAddons() {
+    isSavingForReload = true;
+    await vscode.workspace.saveAll(false);
+    isSavingForReload = false;
     await reloadAddons(await AddonWorkspaceFolder.All());
 }
 
@@ -104,6 +109,7 @@ async function rebuildAddons(addons: AddonWorkspaceFolder[]) {
  ***************************************/
 
 async function HANDLER_updateOnSave(document: vscode.TextDocument) {
+    if (isSavingForReload) return;
     let addons = await AddonWorkspaceFolder.All();
     await reloadAddons(addons.filter(a => a.reloadOnSave));
 }
