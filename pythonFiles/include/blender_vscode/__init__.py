@@ -10,12 +10,10 @@ def startup(editor_address, addon_paths, allow_modify_external_python):
         ["ptvsd", "flask", "requests"],
         allow_modify_external_python)
 
-    from . import load_addons
-    path_mappings = load_addons.setup_addon_links(addon_paths)
-
     from . import communication
-    communication.setup(editor_address, path_mappings)
+    communication.setup(editor_address)
 
+    from . import load_addons
     load_addons.load(addon_paths)
 
     from . import ui
