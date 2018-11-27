@@ -25,8 +25,8 @@ async function getPythonPathMappings(blenderPath: string, scriptsFolder: string)
     let mappings = [];
     for (let addon of await AddonWorkspaceFolder.All()) {
         mappings.push({
-            localRoot: addon.getSourceDirectory(),
-            remoteRoot: addon.getLoadDirectory(),
+            localRoot: await addon.getSourceDirectory(),
+            remoteRoot: await addon.getLoadDirectory(),
         });
     }
     let blender = await BlenderWorkspaceFolder.Get();

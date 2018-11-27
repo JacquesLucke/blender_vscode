@@ -91,7 +91,7 @@ async function reloadAddons(addons: AddonWorkspaceFolder[]) {
     if (!(await isAnyBlenderConnected())) return;
 
     await rebuildAddons(addons);
-    let names = addons.map(a => a.moduleName);
+    let names = addons.map(async a => await a.getModuleName());
     sendToBlender({ type: 'reload', names: names });
 }
 

@@ -122,13 +122,15 @@
           "blender.addon.loadDirectory": {
             "type": "string",
             "scope": "resource",
-            "default": "./",
+            "default": "auto",
+            "examples": ["auto", "./", "./build"],
             "description": "Directory that contains the addon that should be loaded into Blender."
           },
           "blender.addon.sourceDirectory": {
             "type": "string",
             "scope": "resource",
-            "default": "./",
+            "default": "auto",
+            "examples": ["auto", "./", "./source"],
             "description": "Directory that contains the source code of the addon (used for path mapping for the debugger)."
           },
 

@@ -174,7 +174,7 @@ function getBlenderLaunchArgs() {
 async function getBlenderLaunchEnv() {
     let config = getConfig();
     let addons = await AddonWorkspaceFolder.All();
-    let loadDirs = addons.map(a => a.getLoadDirectory());
+    let loadDirs = await Promise.all(addons.map(a => a.getLoadDirectory()));
 
     return {
         ADDON_DIRECTORIES_TO_LOAD: JSON.stringify(loadDirs),

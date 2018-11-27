@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import * as crypto from 'crypto';
 
@@ -95,6 +96,36 @@ export async function pathsExist(paths: string[]) {
     let promises = paths.map(p => pathExists(p));
     let results = await Promise.all(promises);
     return results.every(v => v);
+}
+
+export async function getSubfolders(root: string) {
+    return new Promise<string[]>((resolve, reject) => {
+        fs.readdir(root, {encoding: 'utf8'}, async (err, files) => {
+            if (err !== null) {
+                reject(err);
+                return;
+            }
+
+            let folders = [];
+            for (let name of files) {
+                let fullpath = path.join(root, name);
+                if (await isDirectory(fullpath)) {
+                    folders.push(fullpath);
+                }
+            }
+
+            resolve(folders);
+        });
+    });
+}
+
+export async function isDirectory(filepath: string) {
+    return new Promise<boolean>(resolve => {
+        fs.stat(filepath, (err, stat) => {
+            if (err !== null) resolve(false);
+            else resolve(stat.isDirectory());
+        });
+    });
 }
 
 export function getConfig(resource: vscode.Uri | undefined = undefined) {
