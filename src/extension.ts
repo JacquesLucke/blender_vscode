@@ -15,6 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.build', COMMAND_build],
         ['blender.buildAndStart', COMMAND_buildAndStart],
         ['blender.startWithoutCDebugger', COMMAND_startWithoutCDebugger],
+        ['blender.buildPythonApiDocs', COMMAND_buildPythonApiDocs],
         ['blender.reloadAddons', COMMAND_reloadAddons],
         ['blender.newAddon', COMMAND_newAddon],
         ['blender.runScript', COMMAND_runScript],
@@ -68,6 +69,17 @@ async function COMMAND_build() {
 
 async function COMMAND_startWithoutCDebugger() {
     await BlenderExecutable.LaunchAny();
+}
+
+async function COMMAND_buildPythonApiDocs() {
+    let folder = await BlenderWorkspaceFolder.Get();
+    if (folder === null) {
+        vscode.window.showInformationMessage('Cannot generate API docs without Blender source code.');
+        return;
+    }
+    let part = await vscode.window.showInputBox({placeHolder: 'part'});
+    if (part === undefined) return;
+    await folder.buildPythonDocs(part);
 }
 
 async function COMMAND_reloadAddons() {

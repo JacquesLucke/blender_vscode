@@ -65,6 +65,15 @@ export class BlenderExecutable {
         };
         vscode.debug.startDebugging(folder.folder, configuration);
     }
+
+    public async launchWithCustomArgs(taskName: string, args: string[]) {
+        let execution = new vscode.ProcessExecution(
+            this.path,
+            args,
+        );
+
+        await runTask(taskName, execution, true);
+    }
 }
 
 interface BlenderPathData {

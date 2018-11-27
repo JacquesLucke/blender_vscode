@@ -15,6 +15,7 @@
     "onCommand:blender.build",
     "onCommand:blender.buildAndStart",
     "onCommand:blender.startWithoutCDebugger",
+    "onCommand:blender.buildPythonApiDocs",
     "onCommand:blender.reloadAddons",
     "onCommand:blender.newAddon",
     "onCommand:blender.runScript"
@@ -47,6 +48,11 @@
       {
         "command": "blender.startWithoutCDebugger",
         "title": "Start without C Debugger",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.buildPythonApiDocs",
+        "title": "Build Python API Docs",
         "category": "Blender"
       },
       {
