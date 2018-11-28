@@ -104,6 +104,7 @@ Please contact me if you want to help or just make a pull request.
 - Make sure you use the newest version of VS Code.
 - Use the newest Blender 2.8 version from https://builder.blender.org/.
 - Don't have Blenders source code open in VS Code (this is still unsupported on not much tested).
+- If your Blender does not use its own Python version, enable `blender.allowModifyExternalPython` or install the packages in the error message manually (currently `ptvsd`, `flask` and `requests` are required).
 
 ## Support
 
