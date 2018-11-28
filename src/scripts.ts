@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { templateFilesDir } from './paths';
 import { sendToBlender } from './communication';
 import { letUserPickItem } from './select_utils';
-import { templateFilesDir } from './paths';
+import { areaTypeItems } from './generated/enums.json';
 import { getConfig, cancel, addFolderToWorkspace, getRandomString, pathExists, copyFile } from './utils';
 
 export async function COMMAND_runScript(): Promise<void> {
@@ -27,9 +28,9 @@ export async function COMMAND_setScriptContext() {
     let editor = vscode.window.activeTextEditor;
     if (editor === undefined) return;
 
-    let items = ['VIEW_3D', 'GRAPH_EDITOR'].map(name => ({label: name}));
+    let items = areaTypeItems.map(item => ({ label: item.name, description: item.identifier }));
     let item = await letUserPickItem(items);
-    await setScriptContext(editor.document, item.label);
+    await setScriptContext(editor.document, <string>item.description);
 }
 
 async function setScriptContext(document: vscode.TextDocument, areaType: string): Promise<void> {
@@ -47,7 +48,7 @@ async function setScriptContext(document: vscode.TextDocument, areaType: string)
     await vscode.workspace.applyEdit(workspaceEdit);
 }
 
-function findAreaContextLine(document: vscode.TextDocument) : [number, RegExpMatchArray | null] {
+function findAreaContextLine(document: vscode.TextDocument): [number, RegExpMatchArray | null] {
     for (let i = 0; i < document.lineCount; i++) {
         let line = document.lineAt(i);
         let match = line.text.match(/^\s*#\s*context\.area\s*:\s*/i);

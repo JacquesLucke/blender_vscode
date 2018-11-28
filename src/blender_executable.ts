@@ -1,12 +1,13 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
+
 import { launchPath } from './paths';
-import { AddonWorkspaceFolder } from './addon_folder';
 import { getServerPort } from './communication';
-import { BlenderWorkspaceFolder } from './blender_folder';
-import { getConfig, cancel, runTask } from './utils';
 import { letUserPickItem } from './select_utils';
+import { getConfig, cancel, runTask } from './utils';
+import { AddonWorkspaceFolder } from './addon_folder';
+import { BlenderWorkspaceFolder } from './blender_folder';
 
 
 export class BlenderExecutable {

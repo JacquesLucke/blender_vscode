@@ -1,0 +1,94 @@
+{
+  "areaTypeItems": [
+    {
+      "identifier": "EMPTY",
+      "name": "Empty",
+      "description": ""
+    },
+    {
+      "identifier": "VIEW_3D",
+      "name": "3D Viewport",
+      "description": "Manipulate objects in a 3D environment"
+    },
+    {
+      "identifier": "IMAGE_EDITOR",
+      "name": "UV/Image Editor",
+      "description": "View and edit images and UV Maps"
+    },
+    {
+      "identifier": "NODE_EDITOR",
+      "name": "Node Editor",
+      "description": "Editor for node-based shading and compositing tools"
+    },
+    {
+      "identifier": "SEQUENCE_EDITOR",
+      "name": "Video Sequencer",
+      "description": "Video editing tools"
+    },
+    {
+      "identifier": "CLIP_EDITOR",
+      "name": "Movie Clip Editor",
+      "description": "Motion tracking tools"
+    },
+    {
+      "identifier": "DOPESHEET_EDITOR",
+      "name": "Dope Sheet",
+      "description": "Adjust timing of keyframes"
+    },
+    {
+      "identifier": "GRAPH_EDITOR",
+      "name": "Graph Editor",
+      "description": "Edit drivers and keyframe interpolation"
+    },
+    {
+      "identifier": "NLA_EDITOR",
+      "name": "Nonlinear Animation",
+      "description": "Combine and layer Actions"
+    },
+    {
+      "identifier": "TEXT_EDITOR",
+      "name": "Text Editor",
+      "description": "Edit scripts and in-file documentation"
+    },
+    {
+      "identifier": "CONSOLE",
+      "name": "Python Console",
+      "description": "Interactive programmatic console for advanced editing and script development"
+    },
+    {
+      "identifier": "INFO",
+      "name": "Info",
+      "description": "Main menu bar and list of error messages (drag down to expand and display)"
+    },
+    {
+      "identifier": "TOPBAR",
+      "name": "Top Bar",
+      "description": "Global bar at the top of the screen for global per-window settings"
+    },
+    {
+      "identifier": "STATUSBAR",
+      "name": "Status Bar",
+      "description": "Global bar at the bottom of the screen for general status information"
+    },
+    {
+      "identifier": "OUTLINER",
+      "name": "Outliner",
+      "description": "Overview of scene graph and all available data-blocks"
+    },
+    {
+      "identifier": "PROPERTIES",
+      "name": "Properties",
+      "description": "Edit properties of active object and related data-blocks"
+    },
+    {
+      "identifier": "FILE_BROWSER",
+      "name": "File Browser",
+      "description": "Browse for files and assets"
+    },
+    {
+      "identifier": "USER_PREFERENCES",
+      "name": "User Preferences",
+      "description": "Edit persistent configuration settings"
+    }
+  ]
+}
