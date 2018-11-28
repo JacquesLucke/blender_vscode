@@ -7,7 +7,7 @@ import { COMMAND_newAddon } from './new_addon';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { BlenderExecutable } from './blender_executable';
 import { startServer, stopServer, isAnyBlenderConnected, sendToBlender } from './communication';
-import { COMMAND_runScript } from './scripts';
+import { COMMAND_runScript, COMMAND_newScript } from './scripts';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands: [string, () => Promise<void>][] = [
@@ -18,6 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.buildPythonApiDocs', COMMAND_buildPythonApiDocs],
         ['blender.reloadAddons', COMMAND_reloadAddons],
         ['blender.newAddon', COMMAND_newAddon],
+        ['blender.newScript', COMMAND_newScript],
         ['blender.runScript', COMMAND_runScript],
     ];
 

@@ -84,6 +84,15 @@ export async function writeTextFile(path: string, content: string) {
     });
 }
 
+export async function copyFile(from: string, to: string) {
+    return new Promise<void>((resolve, reject) => {
+        fs.copyFile(from, to, err => {
+            if (err === null) resolve();
+            else reject(err);
+        });
+    });
+}
+
 export async function pathExists(path: string) {
     return new Promise<boolean>(resolve => {
         fs.stat(path, (err, stats) => {
@@ -157,6 +166,11 @@ export async function runTask(
     else {
         return taskExecution;
     }
+}
+
+export function addFolderToWorkspace(folder: string) {
+    /* Warning: This might restart all extensions if there was no folder before. */
+    vscode.workspace.updateWorkspaceFolders(getWorkspaceFolders().length, null, { uri: vscode.Uri.file(folder) });
 }
 
 export function nameToIdentifier(name: string) {

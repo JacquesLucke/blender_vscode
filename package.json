@@ -19,6 +19,7 @@
     "onCommand:blender.buildPythonApiDocs",
     "onCommand:blender.reloadAddons",
     "onCommand:blender.newAddon",
+    "onCommand:blender.newScript",
     "onCommand:blender.runScript"
   ],
   "main": "./out/extension",
@@ -64,6 +65,11 @@
       {
         "command": "blender.newAddon",
         "title": "New Addon",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.newScript",
+        "title": "New Script",
         "category": "Blender"
       },
       {
@@ -144,6 +150,25 @@
             "scope": "resource",
             "description": "Command used to compile Blender.",
             "default": "make debug"
+          },
+          "blender.scripts.directories": {
+            "type": "array",
+            "scope": "application",
+            "description": "Directories to store scripts in.",
+            "items": {
+              "type": "object",
+              "title": "Single Script Directory",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "Absolute file path to a Blender executable."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Custom name for this Blender version."
+                }
+              }
+            }
           }
         }
       }

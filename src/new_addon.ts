@@ -3,11 +3,12 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { templateFilesDir } from './paths';
 import { letUserPickItem } from './select_utils';
-import { cancel, readTextFile, writeTextFile, getWorkspaceFolders } from './utils';
+import { cancel, readTextFile, writeTextFile, getWorkspaceFolders, addFolderToWorkspace } from './utils';
 
 export async function COMMAND_newAddon() {
     let folderPath = await getFolderForNewAddon();
     await tryMakeAddonInFolder(folderPath);
+    addFolderToWorkspace(folderPath);
 }
 
 async function getFolderForNewAddon(): Promise<string> {
@@ -43,7 +44,6 @@ async function selectFolderForAddon() {
 async function tryMakeAddonInFolder(folderPath: string) {
     let [addonName, authorName] = await askUser_SettingsForNewAddon();
     await createNewAddon(folderPath, addonName, authorName);
-    vscode.workspace.updateWorkspaceFolders(getWorkspaceFolders().length, null, { uri: vscode.Uri.file(folderPath) });
 }
 
 async function canAddonBeCreatedInFolder(folder: string) {
