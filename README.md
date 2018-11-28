@@ -49,3 +49,15 @@ Your addon does not need to support reloading itself.
 It only has to have correct `register` and `unregister` methods.
 
 To reload the addon every time a file is saved, active the `blender.addon.reloadOnSave` setting in VS Code.
+
+
+## Future
+
+- Polish the features I already started working but are not documented here yet.
+- Auto-complete for Blender modules.
+- Multiple addon templates (most importantly with auto registration of classes).
+- Well integrated snippets.
+- ...
+
+Some help from other developers would be very welcome.
+Please contact me if you want to help or just make a pull request.
