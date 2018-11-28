@@ -22,7 +22,7 @@ export function getServerPort(): number {
 export function sendToBlender(data: any) {
     for (let port of blenderPorts) {
         let req = request.post(getAddress(port), { json: data });
-        req.on('error', err => {
+        req.on('error', () => {
             unregisterBlenderPort(port);
         });
     }
@@ -43,7 +43,7 @@ export async function isAnyBlenderConnected() {
             req.on('end', () => {
                 resolve(true);
             });
-            req.on('error', err => {
+            req.on('error', () => {
                 unregisterBlenderPort(port);
                 errorAmount += 1;
                 if (errorAmount === sendAmount) {
