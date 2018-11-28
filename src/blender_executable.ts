@@ -20,6 +20,7 @@ export class BlenderExecutable {
     public static async GetAny() {
         let data = await getFilteredBlenderPath({
             label: 'Blender Executable',
+            selectNewLabel: 'Choose a new Blender executable...',
             predicate: () => true,
             setSettings: () => { }
         });
@@ -29,6 +30,7 @@ export class BlenderExecutable {
     public static async GetDebug() {
         let data = await getFilteredBlenderPath({
             label: 'Debug Build',
+            selectNewLabel: 'Choose a new debug build...',
             predicate: item => item.isDebug,
             setSettings: item => { item.isDebug = true; }
         });
@@ -90,6 +92,7 @@ interface BlenderPathData {
 
 interface BlenderType {
     label: string;
+    selectNewLabel: string;
     predicate: (item: BlenderPathData) => boolean;
     setSettings: (item: BlenderPathData) => void;
 }
@@ -108,7 +111,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
         });
     }
 
-    items.push({ label: "New...", data: async () => askUser_FilteredBlenderPath(type) });
+    items.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) });
 
     let item = await letUserPickItem(items);
     let pathData: BlenderPathData = await item.data();
