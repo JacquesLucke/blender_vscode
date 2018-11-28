@@ -76,7 +76,7 @@
       {
         "title": "Blender",
         "properties": {
-          "blender.blenderPaths": {
+          "blender.executables": {
             "type": "array",
             "scope": "application",
             "description": "Paths to Blender executables.",

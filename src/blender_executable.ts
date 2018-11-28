@@ -95,7 +95,7 @@ interface BlenderType {
 
 async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
     let config = getConfig();
-    let allBlenderPaths = <BlenderPathData[]>config.get('blenderPaths');
+    let allBlenderPaths = <BlenderPathData[]>config.get('executables');
     let usableBlenderPaths = allBlenderPaths.filter(type.predicate);
 
     let items = [];
@@ -114,7 +114,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
 
     if (allBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         allBlenderPaths.push(pathData);
-        config.update('blenderPaths', allBlenderPaths, vscode.ConfigurationTarget.Global);
+        config.update('executables', allBlenderPaths, vscode.ConfigurationTarget.Global);
     }
 
     return pathData;
