@@ -12,6 +12,7 @@ import { COMMAND_runScript, COMMAND_newScript } from './scripts';
 export function activate(context: vscode.ExtensionContext) {
     let commands: [string, () => Promise<void>][] = [
         ['blender.start', COMMAND_start],
+        ['blender.stop', COMMAND_stop],
         ['blender.build', COMMAND_build],
         ['blender.buildAndStart', COMMAND_buildAndStart],
         ['blender.startWithoutCDebugger', COMMAND_startWithoutCDebugger],
@@ -57,6 +58,10 @@ async function COMMAND_start() {
     else {
         await BlenderExecutable.LaunchDebug(blenderFolder);
     }
+}
+
+async function COMMAND_stop() {
+    sendToBlender({type: 'stop'});
 }
 
 async function COMMAND_build() {

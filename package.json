@@ -13,6 +13,7 @@
   ],
   "activationEvents": [
     "onCommand:blender.start",
+    "onCommand:blender.stop",
     "onCommand:blender.build",
     "onCommand:blender.buildAndStart",
     "onCommand:blender.startWithoutCDebugger",
@@ -35,6 +36,11 @@
       {
         "command": "blender.start",
         "title": "Start",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.stop",
+        "title": "Stop",
         "category": "Blender"
       },
       {
