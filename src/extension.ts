@@ -7,7 +7,7 @@ import { COMMAND_newAddon } from './new_addon';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { BlenderExecutable } from './blender_executable';
 import { startServer, stopServer, isAnyBlenderConnected, sendToBlender } from './communication';
-import { COMMAND_runScript, COMMAND_newScript } from './scripts';
+import { COMMAND_runScript, COMMAND_newScript, COMMAND_setScriptContext } from './scripts';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands: [string, () => Promise<void>][] = [
@@ -20,7 +20,11 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.reloadAddons', COMMAND_reloadAddons],
         ['blender.newAddon', COMMAND_newAddon],
         ['blender.newScript', COMMAND_newScript],
+    ];
+
+    let textEditorCommands: [string, () => Promise<void>][] = [
         ['blender.runScript', COMMAND_runScript],
+        ['blender.setScriptContext', COMMAND_setScriptContext],
     ];
 
     let disposables = [
@@ -29,6 +33,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     for (let [identifier, func] of commands) {
         let command = vscode.commands.registerCommand(identifier, handleErrors(func));
+        disposables.push(command);
+    }
+
+    for (let [identifier, func] of textEditorCommands) {
+        let command = vscode.commands.registerTextEditorCommand(identifier, handleErrors(func));
         disposables.push(command);
     }
 

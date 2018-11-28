@@ -29,10 +29,10 @@ def prepare_script_context(filepath):
     area_type = 'VIEW_3D'
     region_type = 'WINDOW'
 
-    # for line in text.splitlines():
-    #     match = re.match(r"^\s*#\s*context\s*:\s*(\w+)", line, re.IGNORECASE)
-    #     if match:
-    #         print(match.group(1))
+    for line in text.splitlines():
+        match = re.match(r"^\s*#\s*context\.area\s*:\s*(\w+)", line, re.IGNORECASE)
+        if match:
+            area_type = match.group(1)
 
     context = bpy.context.copy()
     context["window_manager"] = bpy.data.window_managers[0]

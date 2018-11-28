@@ -21,7 +21,8 @@
     "onCommand:blender.reloadAddons",
     "onCommand:blender.newAddon",
     "onCommand:blender.newScript",
-    "onCommand:blender.runScript"
+    "onCommand:blender.runScript",
+    "onCommand:blender.setScriptContext"
   ],
   "main": "./out/extension",
   "repository": {
@@ -81,6 +82,11 @@
       {
         "command": "blender.runScript",
         "title": "Run Script",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.setScriptContext",
+        "title": "Set Script Context",
         "category": "Blender"
       }
     ],

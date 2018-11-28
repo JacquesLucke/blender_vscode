@@ -23,6 +23,41 @@ export async function COMMAND_newScript(): Promise<void> {
     addFolderToWorkspace(folderPath);
 }
 
+export async function COMMAND_setScriptContext() {
+    let editor = vscode.window.activeTextEditor;
+    if (editor === undefined) return;
+
+    let items = ['VIEW_3D', 'GRAPH_EDITOR'].map(name => ({label: name}));
+    let item = await letUserPickItem(items);
+    await setScriptContext(editor.document, item.label);
+}
+
+async function setScriptContext(document: vscode.TextDocument, areaType: string): Promise<void> {
+    let workspaceEdit = new vscode.WorkspaceEdit();
+    let [line, match] = findAreaContextLine(document);
+    if (match === null) {
+        workspaceEdit.insert(document.uri, new vscode.Position(0, 0), `# context.area: ${areaType}\n`);
+    }
+    else {
+        let start = new vscode.Position(line, match[0].length);
+        let end = new vscode.Position(line, document.lineAt(line).range.end.character);
+        let range = new vscode.Range(start, end);
+        workspaceEdit.replace(document.uri, range, areaType);
+    }
+    await vscode.workspace.applyEdit(workspaceEdit);
+}
+
+function findAreaContextLine(document: vscode.TextDocument) : [number, RegExpMatchArray | null] {
+    for (let i = 0; i < document.lineCount; i++) {
+        let line = document.lineAt(i);
+        let match = line.text.match(/^\s*#\s*context\.area\s*:\s*/i);
+        if (match !== null) {
+            return [i, match];
+        }
+    }
+    return [-1, null];
+}
+
 async function getPathForNewScript() {
     let folderPath = await getFolderForNewScript();
     let fileName = await askUser_ScriptFileName(folderPath);
