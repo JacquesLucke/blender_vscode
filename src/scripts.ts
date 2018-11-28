@@ -15,6 +15,15 @@ export async function COMMAND_runScript(): Promise<void> {
 }
 
 export async function COMMAND_newScript(): Promise<void> {
+    let [folderPath, filePath] = await getPathForNewScript();
+    await createNewScriptAtPath(filePath);
+
+    await vscode.window.showTextDocument(vscode.Uri.file(filePath));
+    await vscode.commands.executeCommand('cursorBottom');
+    addFolderToWorkspace(folderPath);
+}
+
+async function getPathForNewScript() {
     let folderPath = await getFolderForNewScript();
     let fileName = await askUser_ScriptFileName(folderPath);
     let filePath = path.join(folderPath, fileName);
@@ -23,11 +32,12 @@ export async function COMMAND_newScript(): Promise<void> {
         return Promise.reject(new Error('file exists already'));
     }
 
+    return [folderPath, filePath];
+}
+
+async function createNewScriptAtPath(filePath: string) {
     let defaultScriptPath = path.join(templateFilesDir, 'script.py');
     await copyFile(defaultScriptPath, filePath);
-    await vscode.window.showTextDocument(vscode.Uri.file(filePath));
-    await vscode.commands.executeCommand('cursorBottom');
-    addFolderToWorkspace(folderPath);
 }
 
 interface ScriptFolderData {
