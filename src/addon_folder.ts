@@ -37,8 +37,13 @@ export class AddonWorkspaceFolder {
     }
 
     public async hasAddonEntryPoint() {
-        let sourceDir = await this.getSourceDirectory();
-        return folderContainsAddonEntry(sourceDir);
+        try {
+            let sourceDir = await this.getSourceDirectory();
+            return folderContainsAddonEntry(sourceDir);
+        }
+        catch (err) {
+            return false;
+        }
     }
 
     public async buildIfNecessary() {
