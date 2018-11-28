@@ -21,7 +21,7 @@ def packages_are_installed(package_names):
 def install_packages(package_names):
     if not module_can_be_imported("pip"):
         get_pip_path = Path(__file__).parent / "external" / "get-pip.py"
-        subprocess.run([python_path, str(get_pip_path)])
+        subprocess.run([str(python_path), str(get_pip_path)])
 
     for name in package_names:
         ensure_package_is_installed(name)
@@ -34,7 +34,7 @@ def ensure_package_is_installed(name):
 
 def install_package(name):
     target = get_package_install_directory()
-    subprocess.run([python_path, "-m", "pip", "install", name, '--target', target])
+    subprocess.run([str(python_path), "-m", "pip", "install", name, '--target', target])
 
 def get_package_install_directory():
     for path in sys.path:
