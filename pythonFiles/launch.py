@@ -15,6 +15,7 @@ try:
         addon_paths=json.loads(os.environ['ADDON_DIRECTORIES_TO_LOAD']),
         allow_modify_external_python=os.environ['ALLOW_MODIFY_EXTERNAL_PYTHON'] == "yes",
     )
-except:
-    traceback.print_exc()
-    sys.exit()
+except Exception as e:
+    if type(e) is not SystemExit:
+        traceback.print_exc()
+        sys.exit()
