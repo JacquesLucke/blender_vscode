@@ -3,8 +3,14 @@ import * as vscode from 'vscode';
 import { BlenderWorkspaceFolder } from './blender_folder';
 
 export async function attachPythonDebuggerToBlender(
-    port: number, blenderPath: string, scriptsFolder: string) {
+    port: number, blenderPath: string, scriptsFolder: string, 
+    addonPathMappings : {src: string, link: string}[]) {
     let mappings = await getPythonPathMappings(blenderPath, scriptsFolder);
+    mappings.push(...addonPathMappings.map(item => ({
+        localRoot: item.src,
+        remoteRoot: item.link
+    })));
+
     attachPythonDebugger(port, mappings);
 }
 
