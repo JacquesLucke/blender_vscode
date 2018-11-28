@@ -9,7 +9,9 @@ All commands of this extension can be found by searching for `Blender`.
 
 The extension is [installed](https://code.visualstudio.com/docs/editor/extension-gallery) like any other extension in Visual Studio Code.
 
-## How do I create a new addon?
+## Addon Tools
+
+### How do I create a new addon?
 
 Execute the **Blender: New Addon** operator and use the setup wizard.
 You will be asked for the following information:
@@ -17,7 +19,7 @@ You will be asked for the following information:
 * Name of the addon.
 * Your name.
 
-## How can I use the extension with my existing addon?
+### How can I use the extension with my existing addon?
 
 The extension only supports addons that have a folder structure.
 If your addon is a single `.py` file, you have to convert it first.
@@ -41,7 +43,7 @@ This is to make sure that the extension does not interfere with another package 
 You can either install the modules listed in the error message manually, or allow the extension to install the modules itself.
 To do that, the `blender.allowModifyExternalPython` [setting](https://code.visualstudio.com/docs/getstarted/settings) has to be checked in VS Code.
 
-## How can I reload my Addon in Blender?
+### How can I reload my addon in Blender?
 
 Execute the `Blender: Reload Addons` command.
 For that to work, Blender has to be started using the extension.
@@ -50,10 +52,42 @@ It only has to have correct `register` and `unregister` methods.
 
 To reload the addon every time a file is saved, active the `blender.addon.reloadOnSave` setting in VS Code.
 
+## Script Tools
+
+When I say "script" I mean a piece of Python code that runs in Blender but is not an addon.
+Scripts are best to test and learn Blenders Python API but also to solve simple tasks at hand.
+Usually scripts are written in Blenders text editor.
+However, the text editor has fairly limited capabilities compared to modern text editors and IDEs.
+
+For script writing this extension offers
+- all text editing features VS Code and its extensions can offer
+- a way to quickly organize your scripts into folders
+- easy execution of the script inside of Blender
+- a simple way to change the context, the script runs in
+- debugging
+
+### How can I create a new script?
+
+Execute the `Blender: New Script` command.
+You will be asked for a folder to save the script and a script name.
+For quick tests you can also just use the given default name.
+
+The new script file already contains a little bit of code to make it easier to get started.
+
+### How can I run the script in Blender?
+
+First you have to start a Blender instance by executing the `Blender: Start` command.
+To execute the script in all Blender instances that have been started this way, execute the `Blender: Run Script` command.
+
+### How can I change the context the script runs in?
+
+Currently the support for this is very basic, but still useful.
+To run the script in a specific area type in Blender insert a comment like `#context.area: VIEW_3D`.
+The prefered way to insert this comment is to execute the `Blender: Set Script Context` command.
 
 ## Future
 
-- Polish the features I already started working but are not documented here yet.
+- Polish the features I already started working on but are not documented here yet.
 - Auto-complete for Blender modules.
 - Multiple addon templates (most importantly with auto registration of classes).
 - Well integrated snippets.
