@@ -100,14 +100,12 @@
               }
             }
           },
-
           "blender.allowModifyExternalPython": {
             "type": "boolean",
             "scope": "application",
             "default": false,
             "description": "Allow automatically installing modules in Python distributions outside of Blender."
           },
-
           "blender.addon.reloadOnSave": {
             "type": "boolean",
             "scope": "resource",
@@ -123,17 +121,24 @@
             "type": "string",
             "scope": "resource",
             "default": "auto",
-            "examples": ["auto", "./", "./build"],
+            "examples": [
+              "auto",
+              "./",
+              "./build"
+            ],
             "description": "Directory that contains the addon that should be loaded into Blender."
           },
           "blender.addon.sourceDirectory": {
             "type": "string",
             "scope": "resource",
             "default": "auto",
-            "examples": ["auto", "./", "./source"],
+            "examples": [
+              "auto",
+              "./",
+              "./source"
+            ],
             "description": "Directory that contains the source code of the addon (used for path mapping for the debugger)."
           },
-
           "blender.core.buildDebugCommand": {
             "type": "string",
             "scope": "resource",
