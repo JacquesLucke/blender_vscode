@@ -99,6 +99,12 @@ While I can use it to speedup my daily workflow, it is very likely that those to
 Some help from other developers would be very welcome.
 Please contact me if you want to help or just make a pull request.
 
+## Troubleshooting
+
+- Make sure you use the newest version of VS Code.
+- Use the newest Blender version from https://builder.blender.org/.
+- Don't have Blenders source code open in VS Code (this is still unsupported on not much tested).
+
 ## Support
 
 If you want to support the development of this extension, please consider to join the [Blender Dev Fund](https://fund.blender.org/) which currently pays my bills.
