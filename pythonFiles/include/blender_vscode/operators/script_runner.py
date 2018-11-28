@@ -42,6 +42,7 @@ def prepare_script_context(filepath):
     context["screen"] = context["window"].screen
     context["workspace"] = context["window"].workspace
     context["active_object"] = context["view_layer"].objects.active
+    context["object"] = context["active_object"]
     context["area"] = get_area_by_type(area_type)
     context["selected_objects"] = [obj for obj in context["view_layer"].objects if obj.select_get()]
     context["region"] = get_region_in_area(context["area"], region_type) if context["area"] else None
