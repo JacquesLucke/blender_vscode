@@ -1,5 +1,6 @@
 import bpy
 import queue
+import traceback
 
 def redraw_all():
     for window in bpy.context.window_manager.windows:
@@ -18,7 +19,9 @@ def run_in_main_thread(func):
 def always():
     while not execution_queue.empty():
         func = execution_queue.get()
-        func()
+        try: func()
+        except:
+            traceback.print_exc()
     return 0.1
 
 bpy.app.timers.register(always, persistent=True)
