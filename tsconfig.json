@@ -12,8 +12,7 @@
         "strict": true,
         "noUnusedLocals": true,
         "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true,
-        "resolveJsonModule": true
+        "noFallthroughCasesInSwitch": true
     },
     "exclude": [
         "node_modules",

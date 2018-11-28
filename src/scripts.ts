@@ -3,7 +3,7 @@ import * as path from 'path';
 import { templateFilesDir } from './paths';
 import { sendToBlender } from './communication';
 import { letUserPickItem } from './select_utils';
-import { areaTypeItems } from './generated/enums.json';
+import { getAreaTypeItems } from './data_loader';
 import { getConfig, cancel, addFolderToWorkspace, getRandomString, pathExists, copyFile } from './utils';
 
 export async function COMMAND_runScript(): Promise<void> {
@@ -28,7 +28,7 @@ export async function COMMAND_setScriptContext() {
     let editor = vscode.window.activeTextEditor;
     if (editor === undefined) return;
 
-    let items = areaTypeItems.map(item => ({ label: item.name, description: item.identifier }));
+    let items = (await getAreaTypeItems()).map(item => ({ label: item.name, description: item.identifier }));
     let item = await letUserPickItem(items);
     await setScriptContext(editor.document, <string>item.description);
 }
