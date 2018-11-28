@@ -85,6 +85,11 @@ Currently the support for this is very basic, but still useful.
 To run the script in a specific area type in Blender insert a comment like `#context.area: VIEW_3D`.
 The prefered way to insert this comment is to execute the `Blender: Set Script Context` command.
 
+## Core Development Tools
+
+These tools are not officially supported yet.
+While I can use it to speedup my daily workflow, it is very likely that those tools don't work on other machines yet.
+
 ## Future
 
 - Polish the features I already started working on but are not documented here yet.
