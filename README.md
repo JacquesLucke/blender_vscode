@@ -102,7 +102,7 @@ Please contact me if you want to help or just make a pull request.
 ## Troubleshooting
 
 - Make sure you use the newest version of VS Code.
-- Use the newest Blender version from https://builder.blender.org/.
+- Use the newest Blender 2.8 version from https://builder.blender.org/.
 - Don't have Blenders source code open in VS Code (this is still unsupported on not much tested).
 
 ## Support
