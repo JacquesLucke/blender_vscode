@@ -1,3 +1,4 @@
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
@@ -144,6 +145,13 @@ async function askUser_BlenderPath(openLabel: string) {
     });
     if (value === undefined) return Promise.reject(cancel());
     let filepath = value[0].fsPath;
+
+    if (os.platform() === 'darwin') {
+        if (filepath.toLowerCase().endsWith('.app')) {
+            filepath += '/Contents/MacOS/blender';
+        }
+    }
+
     await testIfPathIsBlender(filepath);
     return filepath;
 }
