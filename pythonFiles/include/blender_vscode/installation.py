@@ -1,9 +1,9 @@
 import os
 import sys
-import bpy
 import textwrap
 import subprocess
 from pathlib import Path
+from . import handle_fatal_error
 from . environment import python_path, use_own_python
 
 def ensure_packages_are_installed(package_names, allow_modify_external_python):
@@ -20,8 +20,7 @@ def packages_are_installed(package_names):
 
 def install_packages(package_names):
     if not module_can_be_imported("pip"):
-        get_pip_path = Path(__file__).parent / "external" / "get-pip.py"
-        subprocess.run([str(python_path), str(get_pip_path)])
+        install_pip()
 
     for name in package_names:
         ensure_package_is_installed(name)
@@ -36,11 +35,20 @@ def install_package(name):
     target = get_package_install_directory()
     subprocess.run([str(python_path), "-m", "pip", "install", name, '--target', target])
 
+    if not module_can_be_imported(name):
+        handle_fatal_error(f"could not install {name}")
+
+def install_pip():
+    # pip can not necessarily be imported into Blender after this
+    get_pip_path = Path(__file__).parent / "external" / "get-pip.py"
+    subprocess.run([str(python_path), str(get_pip_path)])
+
 def get_package_install_directory():
     for path in sys.path:
         if os.path.basename(path) in ("dist-packages", "site-packages"):
             return path
-    raise Exception("Don't know where to install packages.")
+
+    handle_fatal_error("Don't know where to install packages. Please make a bug report.")
 
 def module_can_be_imported(name):
     try:
@@ -50,15 +58,12 @@ def module_can_be_imported(name):
         return False
 
 def handle_cannot_install_packages(package_names):
-    print(textwrap.dedent(f'''\
+    handle_fatal_error(textwrap.dedent(f'''\
+        Installing packages in Python distributions, that
+        don't come with Blender, is not allowed currently.
+        Please enable 'blender.allowModifyExternalPython'
+        in VS Code or install those packages yourself:
 
-        ##########################################################
-        >   Installing packages in Python distributions, that    <
-        >   don't come with Blender, is not allowed currently.   <
-        >   Please enable 'blender.allowModifyExternalPython'    <
-        >   in VS Code or install those packages yourself:       <
-        >                                                        <
-        >   {str(package_names):53}<
-        ##########################################################
+        {str(package_names):53}\
     '''))
-    sys.exit()
+

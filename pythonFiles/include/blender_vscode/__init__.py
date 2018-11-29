@@ -3,7 +3,7 @@ import sys
 
 def startup(editor_address, addon_paths, allow_modify_external_python):
     if bpy.app.version < (2, 80, 34):
-        handle_too_old_version()
+        handle_fatal_error("Please use a newer version of Blender")
 
     from . import installation
     installation.ensure_packages_are_installed(
@@ -24,10 +24,11 @@ def startup(editor_address, addon_paths, allow_modify_external_python):
     ui.register()
     operators.register()
 
-def handle_too_old_version():
+def handle_fatal_error(message):
     print()
-    print("#############################################")
-    print(">   Please use a newer version of Blender   <")
-    print("#############################################")
+    print("#"*80)
+    for line in message.splitlines():
+        print(">  ", line)
+    print("#"*80)
     print()
-    sys.exit()
+    sys.exit(1)
