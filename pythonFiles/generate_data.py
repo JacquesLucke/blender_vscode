@@ -2,7 +2,7 @@ import bpy
 import json
 from pathlib import Path
 
-output_dir = Path(__file__).parent.parent / "src" / "generated"
+output_dir = Path(__file__).parent.parent / "generated"
 enums_output_path = output_dir / "enums.json"
 
 def insert_enum_data(data, identifier):
