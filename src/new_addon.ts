@@ -5,7 +5,7 @@ import { templateFilesDir } from './paths';
 import { letUserPickItem } from './select_utils';
 import {
     cancel, readTextFile, writeTextFile, getWorkspaceFolders,
-    addFolderToWorkspace, multiReplaceText
+    addFolderToWorkspace, multiReplaceText, pathExists
 } from './utils';
 
 type AddonBuilder = (path: string, addonName: string, authorName: string) => Promise<string>;
@@ -19,6 +19,7 @@ export async function COMMAND_newAddon() {
     let mainPath = await builder(folderPath, addonName, authorName);
 
     await vscode.window.showTextDocument(vscode.Uri.file(mainPath));
+    await vscode.commands.executeCommand('cursorBottom');
     addFolderToWorkspace(folderPath);
 }
 
@@ -133,7 +134,25 @@ async function generateAddon_WithAutoLoad(folder: string, addonName: string, aut
     let autoLoadTargetPath = path.join(folder, 'auto_load.py');
     await copyFileWithReplacedText(autoLoadSourcePath, autoLoadTargetPath, {});
 
-    return initTargetPath;
+    try {
+        let defaultFilePath = path.join(folder, await getDefaultFileName());
+        if (!(await pathExists(defaultFilePath))) {
+            await writeTextFile(defaultFilePath, 'import bpy\n');
+        }
+        return defaultFilePath;
+    }
+    catch {
+        return initTargetPath;
+    }
+}
+
+async function getDefaultFileName() {
+    let items = [];
+    items.push({label: '__init__.py'});
+    items.push({label: 'operators.py'});
+
+    let item = await letUserPickItem(items, 'Open File');
+    return item.label;
 }
 
 async function copyModifiedInitFile(src: string, dst: string, addonName: string, authorName: string) {
