@@ -8,9 +8,10 @@ export interface PickItem {
     detail?: string;
 }
 
-export async function letUserPickItem(items: PickItem[]) : Promise<PickItem> {
+export async function letUserPickItem(items: PickItem[], placeholder: undefined | string = undefined) : Promise<PickItem> {
     let quickPick = vscode.window.createQuickPick();
     quickPick.items = items;
+    quickPick.placeholder = placeholder;
 
     return new Promise<PickItem>((resolve, reject) => {
         quickPick.onDidAccept(() => {

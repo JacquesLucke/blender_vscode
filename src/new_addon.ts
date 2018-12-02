@@ -5,26 +5,46 @@ import { templateFilesDir } from './paths';
 import { letUserPickItem } from './select_utils';
 import { cancel, readTextFile, writeTextFile, getWorkspaceFolders, addFolderToWorkspace } from './utils';
 
-export async function COMMAND_newAddon() {
-    let folderPath = await getFolderForNewAddon();
-    await tryMakeAddonInFolder(folderPath);
+type AddonBuilder = (path: string, addonName: string, authorName: string) => Promise<string>;
 
-    let initPath = path.join(folderPath, '__init__.py');
-    await vscode.window.showTextDocument(vscode.Uri.file(initPath));
+const addonTemplateDir = path.join(templateFilesDir, 'addons');
+
+export async function COMMAND_newAddon() {
+    let builder = await getNewAddonGenerator();
+    let [addonName, authorName] = await askUser_SettingsForNewAddon();
+    let folderPath = await getFolderForNewAddon();
+    let mainPath = await builder(folderPath, addonName, authorName);
+
+    await vscode.window.showTextDocument(vscode.Uri.file(mainPath));
     addFolderToWorkspace(folderPath);
+}
+
+async function getNewAddonGenerator(): Promise<AddonBuilder> {
+    let items = [];
+    items.push({ label: 'Simple', data: generateAddon_Simple });
+    items.push({ label: 'With Auto Load', data: generateAddon_WithAutoLoad });
+    let item = await letUserPickItem(items, 'Choose Template');
+    return item.data;
 }
 
 async function getFolderForNewAddon(): Promise<string> {
     let items = [];
+
     for (let workspaceFolder of getWorkspaceFolders()) {
         let folderPath = workspaceFolder.uri.fsPath;
         if (await canAddonBeCreatedInFolder(folderPath)) {
             items.push({ data: async () => folderPath, label: folderPath });
         }
     }
-    items.push({ data: selectFolderForAddon, label: "Open Folder..." });
-    let item = await letUserPickItem(items);
-    return await item.data();
+
+    if (items.length > 0) {
+        items.push({ data: selectFolderForAddon, label: 'Open Folder...' });
+        let item = await letUserPickItem(items);
+        return await item.data();
+    }
+    else {
+        return await selectFolderForAddon();
+    }
 }
 
 async function selectFolderForAddon() {
@@ -42,11 +62,6 @@ async function selectFolderForAddon() {
     }
 
     return folderPath;
-}
-
-async function tryMakeAddonInFolder(folderPath: string) {
-    let [addonName, authorName] = await askUser_SettingsForNewAddon();
-    await createNewAddon(folderPath, addonName, authorName);
 }
 
 async function canAddonBeCreatedInFolder(folder: string) {
@@ -94,11 +109,46 @@ async function askUser_SettingsForNewAddon() {
     return [<string>addonName, <string>authorName];
 }
 
-async function createNewAddon(folder: string, addonName: string, authorName: string) {
-    let initSourcePath = path.join(templateFilesDir, 'addon.py');
-    let initTargetPath = path.join(folder, "__init__.py");
-    let text = await readTextFile(initSourcePath);
-    text = text.replace('ADDON_NAME', addonName);
-    text = text.replace('AUTHOR_NAME', authorName);
-    await writeTextFile(initTargetPath, text);
+async function generateAddon_Simple(folder: string, addonName: string, authorName: string) {
+    let srcDir = path.join(addonTemplateDir, 'simple');
+
+    let initSourcePath = path.join(srcDir, '__init__.py');
+    let initTargetPath = path.join(folder, '__init__.py');
+    await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName);
+
+    return initTargetPath;
+}
+
+async function generateAddon_WithAutoLoad(folder: string, addonName: string, authorName: string) {
+    let srcDir = path.join(addonTemplateDir, 'with_auto_load');
+
+    let initSourcePath = path.join(srcDir, '__init__.py');
+    let initTargetPath = path.join(folder, '__init__.py');
+    await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName);
+
+    let autoLoadSourcePath = path.join(srcDir, 'auto_load.py');
+    let autoLoadTargetPath = path.join(folder, 'auto_load.py');
+    await copyFileWithReplacedText(autoLoadSourcePath, autoLoadTargetPath, {});
+
+    return initTargetPath;
+}
+
+async function copyModifiedInitFile(src: string, dst: string, addonName: string, authorName: string) {
+    await copyFileWithReplacedText(src, dst, {
+        ADDON_NAME: addonName,
+        AUTHOR_NAME: authorName,
+    });
+}
+
+async function copyFileWithReplacedText(src: string, dst: string, replacements: object) {
+    let text = await readTextFile(src);
+    let new_text = multiReplaceText(text, replacements);
+    await writeTextFile(dst, new_text);
+}
+
+function multiReplaceText(text: string, replacements: object) {
+    for (let old of Object.keys(replacements)) {
+        text = text.replace(old, <string>(<any>replacements)[old]);
+    }
+    return text;
 }
