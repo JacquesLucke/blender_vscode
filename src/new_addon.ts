@@ -8,6 +8,9 @@ import { cancel, readTextFile, writeTextFile, getWorkspaceFolders, addFolderToWo
 export async function COMMAND_newAddon() {
     let folderPath = await getFolderForNewAddon();
     await tryMakeAddonInFolder(folderPath);
+
+    let initPath = path.join(folderPath, '__init__.py');
+    await vscode.window.showTextDocument(vscode.Uri.file(initPath));
     addFolderToWorkspace(folderPath);
 }
 
