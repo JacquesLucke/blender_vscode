@@ -22,7 +22,8 @@
     "onCommand:blender.newAddon",
     "onCommand:blender.newScript",
     "onCommand:blender.runScript",
-    "onCommand:blender.setScriptContext"
+    "onCommand:blender.setScriptContext",
+    "onCommand:blender.newOperator"
   ],
   "main": "./out/extension",
   "repository": {
@@ -87,6 +88,11 @@
       {
         "command": "blender.setScriptContext",
         "title": "Set Script Context",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.newOperator",
+        "title": "New Operator",
         "category": "Blender"
       }
     ],

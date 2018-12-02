@@ -3,7 +3,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { templateFilesDir } from './paths';
 import { letUserPickItem } from './select_utils';
-import { cancel, readTextFile, writeTextFile, getWorkspaceFolders, addFolderToWorkspace } from './utils';
+import {
+    cancel, readTextFile, writeTextFile, getWorkspaceFolders,
+    addFolderToWorkspace, multiReplaceText
+} from './utils';
 
 type AddonBuilder = (path: string, addonName: string, authorName: string) => Promise<string>;
 
@@ -144,11 +147,4 @@ async function copyFileWithReplacedText(src: string, dst: string, replacements: 
     let text = await readTextFile(src);
     let new_text = multiReplaceText(text, replacements);
     await writeTextFile(dst, new_text);
-}
-
-function multiReplaceText(text: string, replacements: object) {
-    for (let old of Object.keys(replacements)) {
-        text = text.replace(old, <string>(<any>replacements)[old]);
-    }
-    return text;
 }

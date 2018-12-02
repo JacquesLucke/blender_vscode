@@ -1,11 +1,12 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { AddonWorkspaceFolder } from './addon_folder';
 import { handleErrors } from './utils';
 import { COMMAND_newAddon } from './new_addon';
-import { BlenderWorkspaceFolder } from './blender_folder';
+import { COMMAND_newOperator } from './new_operator';
+import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderExecutable } from './blender_executable';
+import { BlenderWorkspaceFolder } from './blender_folder';
 import { startServer, stopServer, isAnyBlenderConnected, sendToBlender } from './communication';
 import { COMMAND_runScript, COMMAND_newScript, COMMAND_setScriptContext } from './scripts';
 
@@ -25,6 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
     let textEditorCommands: [string, () => Promise<void>][] = [
         ['blender.runScript', COMMAND_runScript],
         ['blender.setScriptContext', COMMAND_setScriptContext],
+        ['blender.newOperator', COMMAND_newOperator],
     ];
 
     let disposables = [
@@ -70,7 +72,7 @@ async function COMMAND_start() {
 }
 
 async function COMMAND_stop() {
-    sendToBlender({type: 'stop'});
+    sendToBlender({ type: 'stop' });
 }
 
 async function COMMAND_build() {
@@ -92,7 +94,7 @@ async function COMMAND_buildPythonApiDocs() {
         vscode.window.showInformationMessage('Cannot generate API docs without Blender source code.');
         return;
     }
-    let part = await vscode.window.showInputBox({placeHolder: 'part'});
+    let part = await vscode.window.showInputBox({ placeHolder: 'part' });
     if (part === undefined) return;
     await folder.buildPythonDocs(part);
 }

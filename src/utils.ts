@@ -193,3 +193,10 @@ export function nameToClassIdentifier(name: string) {
 export function startsWithNumber(text: string) {
     return text.charAt(0).match(/[0-9]/) !== null;
 }
+
+export function multiReplaceText(text: string, replacements: object) {
+    for (let old of Object.keys(replacements)) {
+        text = text.replace(old, <string>(<any>replacements)[old]);
+    }
+    return text;
+}
