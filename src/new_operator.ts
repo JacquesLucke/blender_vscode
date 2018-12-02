@@ -37,7 +37,7 @@ async function insertOperator(editor: vscode.TextEditor, name: string, group: st
         workspaceEdit.insert(editor.document.uri, new vscode.Position(0, 0), 'import bpy\n');
     }
 
-    workspaceEdit.replace(editor.document.uri, editor.selection, '\n\n' + text + '\n\n');
+    workspaceEdit.replace(editor.document.uri, editor.selection, '\n' + text + '\n');
     await vscode.workspace.applyEdit(workspaceEdit);
 }
 
