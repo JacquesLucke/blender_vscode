@@ -8,5 +8,5 @@
 - Initial `Blender: New Operator` command.
 
 ### Fixed
-- Handle path to `.app` file on MacOS correctly (#5).
+- Handle path to `.app` file on MacOS correctly ([#5](https://github.com/JacquesLucke/blender_vscode/issues/5)).
 - Better error handling when there is no internet connection.
