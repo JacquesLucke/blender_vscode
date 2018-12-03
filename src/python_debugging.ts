@@ -5,18 +5,13 @@ import { BlenderWorkspaceFolder } from './blender_folder';
 import { getStoredScriptFolders } from './scripts';
 
 type PathMapping = { localRoot: string, remoteRoot: string };
+type PathMappingFromBlender = { src: string, load: string };
 
 export async function attachPythonDebuggerToBlender(
     port: number, blenderPath: string, scriptsFolder: string,
-    addonPathMappings: { src: string, load: string }[]) {
+    addonPathMappings: PathMappingFromBlender[]) {
 
-    let mappings = await getPythonPathMappings(blenderPath, scriptsFolder);
-    mappings.push(...addonPathMappings.map(item => ({
-        localRoot: item.src,
-        remoteRoot: item.load
-    })));
-
-    fixMappings(mappings);
+    let mappings = await getPythonPathMappings(scriptsFolder, addonPathMappings);
     attachPythonDebugger(port, mappings);
 }
 
@@ -32,22 +27,41 @@ function attachPythonDebugger(port: number, pathMappings: PathMapping[] = []) {
     vscode.debug.startDebugging(undefined, configuration);
 }
 
-async function getPythonPathMappings(blenderPath: string, scriptsFolder: string) {
+async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: PathMappingFromBlender[]) {
     let mappings = [];
-    let blender = await BlenderWorkspaceFolder.Get();
-    if (blender !== null) {
-        mappings.push({
-            localRoot: path.join(blender.uri.fsPath, 'release', 'scripts'),
-            remoteRoot: scriptsFolder
-        });
-    }
+
+    mappings.push(await getBlenderScriptsPathMapping(scriptsFolder));
+
     for (let folder of getStoredScriptFolders()) {
         mappings.push({
             localRoot: folder.path,
             remoteRoot: folder.path
         });
     }
+
+    mappings.push(...addonPathMappings.map(item => ({
+        localRoot: item.src,
+        remoteRoot: item.load
+    })));
+
+    fixMappings(mappings);
     return mappings;
+}
+
+async function getBlenderScriptsPathMapping(scriptsFolder: string): Promise<PathMapping> {
+    let blender = await BlenderWorkspaceFolder.Get();
+    if (blender !== null) {
+        return {
+            localRoot: path.join(blender.uri.fsPath, 'release', 'scripts'),
+            remoteRoot: scriptsFolder
+        };
+    }
+    else {
+        return {
+            localRoot: scriptsFolder,
+            remoteRoot: scriptsFolder
+        };
+    }
 }
 
 function fixMappings(mappings: PathMapping[]) {
