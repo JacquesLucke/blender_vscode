@@ -3,12 +3,16 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 
-import { launchPath } from './paths';
+import { generatedDir, pythonFilesDir } from './paths';
 import { getServerPort } from './communication';
 import { letUserPickItem } from './select_utils';
 import { getConfig, cancel, runTask } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderWorkspaceFolder } from './blender_folder';
+
+const launchPath = path.join(pythonFilesDir, 'launch.py');
+const launchStubGenerationPath = path.join(pythonFilesDir, 'launch_stub_generation.py');
+const stubTargetPath = path.join(generatedDir, 'stubs');
 
 
 export class BlenderExecutable {
@@ -75,10 +79,19 @@ export class BlenderExecutable {
         vscode.debug.startDebugging(folder.folder, configuration);
     }
 
+    public async launchStubGeneration() {
+        await this.launchWithCustomArgs('Generate Stubs', [
+            '--python', launchStubGenerationPath,
+            '--background',
+            '--factory-startup',
+        ]);
+    }
+
     public async launchWithCustomArgs(taskName: string, args: string[]) {
         let execution = new vscode.ProcessExecution(
             this.path,
             args,
+            { env: { STUB_TARGET_PATH: stubTargetPath } }
         );
 
         await runTask(taskName, execution, true);

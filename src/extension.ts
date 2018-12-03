@@ -25,6 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.newAddon', COMMAND_newAddon],
         ['blender.newScript', COMMAND_newScript],
         ['blender.openScriptsFolder', COMMAND_openScriptsFolder],
+        ['blender.generatePythonStubs', COMMAND_generatePythonStubs],
     ];
 
     let textEditorCommands: [string, () => Promise<void>][] = [
@@ -124,6 +125,10 @@ async function reloadAddons(addons: AddonWorkspaceFolder[]) {
 
 async function rebuildAddons(addons: AddonWorkspaceFolder[]) {
     await Promise.all(addons.map(a => a.buildIfNecessary()));
+}
+
+async function COMMAND_generatePythonStubs() {
+    await (await BlenderExecutable.GetAny()).launchStubGeneration();
 }
 
 

@@ -24,7 +24,8 @@
     "onCommand:blender.runScript",
     "onCommand:blender.setScriptContext",
     "onCommand:blender.openScriptsFolder",
-    "onCommand:blender.newOperator"
+    "onCommand:blender.newOperator",
+    "onCommand:blender.generatePythonStubs"
   ],
   "main": "./out/extension",
   "repository": {
@@ -99,6 +100,11 @@
       {
         "command": "blender.newOperator",
         "title": "New Operator",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.generatePythonStubs",
+        "title": "Generate Python Stubs",
         "category": "Blender"
       }
     ],
