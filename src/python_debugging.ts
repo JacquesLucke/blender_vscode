@@ -2,20 +2,25 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as os from 'os';
 import { BlenderWorkspaceFolder } from './blender_folder';
+import { getStoredScriptFolders } from './scripts';
+
+type PathMapping = { localRoot: string, remoteRoot: string };
 
 export async function attachPythonDebuggerToBlender(
     port: number, blenderPath: string, scriptsFolder: string,
     addonPathMappings: { src: string, load: string }[]) {
+
     let mappings = await getPythonPathMappings(blenderPath, scriptsFolder);
     mappings.push(...addonPathMappings.map(item => ({
-        localRoot: fixPath(item.src),
+        localRoot: item.src,
         remoteRoot: item.load
     })));
 
+    fixMappings(mappings);
     attachPythonDebugger(port, mappings);
 }
 
-function attachPythonDebugger(port: number, pathMappings: { localRoot: string, remoteRoot: string }[] = []) {
+function attachPythonDebugger(port: number, pathMappings: PathMapping[] = []) {
     let configuration = {
         name: `Python at Port ${port}`,
         request: "attach",
@@ -36,7 +41,19 @@ async function getPythonPathMappings(blenderPath: string, scriptsFolder: string)
             remoteRoot: scriptsFolder
         });
     }
+    for (let folder of getStoredScriptFolders()) {
+        mappings.push({
+            localRoot: folder.path,
+            remoteRoot: folder.path
+        });
+    }
     return mappings;
+}
+
+function fixMappings(mappings: PathMapping[]) {
+    for (let i = 0; i < mappings.length; i++) {
+        mappings[i].localRoot = fixPath(mappings[i].localRoot);
+    }
 }
 
 /* This is to work around a bug where vscode does not find

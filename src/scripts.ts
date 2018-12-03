@@ -82,8 +82,7 @@ interface ScriptFolderData {
 }
 
 async function getFolderForNewScript() {
-    let config = getConfig();
-    let scriptFolders = <ScriptFolderData[]>config.get('scripts.directories');
+    let scriptFolders = getStoredScriptFolders();
 
     let items = [];
     for (let folderData of scriptFolders) {
@@ -104,10 +103,16 @@ async function getFolderForNewScript() {
 
     if (scriptFolders.find(data => data.path === folderData.path) === undefined) {
         scriptFolders.push(folderData);
+        let config = getConfig();
         config.update('scripts.directories', scriptFolders, vscode.ConfigurationTarget.Global);
     }
 
     return folderData.path;
+}
+
+export function getStoredScriptFolders() {
+    let config = getConfig();
+    return <ScriptFolderData[]>config.get('scripts.directories');
 }
 
 async function askUser_ScriptFolder(): Promise<ScriptFolderData> {

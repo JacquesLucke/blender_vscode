@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Scripts were debugged in new readonly documents on some platforms.
+
 ## [0.0.10] - 2018-12-02
 
 ### Added
