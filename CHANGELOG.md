@@ -8,6 +8,7 @@
 ### Fixed
 - Scripts were debugged in new readonly documents on some platforms.
 - Addon package was put in `sys.path` in subprocesses for installation.
+- Warn user when new addon folder name is not a valid Python module name.
 
 ## [0.0.10] - 2018-12-02
 
