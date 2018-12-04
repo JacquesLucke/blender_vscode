@@ -7,7 +7,7 @@ import { COMMAND_newOperator } from './new_operator';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderExecutable } from './blender_executable';
 import { BlenderWorkspaceFolder } from './blender_folder';
-import { startServer, stopServer, isAnyBlenderConnected, sendToBlender } from './communication';
+import { startServer, stopServer, RunningBlenders } from './communication';
 import {
     COMMAND_runScript, COMMAND_newScript, COMMAND_setScriptContext,
     COMMAND_openScriptsFolder
@@ -76,7 +76,7 @@ async function COMMAND_start() {
 }
 
 async function COMMAND_stop() {
-    sendToBlender({ type: 'stop' });
+    RunningBlenders.sendToAll({ type: 'stop' });
 }
 
 async function COMMAND_build() {
@@ -114,11 +114,12 @@ async function COMMAND_reloadAddons() {
 
 async function reloadAddons(addons: AddonWorkspaceFolder[]) {
     if (addons.length === 0) return;
-    if (!(await isAnyBlenderConnected())) return;
+    let instances = await RunningBlenders.getResponsive();
+    if (instances.length === 0) return;
 
     await rebuildAddons(addons);
     let names = await Promise.all(addons.map(a => a.getModuleName()));
-    sendToBlender({ type: 'reload', names: names });
+    instances.forEach(instance => instance.post({ type: 'reload', names: names }));
 }
 
 async function rebuildAddons(addons: AddonWorkspaceFolder[]) {

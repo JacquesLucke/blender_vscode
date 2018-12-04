@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { templateFilesDir } from './paths';
-import { sendToBlender } from './communication';
+import { RunningBlenders } from './communication';
 import { letUserPickItem } from './select_utils';
 import { getAreaTypeItems } from './data_loader';
 import { getConfig, cancel, addFolderToWorkspace, getRandomString, pathExists, copyFile } from './utils';
@@ -12,7 +12,7 @@ export async function COMMAND_runScript(): Promise<void> {
 
     let document = editor.document;
     await document.save();
-    sendToBlender({ type: 'script', path: document.uri.fsPath });
+    RunningBlenders.sendToResponsive({ type: 'script', path: document.uri.fsPath });
 }
 
 export async function COMMAND_newScript(): Promise<void> {

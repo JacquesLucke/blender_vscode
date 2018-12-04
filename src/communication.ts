@@ -3,8 +3,110 @@ import * as vscode from 'vscode';
 import * as request from 'request';
 import { attachPythonDebuggerToBlender } from './python_debugging';
 
-var server: any = undefined;
-let blenderPorts: number[] = [];
+const RESPONSIVE_LIMIT_MS = 1000;
+
+
+/* Manage connected Blender instances
+ ********************************************** */
+
+export type AddonPathMapping = { src: string, load: string };
+
+export class BlenderInstance {
+    blenderPort: number;
+    ptvsdPort: number;
+    path: string;
+    scriptsFolder: string;
+    addonPathMappings: AddonPathMapping[];
+    connectionErrors: Error[];
+
+    constructor(blenderPort: number, ptvsdPort: number, path: string,
+        scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
+        this.blenderPort = blenderPort;
+        this.ptvsdPort = ptvsdPort;
+        this.path = path;
+        this.scriptsFolder = scriptsFolder;
+        this.addonPathMappings = addonPathMappings;
+        this.connectionErrors = [];
+    }
+
+    post(data: object): void {
+        request.post(this.address, { json: data });
+    }
+
+    async ping(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            let req = request.get(this.address, { json: { type: 'ping' } });
+            req.on('end', () => resolve());
+            req.on('error', err => { this.connectionErrors.push(err); reject(err); });
+        });
+    }
+
+    async isResponsive(timeout: number = RESPONSIVE_LIMIT_MS) {
+        return new Promise<boolean>(resolve => {
+            this.ping().then(() => resolve(true)).catch();
+            setTimeout(() => resolve(false), timeout);
+        });
+    }
+
+    attachDebugger() {
+        attachPythonDebuggerToBlender(this.ptvsdPort, this.path, this.scriptsFolder, this.addonPathMappings);
+    }
+
+    get address() {
+        return `http://localhost:${this.blenderPort}`;
+    }
+}
+
+export class BlenderInstances {
+    private instances: BlenderInstance[];
+
+    constructor() {
+        this.instances = [];
+    }
+
+    register(instance: BlenderInstance) {
+        this.instances.push(instance);
+    }
+
+    async getResponsive(timeout: number = RESPONSIVE_LIMIT_MS): Promise<BlenderInstance[]> {
+        if (this.instances.length === 0) return [];
+
+        return new Promise<BlenderInstance[]>(resolve => {
+            let responsiveInstances: BlenderInstance[] = [];
+            let pingAmount = this.instances.length;
+
+            function addInstance(instance: BlenderInstance) {
+                responsiveInstances.push(instance);
+                if (responsiveInstances.length === pingAmount) {
+                    resolve(responsiveInstances.slice());
+                }
+            }
+
+            for (let instance of this.instances) {
+                instance.ping().then(() => addInstance(instance)).catch(() => {});
+            }
+            setTimeout(() => resolve(responsiveInstances.slice()), timeout);
+        });
+    }
+
+    sendToResponsive(data: object, timeout: number = RESPONSIVE_LIMIT_MS) {
+        for (let instance of this.instances) {
+            instance.isResponsive(timeout).then(responsive => {
+                if (responsive) instance.post(data);
+            }).catch();
+        }
+    }
+
+    sendToAll(data: object) {
+        for (let instance of this.instances) {
+            instance.post(data);
+        }
+    }
+}
+
+
+/* Own server
+ ********************************************** */
 
 export function startServer() {
     server = http.createServer(SERVER_handleRequest);
@@ -19,42 +121,6 @@ export function getServerPort(): number {
     return server.address().port;
 }
 
-export function sendToBlender(data: any) {
-    for (let port of blenderPorts) {
-        let req = request.post(getAddress(port), { json: data });
-        req.on('error', () => {
-            unregisterBlenderPort(port);
-        });
-    }
-}
-
-export async function isAnyBlenderConnected() {
-    return new Promise<boolean>(resolve => {
-        if (blenderPorts.length === 0) {
-            resolve(false);
-            return;
-        }
-
-        let sendAmount = blenderPorts.length;
-        let errorAmount = 0;
-
-        for (let port of blenderPorts) {
-            let req = request.get(getAddress(port), { json: { type: 'ping' } });
-            req.on('end', () => {
-                resolve(true);
-            });
-            req.on('error', () => {
-                unregisterBlenderPort(port);
-                errorAmount += 1;
-                if (errorAmount === sendAmount) {
-                    resolve(false);
-                }
-            });
-        }
-    });
-}
-
-
 function SERVER_handleRequest(request: any, response: any) {
     if (request.method === 'POST') {
         let body = '';
@@ -64,8 +130,9 @@ function SERVER_handleRequest(request: any, response: any) {
 
             switch (req.type) {
                 case 'setup': {
-                    registerBlenderPort(req.blenderPort);
-                    attachPythonDebuggerToBlender(req.ptvsdPort, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
+                    let instance = new BlenderInstance(req.blenderPort, req.ptvsdPort, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
+                    instance.attachDebugger();
+                    RunningBlenders.register(instance);
                     response.end('OK');
                     break;
                 }
@@ -91,14 +158,5 @@ function SERVER_handleRequest(request: any, response: any) {
     }
 }
 
-function registerBlenderPort(port: number) {
-    blenderPorts.push(port);
-}
-
-function unregisterBlenderPort(port: number) {
-    blenderPorts.splice(blenderPorts.indexOf(port), 1);
-}
-
-function getAddress(port: number) {
-    return `http://localhost:${port}`;
-}
+var server: any = undefined;
+export const RunningBlenders = new BlenderInstances();

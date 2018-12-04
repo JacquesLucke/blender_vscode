@@ -3,13 +3,13 @@ import * as vscode from 'vscode';
 import * as os from 'os';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { getStoredScriptFolders } from './scripts';
+import { AddonPathMapping } from './communication';
 
 type PathMapping = { localRoot: string, remoteRoot: string };
-type PathMappingFromBlender = { src: string, load: string };
 
 export async function attachPythonDebuggerToBlender(
     port: number, blenderPath: string, scriptsFolder: string,
-    addonPathMappings: PathMappingFromBlender[]) {
+    addonPathMappings: AddonPathMapping[]) {
 
     let mappings = await getPythonPathMappings(scriptsFolder, addonPathMappings);
     attachPythonDebugger(port, mappings);
@@ -27,7 +27,7 @@ function attachPythonDebugger(port: number, pathMappings: PathMapping[] = []) {
     vscode.debug.startDebugging(undefined, configuration);
 }
 
-async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: PathMappingFromBlender[]) {
+async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
     let mappings = [];
 
     mappings.push(await getBlenderScriptsPathMapping(scriptsFolder));
