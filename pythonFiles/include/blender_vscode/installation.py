@@ -33,7 +33,7 @@ def ensure_package_is_installed(name):
 
 def install_package(name):
     target = get_package_install_directory()
-    subprocess.run([str(python_path), "-m", "pip", "install", name, '--target', target])
+    subprocess.run([str(python_path), "-m", "pip", "install", name, '--target', target], cwd=python_path.parent)
 
     if not module_can_be_imported(name):
         handle_fatal_error(f"could not install {name}")
