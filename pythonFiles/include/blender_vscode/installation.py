@@ -6,6 +6,8 @@ from pathlib import Path
 from . import handle_fatal_error
 from . environment import python_path, use_own_python
 
+cwd_for_subprocesses = python_path.parent
+
 def ensure_packages_are_installed(package_names, allow_modify_external_python):
     if packages_are_installed(package_names):
         return
@@ -33,7 +35,7 @@ def ensure_package_is_installed(name):
 
 def install_package(name):
     target = get_package_install_directory()
-    subprocess.run([str(python_path), "-m", "pip", "install", name, '--target', target], cwd=python_path.parent)
+    subprocess.run([str(python_path), "-m", "pip", "install", name, '--target', target], cwd=cwd_for_subprocesses)
 
     if not module_can_be_imported(name):
         handle_fatal_error(f"could not install {name}")
@@ -41,7 +43,7 @@ def install_package(name):
 def install_pip():
     # pip can not necessarily be imported into Blender after this
     get_pip_path = Path(__file__).parent / "external" / "get-pip.py"
-    subprocess.run([str(python_path), str(get_pip_path)])
+    subprocess.run([str(python_path), str(get_pip_path)], cwd=cwd_for_subprocesses)
 
 def get_package_install_directory():
     for path in sys.path:
