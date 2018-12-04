@@ -5,7 +5,8 @@ import { templateFilesDir } from './paths';
 import { letUserPickItem } from './select_utils';
 import {
     cancel, readTextFile, writeTextFile, getWorkspaceFolders,
-    addFolderToWorkspace, multiReplaceText, pathExists
+    addFolderToWorkspace, multiReplaceText, pathExists,
+    isValidPythonModuleName, renamePath
 } from './utils';
 
 type AddonBuilder = (path: string, addonName: string, authorName: string) => Promise<string>;
@@ -16,6 +17,7 @@ export async function COMMAND_newAddon() {
     let builder = await getNewAddonGenerator();
     let [addonName, authorName] = await askUser_SettingsForNewAddon();
     let folderPath = await getFolderForNewAddon();
+    folderPath = await fixAddonFolderName(folderPath);
     let mainPath = await builder(folderPath, addonName, authorName);
 
     await vscode.window.showTextDocument(vscode.Uri.file(mainPath));
@@ -93,6 +95,30 @@ async function canAddonBeCreatedInFolder(folder: string) {
     });
 }
 
+async function fixAddonFolderName(folder: string) {
+    let name = path.basename(folder);
+    if (isValidPythonModuleName(name)) return folder;
+
+    let items = [];
+    let alternatives = getFolderNameAlternatives(name).map(newName => path.join(path.dirname(folder), newName));
+    items.push(...alternatives.filter(async p => !(await pathExists(p))).map(p => ({ label: p, data: p })));
+    items.push({ label: "Don't change the name.", data: folder });
+
+    let item = await letUserPickItem(items, 'Warning: This folder name should not be used.');
+    let newPath = item.data;
+    if (folder !== newPath) {
+        renamePath(folder, newPath);
+    }
+    return newPath;
+}
+
+function getFolderNameAlternatives(name: string): string[] {
+    let alternatives = [];
+    alternatives.push(name.replace(/\W/, '_'));
+    alternatives.push(name.replace(/\W/, ''));
+    return alternatives;
+}
+
 async function askUser_SettingsForNewAddon() {
     let addonName = await vscode.window.showInputBox({ placeHolder: 'Addon Name' });
     if (addonName === undefined) {
@@ -148,8 +174,8 @@ async function generateAddon_WithAutoLoad(folder: string, addonName: string, aut
 
 async function getDefaultFileName() {
     let items = [];
-    items.push({label: '__init__.py'});
-    items.push({label: 'operators.py'});
+    items.push({ label: '__init__.py' });
+    items.push({ label: 'operators.py' });
 
     let item = await letUserPickItem(items, 'Open File');
     return item.label;

@@ -1,6 +1,9 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getConfig, readTextFile, getWorkspaceFolders, executeTask, getSubfolders } from './utils';
+import {
+    getConfig, readTextFile, getWorkspaceFolders,
+    getSubfolders, executeTask
+} from './utils';
 
 export class AddonWorkspaceFolder {
     folder: vscode.WorkspaceFolder;

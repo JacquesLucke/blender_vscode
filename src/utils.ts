@@ -84,6 +84,19 @@ export async function writeTextFile(path: string, content: string) {
     });
 }
 
+export async function renamePath(oldPath: string, newPath: string) {
+    return new Promise<void>((resolve, reject) => {
+        fs.rename(oldPath, newPath, err => {
+            if (err !== null) {
+                reject(err);
+            }
+            else {
+                resolve();
+            }
+        });
+    });
+}
+
 export async function copyFile(from: string, to: string) {
     return new Promise<void>((resolve, reject) => {
         fs.copyFile(from, to, err => {
@@ -109,7 +122,7 @@ export async function pathsExist(paths: string[]) {
 
 export async function getSubfolders(root: string) {
     return new Promise<string[]>((resolve, reject) => {
-        fs.readdir(root, {encoding: 'utf8'}, async (err, files) => {
+        fs.readdir(root, { encoding: 'utf8' }, async (err, files) => {
             if (err !== null) {
                 reject(err);
                 return;
@@ -199,4 +212,8 @@ export function multiReplaceText(text: string, replacements: object) {
         text = text.replace(old, <string>(<any>replacements)[old]);
     }
     return text;
+}
+
+export function isValidPythonModuleName(text: string): boolean {
+    return text.match(/^[_a-z][_0-9a-z]*\Z/i) !== null;
 }
