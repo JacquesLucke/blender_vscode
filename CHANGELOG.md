@@ -4,6 +4,7 @@
 
 ### Fixed
 - Scripts were debugged in new readonly documents on some platforms.
+- Addon package was put in `sys.path` in subprocesses for installation.
 
 ## [0.0.10] - 2018-12-02
 
