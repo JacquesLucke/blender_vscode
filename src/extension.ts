@@ -8,7 +8,10 @@ import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderExecutable } from './blender_executable';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { startServer, stopServer, isAnyBlenderConnected, sendToBlender } from './communication';
-import { COMMAND_runScript, COMMAND_newScript, COMMAND_setScriptContext } from './scripts';
+import {
+    COMMAND_runScript, COMMAND_newScript, COMMAND_setScriptContext,
+    COMMAND_openScriptsFolder
+} from './scripts';
 
 export function activate(context: vscode.ExtensionContext) {
     let commands: [string, () => Promise<void>][] = [
@@ -21,6 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.reloadAddons', COMMAND_reloadAddons],
         ['blender.newAddon', COMMAND_newAddon],
         ['blender.newScript', COMMAND_newScript],
+        ['blender.openScriptsFolder', COMMAND_openScriptsFolder],
     ];
 
     let textEditorCommands: [string, () => Promise<void>][] = [

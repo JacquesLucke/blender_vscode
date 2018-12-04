@@ -23,6 +23,7 @@
     "onCommand:blender.newScript",
     "onCommand:blender.runScript",
     "onCommand:blender.setScriptContext",
+    "onCommand:blender.openScriptsFolder",
     "onCommand:blender.newOperator"
   ],
   "main": "./out/extension",
@@ -88,6 +89,11 @@
       {
         "command": "blender.setScriptContext",
         "title": "Set Script Context",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.openScriptsFolder",
+        "title": "Open Scripts Folder",
         "category": "Blender"
       },
       {

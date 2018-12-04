@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## Added
+- New `Blender: Open Scripts Folder` command.
+
 ### Fixed
 - Scripts were debugged in new readonly documents on some platforms.
 - Addon package was put in `sys.path` in subprocesses for installation.

@@ -24,6 +24,11 @@ export async function COMMAND_newScript(): Promise<void> {
     addFolderToWorkspace(folderPath);
 }
 
+export async function COMMAND_openScriptsFolder() {
+    let folderPath = await getFolderForScripts();
+    addFolderToWorkspace(folderPath);
+}
+
 export async function COMMAND_setScriptContext() {
     let editor = vscode.window.activeTextEditor;
     if (editor === undefined) return;
@@ -60,7 +65,7 @@ function findAreaContextLine(document: vscode.TextDocument): [number, RegExpMatc
 }
 
 async function getPathForNewScript() {
-    let folderPath = await getFolderForNewScript();
+    let folderPath = await getFolderForScripts();
     let fileName = await askUser_ScriptFileName(folderPath);
     let filePath = path.join(folderPath, fileName);
 
@@ -81,7 +86,7 @@ interface ScriptFolderData {
     name: string;
 }
 
-async function getFolderForNewScript() {
+async function getFolderForScripts() {
     let scriptFolders = getStoredScriptFolders();
 
     let items = [];
