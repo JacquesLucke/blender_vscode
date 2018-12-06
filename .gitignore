@@ -3,5 +3,6 @@ node_modules
 .vscode-test/
 *.vsix
 npm-debug.log
+generated/stubs
 package-lock.json
 __pycache__

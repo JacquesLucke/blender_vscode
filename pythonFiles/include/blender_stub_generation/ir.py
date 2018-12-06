@@ -9,6 +9,7 @@ __all__ = (
     "ValueIR",
     "MethodIR",
     "PropertyIR",
+    "ParametersIR",
     "ParameterIR",
 )
 
@@ -34,9 +35,8 @@ class ClassIR:
 @dataclass
 class FunctionIR:
     name: str
-    positional: List["ParameterIR"] = field(default_factory=list)
-    keyword_only: List["ParameterIR"] = field(default_factory=list)
-    retValue: "ParameterIR" = field(default_factory=list)
+    parameters: "ParametersIR" = field(default_factory=list)
+    return_value: "ParameterIR" = field(default_factory=list)
     description: str = field(default_factory=str)
 
 @dataclass
@@ -51,6 +51,11 @@ class MethodIR:
     function: "FunctionIR"
 
 @dataclass
+class ParametersIR:
+    positional: List["ParameterIR"] = field(default_factory=list)
+    keyword_only: List["ParameterIR"] = field(default_factory=list)
+
+@dataclass
 class PropertyIR:
     name: str
     data_type: str
@@ -58,5 +63,5 @@ class PropertyIR:
 @dataclass
 class ParameterIR:
     name: str
-    data_type: str
+    data_type: str = field(default_factory=str)
     default: str = field(default_factory=str)
