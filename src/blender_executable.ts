@@ -164,7 +164,7 @@ async function testIfPathIsBlender(filepath: string) {
     }
 
     let testString = '###TEST_BLENDER###';
-    let command = `${filepath} --factory-startup -b --python-expr "import sys;print('${testString}');sys.stdout.flush();sys.exit()"`;
+    let command = `"${filepath}" --factory-startup -b --python-expr "import sys;print('${testString}');sys.stdout.flush();sys.exit()"`;
 
     return new Promise<void>((resolve, reject) => {
         child_process.exec(command, {}, (err, stdout, stderr) => {
