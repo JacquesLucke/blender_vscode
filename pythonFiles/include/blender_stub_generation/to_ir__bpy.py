@@ -67,8 +67,4 @@ def generate_app_values():
 
 def generate_app_timers():
     return ModuleIR("timers",
-        functions=[
-            FunctionIR("is_registered", parameters=ParametersIR.from_string("function")),
-            FunctionIR("register", parameters=ParametersIR.from_string("function, first_interval, persistent")),
-            FunctionIR("unregister", parameters=ParametersIR.from_string("function")),
-        ])
+        functions=[])
