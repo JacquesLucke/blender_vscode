@@ -18,6 +18,7 @@ class PackageIR:
     name: str
     subpackages: List["PackageIR"] = field(default_factory=list)
     submodules: List["ModuleIR"] = field(default_factory=list)
+    main_module: "ModuleIR" = field(default_factory=lambda: ModuleIR("__init__"))
 
 @dataclass
 class ModuleIR:
@@ -42,8 +43,8 @@ class FunctionIR:
 @dataclass
 class ValueIR:
     name: str
-    data_type: str
-    value: str
+    data_type: str = field(default=None)
+    value: str = field(default=None)
 
 @dataclass
 class MethodIR:
@@ -55,13 +56,20 @@ class ParametersIR:
     positional: List["ParameterIR"] = field(default_factory=list)
     keyword_only: List["ParameterIR"] = field(default_factory=list)
 
+    @classmethod
+    def from_string(cls, string):
+        positional = []
+        for part in string.split(","):
+            positional.append(ParameterIR(part.strip()))
+        return cls(positional=positional)
+
 @dataclass
 class PropertyIR:
     name: str
-    data_type: str
+    data_type: str = field(default=None)
 
 @dataclass
 class ParameterIR:
     name: str
-    data_type: str = field(default_factory=str)
-    default: str = field(default_factory=str)
+    data_type: str = field(default=None)
+    default: str = field(default=None)

@@ -9,7 +9,6 @@ def generate():
         generate_app(),
     ])
 
-
 # bpy.ops
 ##########################################
 
@@ -39,16 +38,37 @@ def generate_ops_function(name, op):
 
 def generate_types():
     return PackageIR("types",
-        submodules=[ModuleIR("test",
-            classes=[generate_types_class(name, cls) for name, cls in inspect.getmembers(bpy.types)])])
+        main_module=ModuleIR("__init__",
+            classes=[generate_types_class(name, cls) for name, cls in inspect.getmembers(bpy.types)]))
 
 
 def generate_types_class(name, cls):
-    return ClassIR(name)
+    rna = cls.bl_rna
+    return ClassIR(name,
+        properties=[PropertyIR(prop.identifier) for prop in rna.properties])
 
 
 # bpy.app
 ##########################################
 
 def generate_app():
-    return PackageIR("app")
+    return PackageIR("app",
+        main_module=ModuleIR("__init__",
+            values=list(generate_app_values())),
+        submodules=[
+            generate_app_timers()
+        ])
+
+def generate_app_values():
+    non_values = ["handlers", "icons", "timers", "translations"]
+    for name in dir(bpy.app):
+        if not name.startswith("_") and name not in non_values:
+            yield ValueIR(name)
+
+def generate_app_timers():
+    return ModuleIR("timers",
+        functions=[
+            FunctionIR("is_registered", parameters=ParametersIR.from_string("function")),
+            FunctionIR("register", parameters=ParametersIR.from_string("function, first_interval, persistent")),
+            FunctionIR("unregister", parameters=ParametersIR.from_string("function")),
+        ])

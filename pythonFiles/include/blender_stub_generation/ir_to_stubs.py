@@ -5,9 +5,6 @@ from typing import List
 from pathlib import Path
 from . ir import *
 
-import bpy
-bpy.ops.object.vertex_group_add
-
 def generate_packages(packages: List[PackageIR], include_path: str):
     include_path = Path(include_path)
     for package in packages:
@@ -27,14 +24,19 @@ def generate_package(package: PackageIR, include_path):
     for module in package.submodules:
         generate_module(module, path)
 
+    generate_module(package.main_module, path)
+
 def generate_module(module: ModuleIR, parent_path):
     path = parent_path / (module.name + ".py")
 
     parts = []
+    parts.append("import typing")
     for cls in module.classes:
         parts.append("\n".join(iter_class_lines(cls)))
     for function in module.functions:
         parts.append("\n".join(iter_function_lines(function)))
+    for value in module.values:
+        parts.append("\n".join(iter_value_lines(value)))
 
     code = "\n\n".join(parts)
     with open(path, "wt") as f:
@@ -42,12 +44,32 @@ def generate_module(module: ModuleIR, parent_path):
 
 def iter_class_lines(cls: ClassIR):
     yield f"class {cls.name}:"
-    yield "    ..."
+    for prop in cls.properties:
+        yield "    " + get_property_line(prop)
+    yield "    pass"
+
+def get_property_line(prop):
+    if prop.data_type is None:
+        return f"{prop.name}: typing.Any"
+    else:
+        return f"{prop.name}: {prop.data_type}"
 
 def iter_function_lines(function: FunctionIR):
     yield f"def {function.name}({generate_parameters(function.parameters)}):"
     yield from indent(iter_function_description_lines(function.description))
     yield "    ..."
+
+def iter_value_lines(value: ValueIR):
+    if value.value is None:
+        if value.data_type is None:
+            yield f"{value.name}: typing.Any = object()"
+        else:
+            yield f"{value.name}: {value.data_type} = object()"
+    else:
+        if value.data_type is None:
+            yield f"{value.name}: typing.Any = {value.value}"
+        else:
+            yield f"{value.name}: {value.data_type} = {value.value}"
 
 def generate_parameters(params: ParametersIR):
     positional = ", ".join(p.name for p in params.positional)
