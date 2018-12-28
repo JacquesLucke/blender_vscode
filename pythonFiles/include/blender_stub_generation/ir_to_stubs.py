@@ -72,9 +72,16 @@ def iter_method_lines(meth: MethodIR, imports):
     yield from iter_function_lines(meth.function, imports)
 
 def iter_function_lines(function: FunctionIR, imports):
-    yield f"def {function.name}({generate_parameters(function.parameters, imports)}):"
+    yield f"def {function.name}({generate_parameters(function.parameters, imports)}){generate_return_hint(function, imports)}:"
     yield from indent(iter_function_description_lines(function.description))
     yield "    ..."
+
+def generate_return_hint(function, imports):
+    if function.return_type is None:
+        return ""
+    else:
+        insert_imports(function.return_type, imports)
+        return " -> " + function.return_type.name
 
 def iter_value_lines(value: ValueIR, imports):
     if value.value is None:

@@ -45,7 +45,7 @@ class ClassIR:
 class FunctionIR:
     name: str
     parameters: "ParametersIR" = field(default_factory=lambda: ParametersIR())
-    return_value: Optional["ParameterIR"] = field(default=None)
+    return_type: Optional["TypeIR"] = field(default=None)
     description: str = field(default_factory=str)
 
 @dataclass

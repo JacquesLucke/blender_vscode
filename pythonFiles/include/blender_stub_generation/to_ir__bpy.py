@@ -1,5 +1,6 @@
 import bpy
 import inspect
+from collections import defaultdict
 from . ir import *
 
 def generate():
@@ -39,7 +40,7 @@ def generate_ops_function(name, op):
 def generate_types():
     return PackageIR("types",
         main_module=ModuleIR("__init__",
-            classes=[generate_types_class(name, cls) for name, cls in inspect.getmembers(bpy.types)]))
+            classes=[generate_types_class(name, cls) for name, cls in inspect.getmembers(bpy.types) if "_OT_" not in name]))
 
 
 def generate_types_class(name, cls):
@@ -52,14 +53,16 @@ def generate_types_class_methods(cls):
 
 def generate_types_class_method(cls, meth):
     name = meth.identifier
+    method_type = MethodType.Normal
     if hasattr(cls, name):
-        method_type = MethodType.ClassMethod
-    else:
-        method_type = MethodType.Normal
+        func = getattr(cls, name)
+        if inspect.ismethod(func) and func.__self__ is cls:
+            method_type = MethodType.ClassMethod
 
     function = FunctionIR(name,
         parameters=generate_types_class_method_parameters(meth, method_type),
-        description=meth.description)
+        description=meth.description,
+        return_type=get_types_class_method_return_type(meth))
     return MethodIR(method_type, function)
 
 def generate_types_class_method_parameters(meth, method_type):
@@ -73,6 +76,22 @@ def generate_types_class_method_parameters(meth, method_type):
 
 def generate_types_class_method_parameter(param):
     return ParameterIR(param.identifier)
+
+def get_types_class_method_return_type(meth):
+    outputs = [param for param in meth.parameters if param.is_output]
+    if len(outputs) == 0:
+        return None
+    elif len(outputs) == 1:
+        return get_rna_data_type(outputs[0])
+    else:
+        types = [get_rna_data_type(param) for param in outputs]
+        all_imports = defaultdict(set)
+        for t in types:
+            for key, values in t.imports.items():
+                all_imports[key].update(values)
+        return TypeIR(
+            f"Tuple[{', '.join(t.name for t in types)}]",
+            dict(all_imports))
 
 def generate_types_class_properties(cls):
     return [generate_types_class_property(prop) for prop in cls.bl_rna.properties]
@@ -91,7 +110,7 @@ def get_rna_data_type(prop):
             type_name = prop.fixed_type.identifier
             return TypeIR(f"List[{type_name}]",
                 {"bpy.types" : {type_name},
-                 "typing" : "List"})
+                 "typing" : {"List"}})
         else:
             type_name = prop.srna.identifier
             return TypeIR(type_name, {"bpy.types" : {type_name}})
