@@ -66,7 +66,7 @@ def generate_types_class_method(cls, meth):
     return MethodIR(method_type, function)
 
 def generate_types_class_method_parameters(meth, method_type):
-    params = [generate_types_class_method_parameter(param) for param in meth.parameters]
+    params = [generate_types_class_method_parameter(param) for param in meth.parameters if not param.is_output]
     if method_type == MethodType.Normal:
         params = [ParameterIR("self")] + params
     elif method_type == MethodType.ClassMethod:
