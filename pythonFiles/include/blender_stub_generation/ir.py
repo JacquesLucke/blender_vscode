@@ -1,5 +1,6 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Set
 from dataclasses import dataclass, field
+from enum import Enum
 
 __all__ = (
     "PackageIR",
@@ -12,7 +13,13 @@ __all__ = (
     "ParametersIR",
     "ParameterIR",
     "TypeIR",
+    "MethodType"
 )
+
+class MethodType(Enum):
+    Normal = "NORMAL"
+    ClassMethod = "CLASS_METHOD"
+    StaticMethod = "STATIC_METHOD"
 
 @dataclass
 class PackageIR:
@@ -37,7 +44,7 @@ class ClassIR:
 @dataclass
 class FunctionIR:
     name: str
-    parameters: "ParametersIR" = field(default_factory=list)
+    parameters: "ParametersIR" = field(default_factory=lambda: ParametersIR())
     return_value: Optional["ParameterIR"] = field(default=None)
     description: str = field(default_factory=str)
 
@@ -49,7 +56,7 @@ class ValueIR:
 
 @dataclass
 class MethodIR:
-    method_type: str
+    method_type: MethodType
     function: "FunctionIR"
 
 @dataclass
@@ -71,14 +78,5 @@ class ParameterIR:
 @dataclass
 class TypeIR:
     # e.g. 'list', 'pathlib.Path', 'bpy.types.Scene'
-    full_name: str
-
-    @property
-    def source(self):
-        parts = self.full_name.split(".")
-        if len(parts) > 1:
-            return ".".join(parts[:-1])
-
-    @property
-    def name(self):
-        return self.full_name.split(".")[-1]
+    name: str
+    imports: Dict[str, Set[str]] = field(default_factory=dict)

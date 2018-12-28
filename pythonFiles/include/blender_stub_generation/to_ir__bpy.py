@@ -43,9 +43,77 @@ def generate_types():
 
 
 def generate_types_class(name, cls):
-    rna = cls.bl_rna
     return ClassIR(name,
-        properties=[PropertyIR(prop.identifier) for prop in rna.properties])
+        methods=generate_types_class_methods(cls),
+        properties=generate_types_class_properties(cls))
+
+def generate_types_class_methods(cls):
+    return [generate_types_class_method(cls, meth) for meth in cls.bl_rna.functions]
+
+def generate_types_class_method(cls, meth):
+    name = meth.identifier
+    if hasattr(cls, name):
+        method_type = MethodType.ClassMethod
+    else:
+        method_type = MethodType.Normal
+
+    function = FunctionIR(name,
+        parameters=generate_types_class_method_parameters(meth, method_type),
+        description=meth.description)
+    return MethodIR(method_type, function)
+
+def generate_types_class_method_parameters(meth, method_type):
+    params = [generate_types_class_method_parameter(param) for param in meth.parameters]
+    if method_type == MethodType.Normal:
+        params = [ParameterIR("self")] + params
+    elif method_type == MethodType.ClassMethod:
+        params = [ParameterIR("cls")] + params
+    return ParametersIR(
+        positional=params)
+
+def generate_types_class_method_parameter(param):
+    return ParameterIR(param.identifier)
+
+def generate_types_class_properties(cls):
+    return [generate_types_class_property(prop) for prop in cls.bl_rna.properties]
+
+def generate_types_class_property(prop):
+    return PropertyIR(prop.identifier,
+        data_type=get_rna_data_type(prop))
+
+def get_rna_data_type(prop):
+    if prop.type == "BOOLEAN": return TypeIR("bool")
+    elif prop.type == "INT": return TypeIR("int")
+    elif prop.type == "STRING": return TypeIR("str")
+    elif prop.type == "ENUM": return TypeIR("str")
+    elif prop.type == "COLLECTION":
+        if prop.srna is None:
+            type_name = prop.fixed_type.identifier
+            return TypeIR(f"List[{type_name}]",
+                {"bpy.types" : {type_name},
+                 "typing" : "List"})
+        else:
+            type_name = prop.srna.identifier
+            return TypeIR(type_name, {"bpy.types" : {type_name}})
+    elif prop.type == "FLOAT":
+        if prop.array_length <= 1:
+            return TypeIR("float")
+        elif prop.subtype == "MATRIX":
+            return TypeIR("Matrix", {"mathutils" : {"Matrix"}})
+        elif prop.subtype in ("TRANSLATION", "XYZ", "COORDINATES", "DIRECTION"):
+            return TypeIR("Vector", {"mathutils" : {"Vector"}})
+        elif prop.subtype in ("COLOR", "COLOR_GAMMA"):
+            return TypeIR("Color", {"mathutils" : {"Color"}})
+        elif prop.subtype == "EULER":
+            return TypeIR("Euler", {"mathutils" : {"Euler"}})
+        elif prop.subtype == "QUATERNION":
+            return TypeIR("Quaternion", {"mathutils" : {"Quaternion"}})
+        elif prop.subtype in ("NONE", "FACTOR", "UNSIGNED", "DISTANCE", "PIXEL"):
+            return TypeIR(f"Tuple[{', '.join(['float'] * prop.array_length)}]", {"typing" : {"Tuple"}})
+    elif prop.type == "POINTER":
+        type_name = prop.fixed_type.identifier
+        return TypeIR(type_name, {"bpy.types" : {type_name}})
+    assert False, f"Property type not handled: {prop} - {prop.type} - {prop.subtype}"
 
 
 # bpy.app
