@@ -24,7 +24,7 @@ class UpdateAddonOperator(bpy.types.Operator):
                 del sys.modules[name]
 
         try:
-            bpy.ops.wm.addon_enable(module=self.module_name)
+            bpy.ops.preferences.addon_enable(module=self.module_name)
         except:
             traceback.print_exc()
             send_dict_as_json({"type" : "enableFailure"})

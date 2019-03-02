@@ -29,7 +29,7 @@ def setup_addon_links(addon_paths):
 def load(addon_paths):
     for addon_path in addon_paths:
         try:
-            bpy.ops.wm.addon_enable(module=addon_path.name)
+            bpy.ops.preferences.addon_enable(module=addon_path.name)
         except:
             traceback.print_exc()
             send_dict_as_json({"type" : "enableFailure", "addonPath" : str(addon_path)})
