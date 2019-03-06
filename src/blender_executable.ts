@@ -170,7 +170,10 @@ async function testIfPathIsBlender(filepath: string) {
         child_process.exec(command, {}, (err, stdout, stderr) => {
             let text = stdout.toString();
             if (!text.includes(testString)) {
-                reject(new Error('Path is not Blender.'));
+                var message = 'A simple check to test if the selected file is Blender failed.';
+                message += ' Please create a bug report when you are sure that the selected file is Blender 2.8 or newer.';
+                message += ' The report should contain the full path to the executable.';
+                reject(new Error(message));
             }
             else {
                 resolve();
