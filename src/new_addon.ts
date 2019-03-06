@@ -64,7 +64,9 @@ async function selectFolderForAddon() {
     let folderPath = value[0].fsPath;
 
     if (!(await canAddonBeCreatedInFolder(folderPath))) {
-        return Promise.reject(new Error('Cannot create new addon in this folder.'));
+        let message: string = 'Cannot create new addon in this folder.';
+        message += ' Maybe it contains other files already.';
+        return Promise.reject(new Error(message));
     }
 
     return folderPath;
