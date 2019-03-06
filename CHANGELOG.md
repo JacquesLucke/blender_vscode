@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.11] - 2019-03-06
+
 ### Added
 - New `Blender: Open Scripts Folder` command.
 - New `CTX` variable that is passed into scripts to make overwriting the context easier. It can be used when calling operators (e.g. `bpy.ops.object.join(CTX)`). This will hopefully be replaced as soon as I find a more automatic reliable solution.
