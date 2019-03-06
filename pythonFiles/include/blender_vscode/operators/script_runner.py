@@ -12,7 +12,8 @@ class RunScriptOperator(bpy.types.Operator):
     filepath: StringProperty()
 
     def execute(self, context):
-        runpy.run_path(self.filepath)
+        ctx = prepare_script_context(self.filepath)
+        runpy.run_path(self.filepath, init_globals={"CTX" : ctx})
         redraw_all()
         return {'FINISHED'}
 
@@ -44,8 +45,12 @@ def prepare_script_context(filepath):
     context["active_object"] = context["view_layer"].objects.active
     context["object"] = context["active_object"]
     context["area"] = get_area_by_type(area_type)
+    context["space_data"] = context["area"].spaces.active
     context["selected_objects"] = [obj for obj in context["view_layer"].objects if obj.select_get()]
+    context["selected_editable_objects"] = context["selected_objects"]
     context["region"] = get_region_in_area(context["area"], region_type) if context["area"] else None
+    if context["space_data"].type == "VIEW_3D":
+        context["region_data"] = context["space_data"].region_3d
     return context
 
 def get_area_by_type(area_type):
