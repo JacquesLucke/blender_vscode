@@ -13,7 +13,7 @@ class UpdateAddonOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            bpy.ops.wm.addon_disable(module=self.module_name)
+            bpy.ops.preferences.addon_disable(module=self.module_name)
         except:
             traceback.print_exc()
             send_dict_as_json({"type" : "disableFailure"})
