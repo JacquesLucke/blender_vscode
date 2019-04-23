@@ -99,7 +99,9 @@ async function canAddonBeCreatedInFolder(folder: string) {
 
 async function fixAddonFolderName(folder: string) {
     let name = path.basename(folder);
-    if (isValidPythonModuleName(name)) return folder;
+    if (isValidPythonModuleName(name)) {
+        return folder;
+    }
 
     let items = [];
     let alternatives = getFolderNameAlternatives(name).map(newName => path.join(path.dirname(folder), newName));

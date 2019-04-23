@@ -215,5 +215,6 @@ export function multiReplaceText(text: string, replacements: object) {
 }
 
 export function isValidPythonModuleName(text: string): boolean {
-    return text.match(/^[_a-z][_0-9a-z]*\Z/i) !== null;
+    let match = text.match(/^[_a-z][_0-9a-z]*$/i);
+    return match !== null;
 }
