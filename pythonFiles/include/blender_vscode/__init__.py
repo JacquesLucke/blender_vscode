@@ -1,7 +1,7 @@
 import bpy
 import sys
 
-def startup(editor_address, addon_paths, allow_modify_external_python):
+def startup(editor_address, addons_to_load, allow_modify_external_python):
     if bpy.app.version < (2, 80, 34):
         handle_fatal_error("Please use a newer version of Blender")
 
@@ -11,12 +11,12 @@ def startup(editor_address, addon_paths, allow_modify_external_python):
         allow_modify_external_python)
 
     from . import load_addons
-    path_mappings = load_addons.setup_addon_links(addon_paths)
+    path_mappings = load_addons.setup_addon_links(addons_to_load)
 
     from . import communication
     communication.setup(editor_address, path_mappings)
 
-    load_addons.load(addon_paths)
+    load_addons.load(addons_to_load)
 
     from . import ui
     from . import operators

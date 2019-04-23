@@ -35,10 +35,6 @@ export class AddonWorkspaceFolder {
         return <boolean>this.getConfig().get('addon.reloadOnSave');
     }
 
-    public async getModuleName() {
-        return path.basename(await this.getLoadDirectory());
-    }
-
     public async hasAddonEntryPoint() {
         try {
             let sourceDir = await this.getSourceDirectory();
@@ -59,10 +55,33 @@ export class AddonWorkspaceFolder {
         return getConfig(this.uri);
     }
 
+    public async getLoadDirectoryAndModuleName() {
+        let load_dir = await this.getLoadDirectory();
+        let module_name = await this.getModuleName();
+        return {
+            'load_dir' : load_dir,
+            'module_name' : module_name,
+        };
+    }
+
+    public async getModuleName() {
+        let value = <string>getConfig(this.uri).get('addon.moduleName');
+        if (value === 'auto') {
+            return path.basename(await this.getLoadDirectory());
+        }
+        else {
+            return value;
+        }
+    }
+
     public async getLoadDirectory() {
         let value = <string>getConfig(this.uri).get('addon.loadDirectory');
-        if (value === 'auto') return this.getSourceDirectory();
-        else return this.makePathAbsolute(value);
+        if (value === 'auto') {
+            return this.getSourceDirectory();
+        }
+        else {
+            return this.makePathAbsolute(value);
+        }
     }
 
     public async getSourceDirectory() {

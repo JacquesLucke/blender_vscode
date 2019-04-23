@@ -169,6 +169,16 @@
             ],
             "description": "Directory that contains the source code of the addon (used for path mapping for the debugger)."
           },
+          "blender.addon.moduleName": {
+            "type": "string",
+            "scope": "resource",
+            "default": "auto",
+            "examples": [
+              "auto",
+              "my_addon_name"
+            ],
+            "description": "Name or the symlink that is created in Blenders addon folder."
+          },
           "blender.core.buildDebugCommand": {
             "type": "string",
             "scope": "resource",

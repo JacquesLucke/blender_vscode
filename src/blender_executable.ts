@@ -189,10 +189,10 @@ function getBlenderLaunchArgs() {
 async function getBlenderLaunchEnv() {
     let config = getConfig();
     let addons = await AddonWorkspaceFolder.All();
-    let loadDirs = await Promise.all(addons.map(a => a.getLoadDirectory()));
+    let loadDirsWithNames = await Promise.all(addons.map(a => a.getLoadDirectoryAndModuleName()));
 
     return {
-        ADDON_DIRECTORIES_TO_LOAD: JSON.stringify(loadDirs),
+        ADDONS_TO_LOAD: JSON.stringify(loadDirsWithNames),
         EDITOR_PORT: getServerPort().toString(),
         ALLOW_MODIFY_EXTERNAL_PYTHON: <boolean>config.get('allowModifyExternalPython') ? 'yes' : 'no',
     };
