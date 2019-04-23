@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fix detection for possibly bad addon folder names.
+- Addon templates did not contain `version` field in `bl_info`.
 
 ## [0.0.11] - 2019-03-06
 
