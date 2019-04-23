@@ -13,9 +13,10 @@ The extension is [installed](https://code.visualstudio.com/docs/editor/extension
 
 Execute the **Blender: New Addon** operator and use the setup wizard.
 You will be asked for the following information:
-* Where should the addon be created?
-* Name of the addon.
-* Your name.
+* Which addon template should be used?
+* Where should the addon be created? This should be an empty folder, preferably without spaces or special characters in the name.
+* What is the name of the addon?
+* What is you name?
 
 ### How can I use the extension with my existing addon?
 
@@ -28,7 +29,7 @@ Then execute the `Blender: Start` command.
 This will ask you for a path to a Blender executable.
 Only Blender 2.8 is supported.
 
-After you choosed a path, Blender will open.
+After you choose a path, Blender will open.
 The terminal output can be seen inside of VS Code.
 The first time you open a new Blender build like this can take a few seconds longer than usual because some Python libraries are installed automatically.
 For that it is important that you have an internet connection.
@@ -81,7 +82,7 @@ To execute the script in all Blender instances that have been started this way, 
 
 Currently the support for this is very basic, but still useful.
 To run the script in a specific area type in Blender insert a comment like `#context.area: VIEW_3D`.
-The prefered way to insert this comment is to execute the `Blender: Set Script Context` command.
+The preferred way to insert this comment is to execute the `Blender: Set Script Context` command.
 
 ## Core Development Tools
 
@@ -92,7 +93,6 @@ While I can use it to speedup my daily workflow, it is very likely that those to
 
 - Polish the features I already started working on but are not documented here yet.
 - Auto-complete for Blender modules.
-- Multiple addon templates (most importantly with auto registration of classes).
 - Well integrated snippets.
 - ...
 
