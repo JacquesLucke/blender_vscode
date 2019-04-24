@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.12] - 2019-04-24
+
 ### Added
 - New `blender.addon.moduleName` setting. It controls the name if the generated symlink into the addon directory. By default, the original addon folder name is used.
 
