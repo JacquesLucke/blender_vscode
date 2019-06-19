@@ -35,7 +35,7 @@ def prepare_script_context(filepath):
         if match:
             area_type = match.group(1)
 
-    context = bpy.context.copy()
+    context = {}
     context["window_manager"] = bpy.data.window_managers[0]
     context["window"] = context["window_manager"].windows[0]
     context["scene"] = context["window"].scene
@@ -44,9 +44,10 @@ def prepare_script_context(filepath):
     context["workspace"] = context["window"].workspace
     context["active_object"] = context["view_layer"].objects.active
     context["object"] = context["active_object"]
+    context["collection"] = context["view_layer"].active_layer_collection.collection
     context["area"] = get_area_by_type(area_type)
     context["space_data"] = context["area"].spaces.active
-    context["selected_objects"] = [obj for obj in context["view_layer"].objects if obj.select_get()]
+    context["selected_objects"] = [obj for obj in context["view_layer"].objects if obj.select_get(view_layer=context["view_layer"])]
     context["selected_editable_objects"] = context["selected_objects"]
     context["region"] = get_region_in_area(context["area"], region_type) if context["area"] else None
     if context["space_data"].type == "VIEW_3D":
