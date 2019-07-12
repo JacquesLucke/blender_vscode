@@ -10,6 +10,9 @@ def setup_addon_links(addons_to_load):
     if not os.path.exists(user_addon_directory):
         os.makedirs(user_addon_directory)
 
+    if not str(user_addon_directory) in sys.path:
+        sys.path.append(str(user_addon_directory))
+
     path_mappings = []
 
     for source_path, module_name in addons_to_load:
