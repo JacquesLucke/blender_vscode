@@ -19,8 +19,15 @@ class UpdateAddonOperator(bpy.types.Operator):
             send_dict_as_json({"type" : "disableFailure"})
             return {'CANCELLED'}
 
-        for name in list(sys.modules.keys()):
-            if name.startswith(self.module_name):
+        root = None
+        for (name, module) in sys.modules.copy().items():
+            if not hasattr(module, '__file__'):
+                continue
+
+            if name == self.module_name and hasattr(module, '__path__'):
+                root = module.__path__[0] + '\\'
+
+            if root is not None and module.__file__.startswith(root):
                 del sys.modules[name]
 
         try:
