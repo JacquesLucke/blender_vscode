@@ -5,6 +5,7 @@ import traceback
 from pathlib import Path
 from . communication import send_dict_as_json
 from . environment import user_addon_directory, addon_directories
+import atexit
 
 def setup_addon_links(addons_to_load):
     if not os.path.exists(user_addon_directory):
@@ -46,6 +47,7 @@ def create_link_in_user_addon_directory(directory, link_path):
         _winapi.CreateJunction(str(directory), str(link_path))
     else:
         os.symlink(str(directory), str(link_path), target_is_directory=True)
+    atexit.register(os.remove, link_path)
 
 def is_in_any_addon_directory(module_path):
     for path in addon_directories:
