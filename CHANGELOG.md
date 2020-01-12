@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Take `bl_parent_id` into account when ordering classes for registration in Blender.
+
 ## [0.0.12] - 2019-04-24
 
 ### Added
