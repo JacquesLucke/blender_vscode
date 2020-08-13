@@ -1,6 +1,7 @@
 import os
 import bpy
 import sys
+import traceback
 import subprocess
 from bpy.props import *
 from pathlib import Path
@@ -20,12 +21,14 @@ class InstallPythonPackageOperator(bpy.types.Operator):
             self.report({'INFO'}, f"{self.package_name} is installed already")
             return {'FINISHED'}
         if not is_pip_installed():
+            traceback.print_exc()
             self.report({'ERROR'}, "Please install pip first")
             return {'CANCELLED'}
 
         try:
             install_package(self.package_name)
         except:
+            traceback.print_exc()
             self.report({'ERROR'}, f"Error while installing {self.package_name}, check the terminal")
             return {'CANCELLED'}
 
@@ -46,6 +49,7 @@ class InstallPipOperator(bpy.types.Operator):
         try:
             install_pip()
         except:
+            traceback.print_exc()
             self.report({'ERROR'}, "Error while installing pip, check the terminal")
             return {'CANCELLED'}
 
