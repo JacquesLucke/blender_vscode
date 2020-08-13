@@ -1,6 +1,7 @@
 import bpy
 import sys
 import traceback
+import addon_utils
 from bpy.props import *
 from .. utils import redraw_all
 from .. communication import send_dict_as_json, register_post_action
@@ -13,7 +14,7 @@ class UpdateAddonOperator(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            bpy.ops.preferences.addon_disable(module=self.module_name)
+            addon_utils.disable(self.module_name, default_set=False)
         except:
             traceback.print_exc()
             send_dict_as_json({"type" : "disableFailure"})
@@ -24,7 +25,7 @@ class UpdateAddonOperator(bpy.types.Operator):
                 del sys.modules[name]
 
         try:
-            bpy.ops.preferences.addon_enable(module=self.module_name)
+            addon_utils.enable(self.module_name, default_set=True, persistent=True)
         except:
             traceback.print_exc()
             send_dict_as_json({"type" : "enableFailure"})
