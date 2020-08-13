@@ -12,7 +12,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name" : "Visual Studio Code Development",
+    "name" : "Addon Development with Visual Studio Code",
     "author" : "Jacques Lucke",
     "description" : "",
     "blender" : (2, 90, 0),
