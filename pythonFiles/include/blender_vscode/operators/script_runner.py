@@ -12,8 +12,7 @@ class RunScriptOperator(bpy.types.Operator):
     filepath: StringProperty()
 
     def execute(self, context):
-        ctx = prepare_script_context(self.filepath)
-        runpy.run_path(self.filepath, init_globals={"CTX" : ctx})
+        runpy.run_path(self.filepath)
         redraw_all()
         return {'FINISHED'}
 
@@ -35,27 +34,17 @@ def prepare_script_context(filepath):
         if match:
             area_type = match.group(1)
 
-    context = {}
-    context["window_manager"] = bpy.data.window_managers[0]
-    context["window"] = context["window_manager"].windows[0]
+    context = dict()
+    context["window"] = bpy.data.window_managers[0].windows[0]
     context["scene"] = context["window"].scene
-    context["view_layer"] = context["window"].view_layer
     context["screen"] = context["window"].screen
     context["workspace"] = context["window"].workspace
-    context["active_object"] = context["view_layer"].objects.active
-    context["object"] = context["active_object"]
-    context["collection"] = context["view_layer"].active_layer_collection.collection
-    context["area"] = get_area_by_type(area_type)
-    context["space_data"] = context["area"].spaces.active
-    context["selected_objects"] = [obj for obj in context["view_layer"].objects if obj.select_get(view_layer=context["view_layer"])]
-    context["selected_editable_objects"] = context["selected_objects"]
+    context["area"] = get_area_by_type(context["screen"], area_type)
     context["region"] = get_region_in_area(context["area"], region_type) if context["area"] else None
-    if context["space_data"].type == "VIEW_3D":
-        context["region_data"] = context["space_data"].region_3d
     return context
 
-def get_area_by_type(area_type):
-    for area in bpy.data.window_managers[0].windows[0].screen.areas:
+def get_area_by_type(screen, area_type):
+    for area in screen.areas:
         if area.type == area_type:
             return area
     return None
