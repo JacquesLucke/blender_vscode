@@ -8,6 +8,7 @@ class MyPreferences(bpy.types.AddonPreferences):
 
     package_name_to_install: StringProperty("Package Name to Install")
     addon_to_reload: StringProperty("Addon to Reload")
+    script_path: StringProperty("Script Path")
 
     def draw(self, context):
         layout: bpy.types.UILayout = self.layout
@@ -36,3 +37,8 @@ class MyPreferences(bpy.types.AddonPreferences):
         row.prop(self, "addon_to_reload", text="Reload Addon")
         props = row.operator("development.reload_addon", text="", icon='FILE_REFRESH')
         props.module_name = self.addon_to_reload
+
+        row = layout.row(align=True)
+        row.prop(self, "script_path", text="Run External Script")
+        props = row.operator("development.run_external_script", text="", icon='PLAY')
+        props.filepath = self.script_path
