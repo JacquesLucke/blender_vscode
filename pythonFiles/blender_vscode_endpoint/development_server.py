@@ -25,13 +25,16 @@ class StartDevelopmentServerOperator(bpy.types.Operator):
 
 class MyRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        request_bytes = self.rfile.read(content_length)
+        request_data = json.loads(request_bytes.decode('utf-8'))
         self.send_json("Hello World")
 
     def send_json(self, data):
-        serialized_data = json.dumps(data, indent=2).encode("utf-8")
+        serialized_data = json.dumps(data, indent=2).encode('utf-8')
         self.send_response(http.HTTPStatus.OK)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Lenght", str(len(serialized_data)))
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Lenght', str(len(serialized_data)))
         self.end_headers()
         self.wfile.write(serialized_data)
 
