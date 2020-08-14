@@ -4,6 +4,7 @@ import traceback
 import addon_utils
 from bpy.props import *
 from .utils import redraw_all
+from .development_server import register_request_command
 
 class ReloadAddonOperator(bpy.types.Operator):
     bl_idname = "development.reload_addon"
@@ -32,3 +33,9 @@ class ReloadAddonOperator(bpy.types.Operator):
 
         redraw_all()
         return {'FINISHED'}
+
+def reload_addon_command(args):
+    module_name = args["module_name"]
+    bpy.ops.development.reload_addon(module_name=module_name)
+
+register_request_command("reload_addon", reload_addon_command)
