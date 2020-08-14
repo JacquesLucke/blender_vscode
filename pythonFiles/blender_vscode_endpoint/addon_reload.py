@@ -3,7 +3,7 @@ import sys
 import traceback
 import addon_utils
 from bpy.props import *
-from . utils import redraw_all
+from .utils import redraw_all
 
 class ReloadAddonOperator(bpy.types.Operator):
     bl_idname = "development.reload_addon"

@@ -1,7 +1,8 @@
 import bpy
 from bpy.props import *
-from . package_installation import is_pip_installed, is_package_installed
-from . ptvsd_server import get_active_ptvsd_port, ptvsd_debugger_is_attached
+from .package_installation import is_pip_installed, is_package_installed
+from .ptvsd_server import get_active_ptvsd_port, ptvsd_debugger_is_attached
+from .development_server import get_active_development_port
 
 class MyPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__
@@ -42,3 +43,9 @@ class MyPreferences(bpy.types.AddonPreferences):
         row.prop(self, "script_path", text="Run External Script")
         props = row.operator("development.run_external_script", text="", icon='PLAY')
         props.filepath = self.script_path
+
+        development_port = get_active_development_port()
+        if development_port is None:
+            layout.operator("development.start_development_server")
+        else:
+            layout.label(text=f"Development server is running at port {development_port}")

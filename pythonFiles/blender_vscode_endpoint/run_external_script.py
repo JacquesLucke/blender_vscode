@@ -2,7 +2,7 @@ import re
 import bpy
 import runpy
 from bpy.props import *
-from . utils import redraw_all
+from .utils import redraw_all
 
 class RunExternalScriptOperator(bpy.types.Operator):
     bl_idname = "development.run_external_script"

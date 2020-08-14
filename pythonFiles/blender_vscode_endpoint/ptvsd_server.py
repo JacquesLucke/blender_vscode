@@ -1,6 +1,6 @@
 import bpy
 from bpy.props import *
-from . utils import get_random_port
+from .utils import get_random_port
 
 active_ptvsd_port = None
 
