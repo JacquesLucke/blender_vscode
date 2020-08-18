@@ -6,25 +6,12 @@
   "publisher": "JacquesLucke",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.28.0"
+    "vscode": "^1.47.0"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "onCommand:blender.start",
-    "onCommand:blender.stop",
-    "onCommand:blender.build",
-    "onCommand:blender.buildAndStart",
-    "onCommand:blender.startWithoutCDebugger",
-    "onCommand:blender.buildPythonApiDocs",
-    "onCommand:blender.reloadAddons",
-    "onCommand:blender.newAddon",
-    "onCommand:blender.newScript",
-    "onCommand:blender.runScript",
-    "onCommand:blender.setScriptContext",
-    "onCommand:blender.openScriptsFolder",
-    "onCommand:blender.newOperator"
   ],
   "main": "./out/extension",
   "repository": {
@@ -36,176 +23,8 @@
   },
   "contributes": {
     "commands": [
-      {
-        "command": "blender.start",
-        "title": "Start",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.stop",
-        "title": "Stop",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.build",
-        "title": "Build",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.buildAndStart",
-        "title": "Build and Start",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.startWithoutCDebugger",
-        "title": "Start without C Debugger",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.buildPythonApiDocs",
-        "title": "Build Python API Docs",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.reloadAddons",
-        "title": "Reload Addons",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.newAddon",
-        "title": "New Addon",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.newScript",
-        "title": "New Script",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.runScript",
-        "title": "Run Script",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.setScriptContext",
-        "title": "Set Script Context",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.openScriptsFolder",
-        "title": "Open Scripts Folder",
-        "category": "Blender"
-      },
-      {
-        "command": "blender.newOperator",
-        "title": "New Operator",
-        "category": "Blender"
-      }
     ],
     "configuration": [
-      {
-        "title": "Blender",
-        "properties": {
-          "blender.executables": {
-            "type": "array",
-            "scope": "application",
-            "description": "Paths to Blender executables.",
-            "items": {
-              "type": "object",
-              "title": "Single Blender Path",
-              "properties": {
-                "path": {
-                  "type": "string",
-                  "description": "Absolute file path to a Blender executable."
-                },
-                "name": {
-                  "type": "string",
-                  "description": "Custom name for this Blender version."
-                },
-                "isDebug": {
-                  "type": "boolean",
-                  "description": "Is this executable a debug build.",
-                  "default": false
-                }
-              }
-            }
-          },
-          "blender.allowModifyExternalPython": {
-            "type": "boolean",
-            "scope": "application",
-            "default": false,
-            "description": "Allow automatically installing modules in Python distributions outside of Blender."
-          },
-          "blender.addon.reloadOnSave": {
-            "type": "boolean",
-            "scope": "resource",
-            "default": false,
-            "description": "Reload addon in Blender when a document is saved."
-          },
-          "blender.addon.buildTaskName": {
-            "type": "string",
-            "scope": "resource",
-            "description": "Task that should be executed before the addon can be loaded into Blender."
-          },
-          "blender.addon.loadDirectory": {
-            "type": "string",
-            "scope": "resource",
-            "default": "auto",
-            "examples": [
-              "auto",
-              "./",
-              "./build"
-            ],
-            "description": "Directory that contains the addon that should be loaded into Blender."
-          },
-          "blender.addon.sourceDirectory": {
-            "type": "string",
-            "scope": "resource",
-            "default": "auto",
-            "examples": [
-              "auto",
-              "./",
-              "./source"
-            ],
-            "description": "Directory that contains the source code of the addon (used for path mapping for the debugger)."
-          },
-          "blender.addon.moduleName": {
-            "type": "string",
-            "scope": "resource",
-            "default": "auto",
-            "examples": [
-              "auto",
-              "my_addon_name"
-            ],
-            "description": "Name or the symlink that is created in Blenders addon folder."
-          },
-          "blender.core.buildDebugCommand": {
-            "type": "string",
-            "scope": "resource",
-            "description": "Command used to compile Blender.",
-            "default": "make debug"
-          },
-          "blender.scripts.directories": {
-            "type": "array",
-            "scope": "application",
-            "description": "Directories to store scripts in.",
-            "items": {
-              "type": "object",
-              "title": "Single Script Directory",
-              "properties": {
-                "path": {
-                  "type": "string",
-                  "description": "Absolute file path to a Blender executable."
-                },
-                "name": {
-                  "type": "string",
-                  "description": "Custom name for this Blender version."
-                }
-              }
-            }
-          }
-        }
-      }
     ]
   },
   "scripts": {
@@ -227,7 +46,6 @@
     "request": "^2.87.0"
   },
   "extensionDependencies": [
-    "ms-python.python",
-    "ms-vscode.cpptools"
+    "ms-python.python"
   ]
 }
