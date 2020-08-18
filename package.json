@@ -39,7 +39,5 @@
     "vscode": "^1.1.21"
   },
   "dependencies": {},
-  "extensionDependencies": [
-    "ms-python.python"
-  ]
+  "extensionDependencies": []
 }
