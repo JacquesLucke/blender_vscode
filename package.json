@@ -11,8 +11,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-  ],
+  "activationEvents": [],
   "main": "./out/extension",
   "repository": {
     "type": "git",
@@ -22,10 +21,8 @@
     "url": "https://github.com/JacquesLucke/blender_vscode/issues"
   },
   "contributes": {
-    "commands": [
-    ],
-    "configuration": [
-    ]
+    "commands": [],
+    "configuration": []
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -36,15 +33,12 @@
   },
   "devDependencies": {
     "@types/mocha": "^2.2.42",
-    "@types/node": "^8.10.25",
-    "@types/request": "^2.48.1",
+    "@types/node": "^8.10.62",
     "tslint": "^5.8.0",
     "typescript": "^2.6.1",
     "vscode": "^1.1.21"
   },
-  "dependencies": {
-    "request": "^2.87.0"
-  },
+  "dependencies": {},
   "extensionDependencies": [
     "ms-python.python"
   ]
