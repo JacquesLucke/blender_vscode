@@ -1,4 +1,5 @@
 import bpy
+import json
 from bpy.props import *
 from .package_installation import is_pip_installed, is_package_installed
 from .ptvsd_server import get_active_ptvsd_port, ptvsd_debugger_is_attached
@@ -25,8 +26,8 @@ class MyPreferences(bpy.types.AddonPreferences):
                 props = layout.operator("development.install_python_package", text="Install ptvsd (Python Debugger)")
                 props.package_name = "ptvsd"
 
+        ptvsd_port = get_active_ptvsd_port()
         if is_package_installed("ptvsd"):
-            ptvsd_port = get_active_ptvsd_port()
             if ptvsd_port is None:
                 layout.operator("development.start_ptvsd_server")
             else:
@@ -49,3 +50,24 @@ class MyPreferences(bpy.types.AddonPreferences):
             layout.operator("development.start_development_server")
         else:
             layout.label(text=f"Development server is running at port {development_port}")
+
+        if ptvsd_port is not None or development_port is not None:
+            layout.operator("development.copy_connection_info")
+
+
+class CopyConnectionInfoOperator(bpy.types.Operator):
+    bl_idname = "development.copy_connection_info"
+    bl_label = "Copy Connection Info"
+    bl_description = "Copy connection information that can be pasted into vscode"
+
+    def execute(self, context):
+        ptvsd_port = get_active_ptvsd_port()
+        development_port = get_active_development_port()
+
+        info = {
+            "ptvsd_port": ptvsd_port,
+            "development_port": development_port,
+        }
+
+        context.window_manager.clipboard = json.dumps(info)
+        return {'FINISHED'}
