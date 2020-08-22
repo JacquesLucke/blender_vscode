@@ -81,3 +81,6 @@ def register_request_command(request_name: str, request_command):
         run_in_main_thread(functools.partial(request_command, args))
         return "command scheduled"
     register_request_handler(request_name, handler)
+
+def register():
+    register_request_command("quit", lambda args: bpy.ops.wm.quit_blender())
