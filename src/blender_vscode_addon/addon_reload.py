@@ -45,7 +45,16 @@ def reload_addon(module_name: str):
         traceback.print_exc()
         raise Exception("Could not enable the addon, check the terminal")
 
-@communication.request_command("/reload_addon")
-def reload_addon_command(args):
-    module_name = args["module_name"]
-    bpy.ops.development.reload_addon(module_name=module_name)
+@communication.request_command("/reload_addons")
+def reload_addon_command(addon_names):
+    addon_names = set(addon_names)
+    module_names = []
+    for addon in bpy.context.preferences.addons:
+        module_name = addon.module
+        module = __import__(module_name)
+        addon_name = module.bl_info["name"]
+        if addon_name in addon_names:
+            module_names.append(module_name)
+
+    for module_name in module_names:
+        bpy.ops.development.reload_addon(module_name=module_name)

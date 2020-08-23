@@ -1,8 +1,13 @@
 import * as vscode from 'vscode';
 import * as os from 'os';
 import * as communication from './communication';
+import * as fs from 'fs';
+import { promisify } from 'util';
 import * as path from 'path';
 import * as python_debugging from './python_debugging';
+import * as glob from 'fast-glob';
+
+const readFile = promisify(fs.readFile);
 
 export function activate(context: vscode.ExtensionContext) {
     const commands: [string, () => Promise<void>][] = [
@@ -12,6 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.attachPythonDebugger', python_debugging.COMMAND_attachPythonDebugger],
         ['blender.startAndAttachPythonDebugger', COMMAND_startAndAttachPythonDebugger],
         ['blender.manageExecutables', COMMAND_manageExecutables],
+        ['blender.reloadAddon', COMMAND_reloadAddon],
     ];
 
     for (const [identifier, func] of commands) {
@@ -115,4 +121,41 @@ async function COMMAND_startAndAttachPythonDebugger() {
 
 async function COMMAND_manageExecutables() {
     vscode.commands.executeCommand('workbench.action.openSettings', 'blender.executables');
+}
+
+async function findAddonNames() {
+    const addonNames: string[] = [];
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders === undefined) {
+        return;
+    }
+    for (const workspaceFolder of workspaceFolders) {
+        const rootDir = workspaceFolder.uri.fsPath;
+
+        const pathsToCheck = await glob('**/*.py', {
+            cwd: rootDir,
+            suppressErrors: true,
+            absolute: true,
+        });
+
+        for (const pathToCheck of pathsToCheck) {
+            const text = await readFile(pathToCheck, 'utf8');
+            if (!text.includes('bl_info')) {
+                continue;
+            }
+            for (const line of text.split(/\r?\n/)) {
+                const match = line.match(/\s*["']name["']\s*:\s*["'](.*)["']\s*,/);
+                if (match === null) {
+                    continue;
+                }
+                addonNames.push(match[1]);
+            }
+        }
+    }
+    return addonNames;
+}
+
+async function COMMAND_reloadAddon() {
+    const addonNames = await findAddonNames();
+    communication.sendCommand('/reload_addons', addonNames);
 }
