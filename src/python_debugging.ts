@@ -12,11 +12,19 @@ export function setPtvsdAddress(host: string | null, port: number | null) {
     }
 }
 
+interface PathMapping {
+    localRoot: string;
+    remoteRoot: string;
+};
+
 export async function COMMAND_attachPythonDebugger() {
     if (ptvsdAddress === null) {
         vscode.window.showErrorMessage('Not connected to Blender.');
         return;
     }
+
+    const config = vscode.workspace.getConfiguration('blender');
+    const pathMappings = config.get<PathMapping[]>('pythonPathMappings');
 
     vscode.debug.startDebugging(undefined, {
         name: `Blender Python`,
@@ -24,7 +32,7 @@ export async function COMMAND_attachPythonDebugger() {
         type: 'python',
         port: ptvsdAddress.port,
         host: ptvsdAddress.host,
-        pathMappings: [],
+        pathMappings: pathMappings,
     });
 }
 

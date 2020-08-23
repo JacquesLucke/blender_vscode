@@ -78,6 +78,25 @@
                 }
               }
             }
+          },
+          "blender.pythonPathMappings": {
+            "type": "array",
+            "scope": "machine",
+            "description": "Mappings from Python code executed in Blender and the source code.",
+            "items": {
+              "type": "object",
+              "title": "Path Mapping",
+              "properties": {
+                "localRoot": {
+                  "type": "string",
+                  "description": "Path to a directory that you are developing in."
+                },
+                "remoteRoot": {
+                  "type": "string",
+                  "description": "Path to a directory that is loaded by Blender."
+                }
+              }
+            }
           }
         }
       }
