@@ -34,7 +34,7 @@ class ReloadAddonOperator(bpy.types.Operator):
         redraw_all()
         return {'FINISHED'}
 
-@communication.request_command("reload_addon")
+@communication.request_command("/reload_addon")
 def reload_addon_command(args):
     module_name = args["module_name"]
     bpy.ops.development.reload_addon(module_name=module_name)

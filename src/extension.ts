@@ -32,5 +32,5 @@ async function COMMAND_connect() {
 }
 
 async function COMMAND_quitBlender() {
-    communication.sendCommand('quit');
+    communication.sendCommand('/quit');
 }

@@ -2,12 +2,16 @@ import bpy
 import json
 import http
 import time
+import requests
 import threading
 import functools
 import http.server
 import socketserver
 from .utils import get_random_port
 from .main_thread_execution import run_in_main_thread
+
+# Handle Incoming Requests
+##########################################
 
 active_port = None
 request_handlers = {}
@@ -29,17 +33,26 @@ class StartServerOperator(bpy.types.Operator):
 class MyRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
-        request_bytes = self.rfile.read(content_length)
-        request_data = json.loads(request_bytes.decode('utf-8'))
-        request_name = request_data['request_name']
-        request_callback = request_handlers[request_name]
-        request_callback_arg = request_data['request_arg']
-        response_data = request_callback(request_callback_arg)
-        self.send_json(response_data)
+        content_bytes = self.rfile.read(content_length)
+        content_str = content_bytes.decode('utf-8')
+        try:
+            content_json = json.loads(content_str) if content_length != 0 else None
+        except json.JSONDecodeError:
+            self.send_json(http.HTTPStatus.BAD_REQUEST, None)
+            return
 
-    def send_json(self, data):
+        request_path = self.path
+        if request_path not in request_handlers:
+            self.send_json(http.HTTPStatus.BAD_REQUEST, None)
+            return
+        request_callback = request_handlers[request_path]
+        request_callback_arg = content_json
+        response_data = request_callback(request_callback_arg)
+        self.send_json(http.HTTPStatus.OK, response_data)
+
+    def send_json(self, status, data):
         serialized_data = json.dumps(data, indent=2).encode('utf-8')
-        self.send_response(http.HTTPStatus.OK)
+        self.send_response(status)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Content-Lenght', str(len(serialized_data)))
         self.end_headers()
@@ -74,6 +87,7 @@ def get_server_port():
     return active_port
 
 def register_request_handler(request_name: str, request_function):
+    assert request_name.startswith("/")
     request_handlers[request_name] = request_function
 
 def register_request_command(request_name: str, request_command):
@@ -94,6 +108,19 @@ def request_command(request_name: str):
         return func
     return decorator
 
-@request_command("quit")
+@request_command("/quit")
 def quit_command(args):
     bpy.ops.wm.quit_blender()
+
+
+# Handle Outgoing Requests
+#####################################
+
+vscode_address = None
+
+def set_vscode_address(address: str):
+    global vscode_address
+    vscode_address = address
+
+def sendCommand(request_path: str, json_arg = None):
+    requests.post(vscode_address + request_path, json=json_arg)

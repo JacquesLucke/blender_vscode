@@ -54,14 +54,10 @@ export function setBlenderAddress(address: string | null) {
     blenderAddress = address;
 }
 
-export function sendCommand(requestName: string, requestArg: any = null) {
+export function sendCommand(requestPath: string, requestArg: any = null) {
     if (blenderAddress === null) {
         return;
     }
-
-    const requestData = {
-        request_name: requestName,
-        request_arg: requestArg,
-    };
-    request.post(`http://${blenderAddress}`, { json: requestData });
+    console.assert(requestPath.startsWith('/'));
+    request.post(`http://${blenderAddress}${requestPath}`, { json: requestArg });
 }

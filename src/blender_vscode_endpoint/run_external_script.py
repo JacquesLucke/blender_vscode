@@ -72,7 +72,7 @@ def get_region_by_type(area, region_type):
             return region
     return None
 
-@communication.request_command("run_external_script")
+@communication.request_command("/run_external_script")
 def run_external_script_command(args):
     filepath = args["filepath"]
     run_external_script(filepath)
