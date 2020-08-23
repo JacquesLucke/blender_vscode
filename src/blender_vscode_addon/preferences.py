@@ -61,6 +61,10 @@ class MyPreferences(bpy.types.AddonPreferences):
             layout.label(text=f"Connected to vscode at {vscode_address}")
 
 
+def send_connection_info():
+    info = get_connection_info()
+    communication.send_command('/set_connection_info', info)
+
 def get_connection_info():
     ptvsd_port = get_active_ptvsd_port()
     communication_port = communication.get_server_port()

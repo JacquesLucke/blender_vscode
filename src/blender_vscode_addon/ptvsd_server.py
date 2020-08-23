@@ -36,6 +36,9 @@ class StartPtvsdServerOperator(bpy.types.Operator):
             return {'CANCELLED'}
 
         active_ptvsd_port = port
+
+        from .preferences import send_connection_info
+        send_connection_info()
         return {'FINISHED'}
 
 def get_active_ptvsd_port():
