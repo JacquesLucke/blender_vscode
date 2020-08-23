@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ensureServer, stopServer } from './server';
-import * as development_client from './development_client';
+import * as development_client from './dev_client';
 
 export function activate(context: vscode.ExtensionContext) {
     const commands: [string, () => Promise<void>][] = [
