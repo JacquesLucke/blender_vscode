@@ -16,7 +16,8 @@
     "onCommand:blender.quit",
     "onCommand:blender.start",
     "onCommand:blender.attachPythonDebugger",
-    "onCommand:blender.startAndAttachPythonDebugger"
+    "onCommand:blender.startAndAttachPythonDebugger",
+    "onCommand:blender.manageExecutables"
   ],
   "main": "./out/extension.js",
   "repository": {
@@ -52,9 +53,35 @@
         "command": "blender.startAndAttachPythonDebugger",
         "title": "Start and Attach Python Debugger",
         "category": "Blender"
+      },
+      {
+        "command": "blender.manageExecutables",
+        "title": "Manage Executables",
+        "category": "Blender"
       }
     ],
-    "configuration": []
+    "configuration": [
+      {
+        "title": "Blender",
+        "properties": {
+          "blender.executables": {
+            "type": "array",
+            "scope": "machine",
+            "description": "Paths to Blender executables.",
+            "items": {
+              "type": "object",
+              "title": "Blender Executable",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "Absolute file path to a Blender executable."
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
