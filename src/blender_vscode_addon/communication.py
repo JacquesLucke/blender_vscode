@@ -127,11 +127,11 @@ def set_vscode_address(address: str):
 def get_vscode_address():
     return vscode_address
 
-def send_command(request_path: str, json_arg = None):
+def send_command(request_path: str, json_arg=None):
     if vscode_address is None:
         return
     request_path.startswith("/")
-    requests.post(f"http://{vscode_address}{request_path}", json=json_arg)
+    requests.post(f"http://{vscode_address}{request_path}", data=json.dumps(json_arg))
 
 @request_command("/set_vscode_address")
 def set_vscode_address_command(arg):

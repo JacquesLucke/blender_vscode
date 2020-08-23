@@ -9,6 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.quit', COMMAND_quitBlender],
         ['blender.start', COMMAND_start],
         ['blender.attachPythonDebugger', python_debugging.COMMAND_attachPythonDebugger],
+        ['blender.startAndAttachPythonDebugger', COMMAND_startAndAttachPythonDebugger],
     ];
 
     for (const [identifier, func] of commands) {
@@ -48,7 +49,7 @@ async function COMMAND_quitBlender() {
     communication.sendCommand('/quit');
 }
 
-async function COMMAND_start() {
+function launchBlender(launchEnv: { [key: string]: string } = {}) {
     const blenderPath = '/home/jacques/blender-git/build_linux/bin/blender';
     const launchPath = path.join(path.dirname(__dirname), 'src', 'launch.py');
 
@@ -60,12 +61,21 @@ async function COMMAND_start() {
         new vscode.ProcessExecution(
             blenderPath,
             ['--python', launchPath],
-            {
-                env: {
-                    VSCODE_ADDRESS: `localhost:${communication.getServerPort()}`,
-                }
-            }
+            { env: launchEnv },
         ),
         []);
     vscode.tasks.executeTask(task);
+}
+
+async function COMMAND_start() {
+    launchBlender({
+        VSCODE_ADDRESS: `localhost:${communication.getServerPort()}`,
+    });
+}
+
+async function COMMAND_startAndAttachPythonDebugger() {
+    launchBlender({
+        VSCODE_ADDRESS: `localhost:${communication.getServerPort()}`,
+        WANT_TO_ATTACH_PYTHON_DEBUGGER: '',
+    });
 }

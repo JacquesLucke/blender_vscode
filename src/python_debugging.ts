@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as communication from './communication';
 
 let ptvsdAddress: { host: string, port: number } | null = null;
 
@@ -26,3 +27,7 @@ export async function COMMAND_attachPythonDebugger() {
         pathMappings: [],
     });
 }
+
+communication.registerRequestCommand('/attach_ptvsd', (arg: any) => {
+    COMMAND_attachPythonDebugger();
+});

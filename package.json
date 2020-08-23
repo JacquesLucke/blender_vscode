@@ -15,7 +15,8 @@
     "onCommand:blender.connect",
     "onCommand:blender.quit",
     "onCommand:blender.start",
-    "onCommand:blender.attachPythonDebugger"
+    "onCommand:blender.attachPythonDebugger",
+    "onCommand:blender.startAndAttachPythonDebugger"
   ],
   "main": "./out/extension.js",
   "repository": {
@@ -45,6 +46,11 @@
       {
         "command": "blender.attachPythonDebugger",
         "title": "Attach Python Debugger",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.startAndAttachPythonDebugger",
+        "title": "Start and Attach Python Debugger",
         "category": "Blender"
       }
     ],
