@@ -3,7 +3,7 @@ import json
 from bpy.props import *
 from .package_installation import is_pip_installed, is_package_installed
 from .ptvsd_server import get_active_ptvsd_port, ptvsd_debugger_is_attached
-from .dev_server import get_active_development_port
+from . import communication
 
 class MyPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__
@@ -45,13 +45,13 @@ class MyPreferences(bpy.types.AddonPreferences):
         props = row.operator("development.run_external_script", text="", icon='PLAY')
         props.filepath = self.script_path
 
-        development_port = get_active_development_port()
-        if development_port is None:
-            layout.operator("development.start_development_server")
+        communication_port = communication.get_server_port()
+        if communication_port is None:
+            layout.operator("development.start_server")
         else:
-            layout.label(text=f"Development server is running at port {development_port}")
+            layout.label(text=f"Server is running at port {communication_port}")
 
-        if ptvsd_port is not None or development_port is not None:
+        if ptvsd_port is not None or communication_port is not None:
             layout.operator("development.copy_connection_info")
 
 
@@ -62,11 +62,12 @@ class CopyConnectionInfoOperator(bpy.types.Operator):
 
     def execute(self, context):
         ptvsd_port = get_active_ptvsd_port()
-        development_port = get_active_development_port()
+        communication_port = communication.get_server_port()
 
         info = {
+            "host": "localhost",
             "ptvsd_port": ptvsd_port,
-            "development_port": development_port,
+            "communication_port": communication_port,
         }
 
         context.window_manager.clipboard = json.dumps(info)

@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import { ensureServer, stopServer } from './server';
-import * as development_client from './dev_client';
+import * as communication from './communication';
 
 export function activate(context: vscode.ExtensionContext) {
     const commands: [string, () => Promise<void>][] = [
@@ -14,18 +13,24 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-    stopServer();
+    communication.stopServer();
 }
 
+interface ConnectionInfo {
+    host: string,
+    ptvsd_port: number,
+    communication_port: number,
+};
+
 async function COMMAND_connect() {
-    const connectionInfoStr = await vscode.window.showInputBox({ placeHolder: 'Connection Information' });
-    if (connectionInfoStr === undefined) {
+    const infoStr = await vscode.window.showInputBox({ placeHolder: 'Connection Information' });
+    if (infoStr === undefined) {
         return;
     }
-    const connectionInfo = JSON.parse(connectionInfoStr);
-    development_client.setDevelopmentPort(connectionInfo.development_port);
+    const info: ConnectionInfo = JSON.parse(infoStr);
+    communication.setBlenderAddress(`${info.host}:${info.communication_port}`);
 }
 
 async function COMMAND_quitBlender() {
-    development_client.sendCommand('quit');
+    communication.sendCommand('quit');
 }

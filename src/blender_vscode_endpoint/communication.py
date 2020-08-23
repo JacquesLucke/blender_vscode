@@ -9,21 +9,21 @@ import socketserver
 from .utils import get_random_port
 from .main_thread_execution import run_in_main_thread
 
-active_development_port = None
+active_port = None
 request_handlers = {}
 
-class StartDevelopmentServerOperator(bpy.types.Operator):
-    bl_idname = "development.start_development_server"
-    bl_label = "Start Development Server"
+class StartServerOperator(bpy.types.Operator):
+    bl_idname = "development.start_server"
+    bl_label = "Start Server"
     bl_description = ""
 
     def execute(self, context):
-        global active_development_port
-        if active_development_port is not None:
+        global active_port
+        if active_port is not None:
             self.report({'INFO'}, "development server is running already")
             return {'FINISHED'}
 
-        active_development_port = start_development_server()
+        active_port = start_server()
         return {'FINISHED'}
 
 class MyRequestHandler(http.server.BaseHTTPRequestHandler):
@@ -49,7 +49,7 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
         # Don't log stuff to the terminal.
         pass
 
-def start_development_server():
+def start_server():
     port = [None]
 
     def server_thread_function():
@@ -70,8 +70,8 @@ def start_development_server():
 
     return port[0]
 
-def get_active_development_port():
-    return active_development_port
+def get_server_port():
+    return active_port
 
 def register_request_handler(request_name: str, request_function):
     request_handlers[request_name] = request_function
@@ -86,11 +86,13 @@ def request_handler(request_name: str):
     def decorator(func):
         register_request_handler(request_name, func)
         return func
+    return decorator
 
 def request_command(request_name: str):
     def decorator(func):
         register_request_command(request_name, func)
         return func
+    return decorator
 
 @request_command("quit")
 def quit_command(args):
