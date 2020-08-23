@@ -5,13 +5,19 @@ import * as request from 'request';
  ********************************************/
 
 let ownServer: any = null;
+type RequestHandler = (arg: any, response: http.ServerResponse) => void;
+const requestHandlers = new Map<string, RequestHandler>();
 
-export function ensureServer(): number {
+function ensureServer(): number {
     if (ownServer === null) {
         ownServer = http.createServer(handleRequest);
         ownServer.listen();
     }
     return ownServer.address().port;
+}
+
+export function getServerPort(): number {
+    return ensureServer();
 }
 
 export function stopServer() {
@@ -24,23 +30,53 @@ function handleRequest(request: http.IncomingMessage, response: http.ServerRespo
         response.end();
         return;
     }
+    if (request.url === undefined) {
+        response.writeHead(400);
+        response.end();
+        return;
+    }
 
-    let body = '';
-    request.on('data', (chunk: any) => body += chunk.toString());
+    let content_str = '';
+    request.on('data', (chunk: any) => content_str += chunk.toString());
     request.on('end', () => {
-        let request_data;
+        let content_json;
         try {
-            request_data = JSON.parse(body);
+            content_json = JSON.parse(content_str);
         }
         catch (e) {
-            console.log('Bad request: ' + body);
+            console.log('Bad request: ' + content_str);
             response.writeHead(400);
             response.end();
             return;
         }
-        console.log(request_data);
+        const handler = requestHandlers.get(request.url!);
+        if (handler === undefined) {
+            response.writeHead(400);
+            response.end();
+            return;
+        }
+        handler(content_json, response);
         response.writeHead(200);
         response.write('This is a response');
+        response.end();
+    });
+}
+
+export function registerRequestHandler(requestPath: string, handler: RequestHandler) {
+    requestHandlers.set(requestPath, handler);
+}
+
+export function registerRequestCommand(requestPath: string, command: (arg: any) => void) {
+    registerRequestHandler(requestPath, (arg: any, response: http.ServerResponse) => {
+        try {
+            command(arg);
+        }
+        catch (e) {
+            response.writeHead(400);
+            response.end();
+            return;
+        }
+        response.writeHead(200);
         response.end();
     });
 }
@@ -59,5 +95,6 @@ export function sendCommand(requestPath: string, requestArg: any = null) {
         return;
     }
     console.assert(requestPath.startsWith('/'));
+    ensureServer();
     request.post(`http://${blenderAddress}${requestPath}`, { json: requestArg });
 }

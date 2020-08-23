@@ -86,25 +86,25 @@ def start_server():
 def get_server_port():
     return active_port
 
-def register_request_handler(request_name: str, request_function):
-    assert request_name.startswith("/")
-    request_handlers[request_name] = request_function
+def register_request_handler(request_path: str, request_function):
+    assert request_path.startswith("/")
+    request_handlers[request_path] = request_function
 
-def register_request_command(request_name: str, request_command):
+def register_request_command(request_path: str, request_command):
     def handler(args):
         run_in_main_thread(functools.partial(request_command, args))
         return "command scheduled"
-    register_request_handler(request_name, handler)
+    register_request_handler(request_path, handler)
 
-def request_handler(request_name: str):
+def request_handler(request_path: str):
     def decorator(func):
-        register_request_handler(request_name, func)
+        register_request_handler(request_path, func)
         return func
     return decorator
 
-def request_command(request_name: str):
+def request_command(request_path: str):
     def decorator(func):
-        register_request_command(request_name, func)
+        register_request_command(request_path, func)
         return func
     return decorator
 
@@ -122,5 +122,12 @@ def set_vscode_address(address: str):
     global vscode_address
     vscode_address = address
 
-def sendCommand(request_path: str, json_arg = None):
-    requests.post(vscode_address + request_path, json=json_arg)
+def send_command(request_path: str, json_arg = None):
+    if vscode_address is None:
+        return
+    request_path.startswith("/")
+    requests.post(f"http://{vscode_address}{request_path}", json=json_arg)
+
+@request_command("/set_vscode_address")
+def set_vscode_address_command(arg):
+    set_vscode_address(arg)

@@ -29,6 +29,8 @@ async function COMMAND_connect() {
     }
     const info: ConnectionInfo = JSON.parse(infoStr);
     communication.setBlenderAddress(`${info.host}:${info.communication_port}`);
+    const ownAddress = `localhost:${communication.getServerPort()}`;
+    communication.sendCommand('/set_vscode_address', ownAddress);
 }
 
 async function COMMAND_quitBlender() {
