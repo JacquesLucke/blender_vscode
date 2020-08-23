@@ -3,7 +3,7 @@ import json
 from bpy.props import *
 from .package_installation import is_pip_installed, is_package_installed
 from .ptvsd_server import get_active_ptvsd_port, ptvsd_debugger_is_attached
-from .development_server import get_active_development_port
+from .dev_server import get_active_development_port
 
 class MyPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__

@@ -3,7 +3,7 @@ import bpy
 import runpy
 from bpy.props import *
 from .utils import redraw_all
-from .development_server import register_request_command
+from . import dev_server
 
 class RunExternalScriptOperator(bpy.types.Operator):
     bl_idname = "development.run_external_script"
@@ -72,8 +72,7 @@ def get_region_by_type(area, region_type):
             return region
     return None
 
+@dev_server.request_command("run_external_script")
 def run_external_script_command(args):
     filepath = args["filepath"]
     run_external_script(filepath)
-
-register_request_command("run_external_script", run_external_script_command)

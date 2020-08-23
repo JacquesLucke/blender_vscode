@@ -82,5 +82,16 @@ def register_request_command(request_name: str, request_command):
         return "command scheduled"
     register_request_handler(request_name, handler)
 
-def register():
-    register_request_command("quit", lambda args: bpy.ops.wm.quit_blender())
+def request_handler(request_name: str):
+    def decorator(func):
+        register_request_handler(request_name, func)
+        return func
+
+def request_command(request_name: str):
+    def decorator(func):
+        register_request_command(request_name, func)
+        return func
+
+@request_command("quit")
+def quit_command(args):
+    bpy.ops.wm.quit_blender()
