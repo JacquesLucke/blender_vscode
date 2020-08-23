@@ -13,7 +13,8 @@
   ],
   "activationEvents": [
     "onCommand:blender.connect",
-    "onCommand:blender.quit"
+    "onCommand:blender.quit",
+    "onCommand:blender.start"
   ],
   "main": "./out/extension.js",
   "repository": {
@@ -33,6 +34,11 @@
       {
         "command": "blender.quit",
         "title": "Quit",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.start",
+        "title": "Start",
         "category": "Blender"
       }
     ],
