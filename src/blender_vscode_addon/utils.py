@@ -1,5 +1,8 @@
+import os
 import bpy
+import sys
 import random
+from pathlib import Path
 
 def redraw_all():
     for window in bpy.context.window_manager.windows:
