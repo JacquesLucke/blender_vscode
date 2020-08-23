@@ -1,12 +1,14 @@
 import * as vscode from 'vscode';
 import * as communication from './communication';
 import * as path from 'path';
+import * as python_debugging from './python_debugging';
 
 export function activate(context: vscode.ExtensionContext) {
     const commands: [string, () => Promise<void>][] = [
         ['blender.connect', COMMAND_connect],
         ['blender.quit', COMMAND_quitBlender],
         ['blender.start', COMMAND_start],
+        ['blender.attachPythonDebugger', python_debugging.COMMAND_attachPythonDebugger],
     ];
 
     for (const [identifier, func] of commands) {
@@ -26,7 +28,7 @@ interface ConnectionInfo {
 
 function setBlenderConnectionInfo(info: ConnectionInfo) {
     communication.setBlenderAddress(`${info.host}:${info.communication_port}`);
-
+    python_debugging.setPtvsdAddress(info.host, info.ptvsd_port);
 }
 
 async function COMMAND_connect() {
