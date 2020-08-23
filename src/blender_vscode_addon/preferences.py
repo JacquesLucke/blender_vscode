@@ -54,6 +54,22 @@ class MyPreferences(bpy.types.AddonPreferences):
         if ptvsd_port is not None or communication_port is not None:
             layout.operator("development.copy_connection_info")
 
+        vscode_address = communication.get_vscode_address()
+        if vscode_address is None:
+            layout.label(text="Not connected to vscode.")
+        else:
+            layout.label(text=f"Connected to vscode at {vscode_address}")
+
+
+def get_connection_info():
+    ptvsd_port = get_active_ptvsd_port()
+    communication_port = communication.get_server_port()
+    info = {
+        "host": "localhost",
+        "ptvsd_port": ptvsd_port,
+        "communication_port": communication_port,
+    }
+    return info
 
 class CopyConnectionInfoOperator(bpy.types.Operator):
     bl_idname = "development.copy_connection_info"
@@ -61,14 +77,6 @@ class CopyConnectionInfoOperator(bpy.types.Operator):
     bl_description = "Copy connection information that can be pasted into vscode"
 
     def execute(self, context):
-        ptvsd_port = get_active_ptvsd_port()
-        communication_port = communication.get_server_port()
-
-        info = {
-            "host": "localhost",
-            "ptvsd_port": ptvsd_port,
-            "communication_port": communication_port,
-        }
-
+        info = get_connection_info()
         context.window_manager.clipboard = json.dumps(info)
         return {'FINISHED'}

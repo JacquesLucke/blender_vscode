@@ -96,5 +96,6 @@ export function sendCommand(requestPath: string, requestArg: any = null) {
     }
     console.assert(requestPath.startsWith('/'));
     ensureServer();
-    request.post(`http://${blenderAddress}${requestPath}`, { json: requestArg });
+    const uri = `http://${blenderAddress}${requestPath}`;
+    request.post(uri, { json: requestArg });
 }

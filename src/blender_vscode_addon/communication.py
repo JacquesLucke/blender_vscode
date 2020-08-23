@@ -22,12 +22,11 @@ class StartServerOperator(bpy.types.Operator):
     bl_description = ""
 
     def execute(self, context):
-        global active_port
         if active_port is not None:
             self.report({'INFO'}, "development server is running already")
             return {'FINISHED'}
 
-        active_port = start_server()
+        ensure_server_is_running()
         return {'FINISHED'}
 
 class MyRequestHandler(http.server.BaseHTTPRequestHandler):
@@ -45,9 +44,8 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
         if request_path not in request_handlers:
             self.send_json(http.HTTPStatus.BAD_REQUEST, None)
             return
-        request_callback = request_handlers[request_path]
-        request_callback_arg = content_json
-        response_data = request_callback(request_callback_arg)
+        handler = request_handlers[request_path]
+        response_data = handler(content_json)
         self.send_json(http.HTTPStatus.OK, response_data)
 
     def send_json(self, status, data):
@@ -62,7 +60,11 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
         # Don't log stuff to the terminal.
         pass
 
-def start_server():
+def ensure_server_is_running():
+    global active_port
+    if active_port is not None:
+        return
+
     port = [None]
 
     def server_thread_function():
@@ -81,7 +83,7 @@ def start_server():
     while port[0] is None:
         time.sleep(0.01)
 
-    return port[0]
+    active_port = port[0]
 
 def get_server_port():
     return active_port
@@ -121,6 +123,9 @@ vscode_address = None
 def set_vscode_address(address: str):
     global vscode_address
     vscode_address = address
+
+def get_vscode_address():
+    return vscode_address
 
 def send_command(request_path: str, json_arg = None):
     if vscode_address is None:

@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as communication from './communication';
 import * as path from 'path';
-import * as child_process from 'child_process';
 
 export function activate(context: vscode.ExtensionContext) {
     const commands: [string, () => Promise<void>][] = [
@@ -25,16 +24,23 @@ interface ConnectionInfo {
     communication_port: number,
 };
 
+function setBlenderConnectionInfo(info: ConnectionInfo) {
+    communication.setBlenderAddress(`${info.host}:${info.communication_port}`);
+
+}
+
 async function COMMAND_connect() {
     const infoStr = await vscode.window.showInputBox({ placeHolder: 'Connection Information' });
     if (infoStr === undefined) {
         return;
     }
     const info: ConnectionInfo = JSON.parse(infoStr);
-    communication.setBlenderAddress(`${info.host}:${info.communication_port}`);
+    setBlenderConnectionInfo(info);
     const ownAddress = `localhost:${communication.getServerPort()}`;
     communication.sendCommand('/set_vscode_address', ownAddress);
 }
+
+communication.registerRequestCommand('/set_connection_info', setBlenderConnectionInfo);
 
 async function COMMAND_quitBlender() {
     communication.sendCommand('/quit');
@@ -44,12 +50,20 @@ async function COMMAND_start() {
     const blenderPath = '/home/jacques/blender-git/build_linux/bin/blender';
     const launchPath = path.join(path.dirname(__dirname), 'src', 'launch.py');
 
-    const execution = new vscode.ProcessExecution(
-        blenderPath,
-        ['--python', launchPath],
-    );
-    const taskDefinition = { type: 'blender' };
-    const problemMatchers: string[] = [];
-    const task = new vscode.Task(taskDefinition, vscode.TaskScope.Global, 'blender', 'blender', execution, problemMatchers);
+    const task = new vscode.Task(
+        { type: 'blender' },
+        vscode.TaskScope.Global,
+        'blender',
+        'blender',
+        new vscode.ProcessExecution(
+            blenderPath,
+            ['--python', launchPath],
+            {
+                env: {
+                    VSCODE_ADDRESS: `localhost:${communication.getServerPort()}`,
+                }
+            }
+        ),
+        []);
     vscode.tasks.executeTask(task);
 }

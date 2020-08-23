@@ -19,3 +19,11 @@ if not link_addon_path.exists():
 
 import blender_vscode_addon
 blender_vscode_addon.addon_reload.reload_addon(addon_name)
+
+# Import again, because it has been reloaded.
+import blender_vscode_addon
+vscode_address = os.environ['VSCODE_ADDRESS']
+blender_vscode_addon.communication.set_vscode_address(vscode_address)
+blender_vscode_addon.communication.ensure_server_is_running()
+connection_info = blender_vscode_addon.preferences.get_connection_info()
+blender_vscode_addon.communication.send_command('/set_connection_info', connection_info)
