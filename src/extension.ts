@@ -6,8 +6,15 @@ import { promisify } from 'util';
 import * as path from 'path';
 import * as python_debugging from './python_debugging';
 import * as glob from 'fast-glob';
+import * as errors from './errors';
+import * as quick_pick from './quick_pick';
 
-const readFile = promisify(fs.readFile);
+const fsReadFile = promisify(fs.readFile);
+const fsReadDir = promisify(fs.readdir);
+const fsCopyFile = promisify(fs.copyFile);
+
+const srcPath = path.join(path.dirname(__dirname), 'src');
+const templatesDir = path.join(srcPath, 'templates');
 
 export function activate(context: vscode.ExtensionContext) {
     const commands: [string, () => Promise<void>][] = [
@@ -18,10 +25,12 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.startAndAttachPythonDebugger', COMMAND_startAndAttachPythonDebugger],
         ['blender.manageExecutables', COMMAND_manageExecutables],
         ['blender.reloadAddon', COMMAND_reloadAddon],
+        ['blender.newAddon', COMMAND_newAddon],
     ];
 
     for (const [identifier, func] of commands) {
-        context.subscriptions.push(vscode.commands.registerCommand(identifier, func));
+        context.subscriptions.push(vscode.commands.registerCommand(
+            identifier, errors.catchAndShowErrors(func)));
     }
 }
 
@@ -90,7 +99,7 @@ async function getBlenderExecutablePath() {
 
 async function launchBlender(launchEnv: { [key: string]: string } = {}) {
     const blenderPath = await getBlenderExecutablePath();
-    const launchPath = path.join(path.dirname(__dirname), 'src', 'launch.py');
+    const launchPath = path.join(srcPath, 'launch.py');
 
     const task = new vscode.Task(
         { type: 'blender' },
@@ -139,7 +148,7 @@ async function findAddonNames() {
         });
 
         for (const pathToCheck of pathsToCheck) {
-            const text = await readFile(pathToCheck, 'utf8');
+            const text = await fsReadFile(pathToCheck, 'utf8');
             if (!text.includes('bl_info')) {
                 continue;
             }
@@ -158,4 +167,100 @@ async function findAddonNames() {
 async function COMMAND_reloadAddon() {
     const addonNames = await findAddonNames();
     communication.sendCommand('/reload_addons', addonNames);
+}
+
+async function COMMAND_newAddon() {
+    const addonType = await quick_pick.letUserPickString(['Simple', 'With Auto Load']);
+    const folderPath = await getFolderForNewAddon();
+    const folderName = path.basename(folderPath);
+    if (!isValidPythonModuleName(folderName)) {
+        throw errors.userError('The folder name should be a valid python identifier.');
+    }
+
+    const initPath = path.join(folderPath, '__init__.py');
+
+    if (addonType === 'Simple') {
+        fsCopyFile(
+            path.join(templatesDir, 'simple_init.py'),
+            initPath);
+    }
+    else if (addonType === 'With Auto Load') {
+        fsCopyFile(
+            path.join(templatesDir, 'auto_load_init.py'),
+            initPath);
+        fsCopyFile(
+            path.join(srcPath, 'blender_vscode_addon', 'auto_load.py'),
+            path.join(folderPath, 'auto_load.py'));
+    }
+
+    await vscode.window.showTextDocument(vscode.Uri.file(initPath));
+    await vscode.commands.executeCommand('cursorBottom');
+    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(folderPath));
+}
+
+async function getFolderForNewAddon() {
+    const items = [];
+    if (vscode.workspace.workspaceFolders !== undefined) {
+        for (const workspaceFolder of vscode.workspace.workspaceFolders) {
+            const folderPath = workspaceFolder.uri.fsPath;
+            if (await canCreateAddonInFolder(folderPath)) {
+                items.push({ data: async () => folderPath, label: folderPath });
+            }
+        }
+    }
+
+    if (items.length > 0) {
+        items.push({ data: selectFolderForAddon, label: 'Open Folder...' });
+        const item = await quick_pick.letUserPickItem(items);
+        return await item.data();
+    }
+    return await selectFolderForAddon();
+}
+
+async function selectFolderForAddon() {
+    const value = await vscode.window.showOpenDialog({
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        openLabel: 'New Addon',
+    });
+    if (value === undefined) {
+        return Promise.reject(errors.cancel());
+    }
+    const folderPath = value[0].fsPath;
+    if (!await canCreateAddonInFolder(folderPath)) {
+        return Promise.reject(errors.userError(
+            'Cannot create a new addon in this folder, because there are other files already.'
+        ));
+    }
+    return folderPath;
+}
+
+async function canCreateAddonInFolder(folderPath: string) {
+    return new Promise<boolean>(resolve => {
+        fs.stat(folderPath, async (err, stat) => {
+            if (err != null) {
+                resolve(false);
+                return;
+            }
+            if (!stat.isDirectory()) {
+                resolve(false);
+                return;
+            }
+
+            const files = await fsReadDir(folderPath);
+            for (const name of files) {
+                if (!name.startsWith('.')) {
+                    resolve(false);
+                    return;
+                }
+            }
+            resolve(true);
+        });
+    });
+}
+
+function isValidPythonModuleName(text: string) {
+    let match = text.match(/^[_a-z][_0-9a-z]*$/i);
+    return match !== null;
 }

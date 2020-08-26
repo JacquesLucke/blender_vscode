@@ -18,7 +18,8 @@
     "onCommand:blender.attachPythonDebugger",
     "onCommand:blender.startAndAttachPythonDebugger",
     "onCommand:blender.manageExecutables",
-    "onCommand:blender.reloadAddon"
+    "onCommand:blender.reloadAddon",
+    "onCommand:blender.newAddon"
   ],
   "main": "./out/extension.js",
   "repository": {
@@ -63,6 +64,11 @@
       {
         "command": "blender.reloadAddon",
         "title": "Reload Addon",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.newAddon",
+        "title": "New Addon",
         "category": "Blender"
       }
     ],
