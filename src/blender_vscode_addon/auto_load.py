@@ -84,7 +84,7 @@ def iter_my_register_deps(cls, my_classes, my_classes_by_idname):
     yield from iter_my_deps_from_parent_id(cls, my_classes_by_idname)
 
 def iter_my_deps_from_annotations(cls, my_classes):
-    for value in typing.get_type_hints(cls, {}, {}).values():
+    for value in typing.get_type_hints(cls).values():
         dependency = get_dependency_from_annotation(value)
         if dependency is not None:
             if dependency in my_classes:

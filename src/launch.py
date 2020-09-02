@@ -20,7 +20,7 @@ install_utils["sync_directories"](
     vscode_addon_source_path,
     vscode_addon_destination_path,
     verbose=True,
-    ignore_cb=lambda path: str(path).lower().endswith(".pyc"))
+    ignore_cb=lambda path: str(path).lower().endswith(".pyc") or str(path).lower().endswith("__pycache__"))
 
 import blender_vscode_addon
 blender_vscode_addon.addon_reload.reload_addon(addon_name)
