@@ -132,12 +132,19 @@ async function COMMAND_manageExecutables() {
     vscode.commands.executeCommand('workbench.action.openSettings', 'blender.executables');
 }
 
-async function findAddonNames() {
-    const addonNames: string[] = [];
+interface AddonFolderInfo {
+    initFile: string;
+    addonName: string;
+}
+
+async function findAddons() {
+    const addons: AddonFolderInfo[] = [];
     const workspaceFolders = vscode.workspace.workspaceFolders;
+
     if (workspaceFolders === undefined) {
-        return;
+        return [];
     }
+
     for (const workspaceFolder of workspaceFolders) {
         const rootDir = workspaceFolder.uri.fsPath;
 
@@ -149,19 +156,33 @@ async function findAddonNames() {
 
         for (const pathToCheck of pathsToCheck) {
             const text = await fsReadFile(pathToCheck, 'utf8');
-            if (!text.includes('bl_info')) {
-                continue;
-            }
-            for (const line of text.split(/\r?\n/)) {
-                const match = line.match(/\s*["']name["']\s*:\s*["'](.*)["']\s*,/);
-                if (match === null) {
-                    continue;
-                }
-                addonNames.push(match[1]);
+            const addonName = tryExtractAddonName(text);
+            if (addonName !== undefined) {
+                addons.push({
+                    initFile: pathToCheck,
+                    addonName: addonName,
+                })
             }
         }
     }
-    return addonNames;
+
+    return addons;
+}
+
+function tryExtractAddonName(text: string): string | undefined {
+    for (const line of text.split(/\r?\n/)) {
+        const match = line.match(/\s*["']name["']\s*:\s*["'](.*)["']\s*,/);
+        if (match === null) {
+            continue;
+        }
+        const addonName = match[1];
+        return addonName
+    }
+    return undefined;
+}
+
+async function findAddonNames() {
+    return (await findAddons()).map(addon => addon.addonName);
 }
 
 async function COMMAND_reloadAddon() {
