@@ -19,7 +19,8 @@
     "onCommand:blender.startAndAttachPythonDebugger",
     "onCommand:blender.manageExecutables",
     "onCommand:blender.reloadAddon",
-    "onCommand:blender.newAddon"
+    "onCommand:blender.newAddon",
+    "onCommand:blender.createAddonSymlink"
   ],
   "main": "./out/extension.js",
   "repository": {
@@ -69,6 +70,11 @@
       {
         "command": "blender.newAddon",
         "title": "New Addon",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.createAddonSymlink",
+        "title": "Create Addon Symlink",
         "category": "Blender"
       }
     ],

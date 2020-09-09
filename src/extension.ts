@@ -8,6 +8,7 @@ import * as python_debugging from './python_debugging';
 import * as glob from 'fast-glob';
 import * as errors from './errors';
 import * as quick_pick from './quick_pick';
+import { dirname } from 'path';
 
 const fsReadFile = promisify(fs.readFile);
 const fsReadDir = promisify(fs.readdir);
@@ -26,6 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.manageExecutables', COMMAND_manageExecutables],
         ['blender.reloadAddon', COMMAND_reloadAddon],
         ['blender.newAddon', COMMAND_newAddon],
+        ['blender.createAddonSymlink', COMMAND_createAddonSymlink],
     ];
 
     for (const [identifier, func] of commands) {
@@ -97,9 +99,9 @@ async function getBlenderExecutablePath() {
     return filepath;
 }
 
-async function launchBlender(launchEnv: { [key: string]: string } = {}) {
+async function launchBlender(pyfile: string, launchEnv: { [key: string]: string } = {}, extraArgs: string[] = []) {
     const blenderPath = await getBlenderExecutablePath();
-    const launchPath = path.join(srcPath, 'launch.py');
+    const launchPath = path.join(srcPath, pyfile);
 
     const task = new vscode.Task(
         { type: 'blender' },
@@ -108,7 +110,7 @@ async function launchBlender(launchEnv: { [key: string]: string } = {}) {
         'blender',
         new vscode.ProcessExecution(
             blenderPath,
-            ['--python', launchPath],
+            ['--python', launchPath, ...extraArgs],
             { env: launchEnv },
         ),
         []);
@@ -116,13 +118,13 @@ async function launchBlender(launchEnv: { [key: string]: string } = {}) {
 }
 
 async function COMMAND_start() {
-    launchBlender({
+    launchBlender('launch.py', {
         VSCODE_ADDRESS: `localhost:${communication.getServerPort()}`,
     });
 }
 
 async function COMMAND_startAndAttachPythonDebugger() {
-    launchBlender({
+    launchBlender('launch.py', {
         VSCODE_ADDRESS: `localhost:${communication.getServerPort()}`,
         WANT_TO_ATTACH_PYTHON_DEBUGGER: '',
     });
@@ -284,4 +286,27 @@ async function canCreateAddonInFolder(folderPath: string) {
 function isValidPythonModuleName(text: string) {
     let match = text.match(/^[_a-z][_0-9a-z]*$/i);
     return match !== null;
+}
+
+async function COMMAND_createAddonSymlink() {
+    const addons = await findAddons();
+    const addonFolders = [];
+    const addonFiles = [];
+
+    for (const addon of addons) {
+        if (addon.initFile.endsWith('__init__.py')) {
+            addonFolders.push(dirname(addon.initFile));
+        }
+        else {
+            addonFiles.push(addon.initFile);
+        }
+    }
+
+    const json_data = JSON.stringify({
+        addon_folders: addonFolders, addon_files: addonFiles
+    });
+
+    launchBlender('create_addon_symlinks.py', {
+        ADDON_SOURCES: json_data,
+    }, ['--background']);
 }
