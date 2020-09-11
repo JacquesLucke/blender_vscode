@@ -139,6 +139,13 @@
               "Copy",
               "My Task Name"
             ]
+          },
+          "blender.reloadAddonsOnSave": {
+            "title": "Reload Addons on Save",
+            "type": "boolean",
+            "scope": "resource",
+            "description": "Automatically trigger an addon reload when a file is saved.",
+            "default": false
           }
         }
       }

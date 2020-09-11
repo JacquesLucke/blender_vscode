@@ -37,6 +37,8 @@ export function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(vscode.commands.registerCommand(
             identifier, errors.catchAndShowErrors(func)));
     }
+
+    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(HANDLER_reloadAddonsOnSave));
 }
 
 export function deactivate() {
@@ -371,4 +373,17 @@ async function COMMAND_runScript() {
         return;
     }
     communication.sendCommand('/run_external_script', scriptPath)
+}
+
+async function HANDLER_reloadAddonsOnSave(document: vscode.TextDocument) {
+    const addons = await findAddons();
+    const addonNamesToReload = [];
+    for (const addon of addons) {
+        const config = vscode.workspace.getConfiguration('blender', vscode.Uri.file(addon.initFile));
+        const reloadAddonOnSave = config.get<boolean>('reloadAddonsOnSave')!;
+        if (reloadAddonOnSave) {
+            addonNamesToReload.push(addon.addonName);
+        }
+    }
+    communication.sendCommand('/reload_addons', addonNamesToReload);
 }

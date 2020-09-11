@@ -55,6 +55,8 @@ def reload_addon_command(addon_names):
         addon_name = module.bl_info["name"]
         if addon_name in addon_names:
             module_names.append(module_name)
+        else:
+            # TODO
 
     for module_name in module_names:
         bpy.ops.development.reload_addon(module_name=module_name)
