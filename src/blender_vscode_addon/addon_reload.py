@@ -57,6 +57,7 @@ def reload_addon_command(addon_names):
             module_names.append(module_name)
         else:
             # TODO
+            ...
 
     for module_name in module_names:
         bpy.ops.development.reload_addon(module_name=module_name)
