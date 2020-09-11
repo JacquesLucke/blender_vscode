@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as os from 'os';
 import * as communication from './communication';
 import * as fs from 'fs';
+import * as child_process from 'child_process';
 import { promisify } from 'util';
 import * as path from 'path';
 import * as python_debugging from './python_debugging';
@@ -28,6 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.reloadAddon', COMMAND_reloadAddon],
         ['blender.newAddon', COMMAND_newAddon],
         ['blender.createAddonSymlink', COMMAND_createAddonSymlink],
+        ['blender.installAddon', COMMAND_installAddon],
     ];
 
     for (const [identifier, func] of commands) {
@@ -117,6 +119,57 @@ async function launchBlender(pyfile: string, launchEnv: { [key: string]: string 
     vscode.tasks.executeTask(task);
 }
 
+async function runBlenderTask(args: any): Promise<any> {
+    const executablePath = await getBlenderExecutablePath();
+    const scriptPath = path.join(srcPath, 'blender_tasks.py');
+    return new Promise<any>((resolve, reject) => {
+        child_process.execFile(
+            executablePath,
+            ['--background', '--python', scriptPath],
+            {
+                env: { 'BLENDER_TASK_ARGS': JSON.stringify(args) },
+            },
+            (err, stdout, stderr) => {
+                const indicator = '<=#=>';
+                if (stdout.includes(indicator)) {
+                    const parts = stdout.split(indicator);
+                    const return_str = parts[1];
+                    const return_json = JSON.parse(return_str);
+                    resolve(return_json);
+                }
+                else {
+                    reject('task did not execute as expected');
+                }
+            });
+    });
+}
+
+interface BlenderPaths {
+    addons_directory: string;
+};
+
+async function COMMAND_installAddon() {
+    const paths: BlenderPaths = await runBlenderTask('PATHS');
+    const addonsDirectory = paths.addons_directory;
+
+    const addons = await findAddons();
+    for (const addon of addons) {
+        const config = vscode.workspace.getConfiguration('blender', vscode.Uri.file(addon.initFile));
+        const installTask = config.get<string>('addonInstallTask')!;
+
+        switch (installTask) {
+            case "None":
+                break;
+            case "Copy":
+                console.log('TODO: sync addon to ' + addonsDirectory);
+                break;
+            default:
+                vscode.commands.executeCommand('workbench.action.tasks.runTask', installTask);
+                break;
+        }
+    }
+}
+
 async function COMMAND_start() {
     launchBlender('launch.py', {
         VSCODE_ADDRESS: `localhost:${communication.getServerPort()}`,
@@ -137,6 +190,7 @@ async function COMMAND_manageExecutables() {
 interface AddonFolderInfo {
     initFile: string;
     addonName: string;
+    isSingleFile: boolean;
 }
 
 async function findAddons() {
@@ -163,6 +217,7 @@ async function findAddons() {
                 addons.push({
                     initFile: pathToCheck,
                     addonName: addonName,
+                    isSingleFile: !pathToCheck.endsWith('__init__.py'),
                 })
             }
         }
@@ -216,8 +271,6 @@ async function COMMAND_newAddon() {
             path.join(folderPath, 'auto_load.py'));
     }
 
-    await vscode.window.showTextDocument(vscode.Uri.file(initPath));
-    await vscode.commands.executeCommand('cursorBottom');
     await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(folderPath));
 }
 
@@ -294,11 +347,11 @@ async function COMMAND_createAddonSymlink() {
     const addonFiles = [];
 
     for (const addon of addons) {
-        if (addon.initFile.endsWith('__init__.py')) {
-            addonFolders.push(dirname(addon.initFile));
+        if (addon.isSingleFile) {
+            addonFiles.push(addon.initFile);
         }
         else {
-            addonFiles.push(addon.initFile);
+            addonFolders.push(dirname(addon.initFile));
         }
     }
 
