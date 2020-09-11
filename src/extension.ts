@@ -30,6 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.newAddon', COMMAND_newAddon],
         ['blender.createAddonSymlink', COMMAND_createAddonSymlink],
         ['blender.installAddon', COMMAND_installAddon],
+        ['blender.runScript', COMMAND_runScript],
     ];
 
     for (const [identifier, func] of commands) {
@@ -362,4 +363,12 @@ async function COMMAND_createAddonSymlink() {
     launchBlender('create_addon_symlinks.py', {
         ADDON_SOURCES: json_data,
     }, ['--background']);
+}
+
+async function COMMAND_runScript() {
+    const scriptPath = vscode.window.activeTextEditor?.document.uri.fsPath;
+    if (scriptPath === undefined) {
+        return;
+    }
+    communication.sendCommand('/run_external_script', scriptPath)
 }

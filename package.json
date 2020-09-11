@@ -21,7 +21,8 @@
     "onCommand:blender.reloadAddon",
     "onCommand:blender.newAddon",
     "onCommand:blender.createAddonSymlink",
-    "onCommand:blender.installAddon"
+    "onCommand:blender.installAddon",
+    "onCommand:blender.runScript"
   ],
   "main": "./out/extension.js",
   "repository": {
@@ -81,6 +82,11 @@
       {
         "command": "blender.installAddon",
         "title": "Install Addon",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.runScript",
+        "title": "Run Script",
         "category": "Blender"
       }
     ],
