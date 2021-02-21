@@ -6,7 +6,7 @@ import subprocess
 from bpy.props import *
 from pathlib import Path
 
-python_executable = Path(bpy.app.binary_path_python).resolve()
+python_executable = Path(sys.executable).resolve()
 
 class InstallPythonPackageOperator(bpy.types.Operator):
     bl_idname = "development.install_python_package"
