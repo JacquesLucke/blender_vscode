@@ -22,8 +22,8 @@ class StartPtvsdServerOperator(bpy.types.Operator):
             return {'CANCELLED'}
 
         tries = 0
+        port = 5678
         while tries < 10:
-            port = 5678
             try:
                 ptvsd.enable_attach(("0.0.0.0", port))
                 break
