@@ -1,8 +1,9 @@
 import bpy
+import sys
 import addon_utils
 from pathlib import Path
 
-python_path = Path(bpy.app.binary_path_python)
+python_path = Path(sys.executable)
 blender_path = Path(bpy.app.binary_path)
 blender_directory = blender_path.parent
 use_own_python = blender_directory in python_path.parents
