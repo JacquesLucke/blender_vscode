@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [0.0.13] - 2021-02-21
 
 ### Fixed
 - Update `auto_load.py` to its latest version to support Blender 2.93.
