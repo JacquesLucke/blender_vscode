@@ -105,7 +105,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
 
     let items = [];
     for (let pathData of usableBlenderPaths) {
-        let useCustomName = pathData.name !== '';
+        let useCustomName = pathData.name !== '' && pathData.name !== undefined;
         items.push({
             data: async () => pathData,
             label: useCustomName ? pathData.name : pathData.path
