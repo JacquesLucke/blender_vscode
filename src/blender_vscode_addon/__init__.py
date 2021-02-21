@@ -15,7 +15,7 @@ bl_info = {
     "name" : "Development with Visual Studio Code",
     "author" : "Jacques Lucke",
     "description" : "",
-    "blender" : (2, 90, 0),
+    "blender" : (2, 93, 0),
     "version" : (0, 0, 1),
     "location" : "",
     "warning" : "",
