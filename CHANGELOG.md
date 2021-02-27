@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.14] - 2021-02-27
+
+### Fixed
+- Update `auto_load.py` again.
+
 ## [0.0.13] - 2021-02-21
 
 ### Fixed

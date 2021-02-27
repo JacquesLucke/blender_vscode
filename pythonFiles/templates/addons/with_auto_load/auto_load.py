@@ -94,7 +94,7 @@ def iter_my_deps_from_annotations(cls, my_classes):
 
 def get_dependency_from_annotation(value):
     if blender_version >= (2, 93):
-        if type(value).__name__ == "bpy_prop_deferred":
+        if isinstance(value, bpy.props._PropertyDeferred):
             return value.keywords.get("type")
     else:
         if isinstance(value, tuple) and len(value) == 2:
@@ -134,7 +134,8 @@ def get_register_base_types():
         "Panel", "Operator", "PropertyGroup",
         "AddonPreferences", "Header", "Menu",
         "Node", "NodeSocket", "NodeTree",
-        "UIList", "RenderEngine"
+        "UIList", "RenderEngine",
+        "Gizmo", "GizmoGroup",
     ])
 
 
