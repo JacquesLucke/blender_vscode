@@ -2,7 +2,7 @@ import bpy
 import json
 from bpy.props import *
 from .package_installation import is_pip_installed, is_package_installed
-from .ptvsd_server import get_active_ptvsd_port, ptvsd_debugger_is_attached
+from .debugpy_server import get_active_debugpy_port, debugpy_debugger_is_attached
 from . import communication
 
 class MyPreferences(bpy.types.AddonPreferences):
@@ -22,17 +22,17 @@ class MyPreferences(bpy.types.AddonPreferences):
             props = row.operator("development.install_python_package", text="", icon='IMPORT')
             props.package_name = self.package_name_to_install
 
-            if not is_package_installed("ptvsd"):
-                props = layout.operator("development.install_python_package", text="Install ptvsd (Python Debugger)")
-                props.package_name = "ptvsd"
+            if not is_package_installed("debugpy"):
+                props = layout.operator("development.install_python_package", text="Install debugpy")
+                props.package_name = "debugpy"
 
-        ptvsd_port = get_active_ptvsd_port()
-        if is_package_installed("ptvsd"):
-            if ptvsd_port is None:
-                layout.operator("development.start_ptvsd_server")
+        debugpy_port = get_active_debugpy_port()
+        if is_package_installed("debugpy"):
+            if debugpy_port is None:
+                layout.operator("development.start_debugpy_server")
             else:
-                layout.label(text=f"ptvsd is running at port {ptvsd_port}")
-                if ptvsd_debugger_is_attached():
+                layout.label(text=f"debugpy is running at port {debugpy_port}")
+                if debugpy_debugger_is_attached():
                     layout.label(text="Debugger is attached")
 
         row = layout.row(align=True)
@@ -51,7 +51,7 @@ class MyPreferences(bpy.types.AddonPreferences):
         else:
             layout.label(text=f"Server is running at port {communication_port}")
 
-        if ptvsd_port is not None or communication_port is not None:
+        if debugpy_port is not None or communication_port is not None:
             layout.operator("development.copy_connection_info")
 
         vscode_address = communication.get_vscode_address()
@@ -66,11 +66,11 @@ def send_connection_info():
     communication.send_command('/set_connection_info', info)
 
 def get_connection_info():
-    ptvsd_port = get_active_ptvsd_port()
+    debugpy_port = get_active_debugpy_port()
     communication_port = communication.get_server_port()
     info = {
         "host": "localhost",
-        "ptvsd_port": ptvsd_port,
+        "debugpy_port": debugpy_port,
         "communication_port": communication_port,
     }
     return info

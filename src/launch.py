@@ -34,20 +34,20 @@ blender_vscode_addon.preferences.send_connection_info()
 from blender_vscode_addon.package_installation import is_package_installed, blender_uses_own_python
 
 if want_to_attach_python_debugger:
-    if not is_package_installed("ptvsd"):
+    if not is_package_installed("debugpy"):
         if blender_uses_own_python():
             if not is_package_installed("pip"):
                 bpy.ops.development.install_pip()
-            bpy.ops.development.install_python_package(package_name="ptvsd")
+            bpy.ops.development.install_python_package(package_name="debugpy")
         else:
-            print("Error: Please install ptvsd before trying to attach the debugger.")
-            print("Did not try to install ptvsd automatically, because Blender does not use its own Python.")
+            print("Error: Please install debugpy before trying to attach the debugger.")
+            print("Did not try to install debugpy automatically, because Blender does not use its own Python.")
             sys.exit(1)
 
-    bpy.ops.development.start_ptvsd_server()
+    bpy.ops.development.start_debugpy_server()
     blender_vscode_addon.preferences.send_connection_info()
-    import ptvsd
-    blender_vscode_addon.communication.send_command("/attach_ptvsd")
+    import debugpy
+    blender_vscode_addon.communication.send_command("/attach_debugpy")
     print("Waiting for Python debugger to attach.")
-    ptvsd.wait_for_attach()
+    debugpy.wait_for_client()
     print("Attached.")

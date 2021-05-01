@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 import * as communication from './communication';
 
-let ptvsdAddress: { host: string, port: number } | null = null;
+let debugpyAddress: { host: string, port: number } | null = null;
 
-export function setPtvsdAddress(host: string | null, port: number | null) {
+export function setDebugpyAddress(host: string | null, port: number | null) {
     if (host === null || port === null) {
-        ptvsdAddress = null;
+        debugpyAddress = null;
     }
     else {
-        ptvsdAddress = { host, port };
+        debugpyAddress = { host, port };
     }
 }
 
@@ -18,7 +18,7 @@ interface PathMapping {
 };
 
 export async function COMMAND_attachPythonDebugger() {
-    if (ptvsdAddress === null) {
+    if (debugpyAddress === null) {
         vscode.window.showErrorMessage('Not connected to Blender.');
         return;
     }
@@ -30,12 +30,12 @@ export async function COMMAND_attachPythonDebugger() {
         name: `Blender Python`,
         request: 'attach',
         type: 'python',
-        port: ptvsdAddress.port,
-        host: ptvsdAddress.host,
+        port: debugpyAddress.port,
+        host: debugpyAddress.host,
         pathMappings: pathMappings,
     });
 }
 
-communication.registerRequestCommand('/attach_ptvsd', (arg: any) => {
+communication.registerRequestCommand('/attach_debugpy', (arg: any) => {
     COMMAND_attachPythonDebugger();
 });

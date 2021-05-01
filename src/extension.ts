@@ -47,13 +47,13 @@ export function deactivate() {
 
 interface ConnectionInfo {
     host: string,
-    ptvsd_port: number,
+    debugpy_port: number,
     communication_port: number,
 };
 
 function setBlenderConnectionInfo(info: ConnectionInfo) {
     communication.setBlenderAddress(`${info.host}:${info.communication_port}`);
-    python_debugging.setPtvsdAddress(info.host, info.ptvsd_port);
+    python_debugging.setDebugpyAddress(info.host, info.debugpy_port);
 }
 
 async function COMMAND_connect() {
