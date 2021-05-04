@@ -89,16 +89,6 @@ The preferred way to insert this comment is to execute the `Blender: Set Script 
 These tools are not officially supported yet.
 While I can use it to speedup my daily workflow, it is very likely that those tools don't work on other machines yet.
 
-## Future
-
-- Polish the features I already started working on but are not documented here yet.
-- Auto-complete for Blender modules.
-- Well integrated snippets.
-- ...
-
-Some help from other developers would be very welcome.
-Please contact me if you want to help or just make a pull request.
-
 ## Troubleshooting
 
 - Make sure you use the newest version of VS Code.
@@ -106,6 +96,6 @@ Please contact me if you want to help or just make a pull request.
 - Don't have Blenders source code open in VS Code (this is still unsupported on not much tested).
 - If your Blender does not use its own Python version, enable `blender.allowModifyExternalPython` or install the packages in the error message manually (currently `ptvsd`, `flask` and `requests` are required).
 
-## Support
+## Status
 
-If you want to support the development of this extension, please consider to join the [Blender Dev Fund](https://fund.blender.org/) which currently pays my bills.
+This extension is not actively developed anymore and uses deprecated dependencies (`ptvsd`). If you are interested in working on this extension, please contact me.
