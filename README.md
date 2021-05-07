@@ -98,4 +98,4 @@ While I can use it to speedup my daily workflow, it is very likely that those to
 
 ## Status
 
-This extension is not actively developed anymore. If you are interested in working on this extension, please contact me.
+This extension is not actively developed anymore. However, if you are interested in working on this extension, please contact me.
