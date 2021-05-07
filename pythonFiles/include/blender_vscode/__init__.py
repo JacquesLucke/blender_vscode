@@ -7,7 +7,7 @@ def startup(editor_address, addons_to_load, allow_modify_external_python):
 
     from . import installation
     installation.ensure_packages_are_installed(
-        ["ptvsd", "flask", "requests"],
+        ["debugpy", "flask", "requests"],
         allow_modify_external_python)
 
     from . import load_addons

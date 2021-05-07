@@ -1,7 +1,7 @@
 import bpy
 import time
 import flask
-import ptvsd
+import debugpy
 import random
 import requests
 import threading
@@ -11,19 +11,19 @@ from . environment import blender_path, scripts_folder
 
 EDITOR_ADDRESS = None
 OWN_SERVER_PORT = None
-PTVSD_PORT = None
+DEBUGPY_PORT = None
 
 def setup(address, path_mappings):
-    global EDITOR_ADDRESS, OWN_SERVER_PORT, PTVSD_PORT
+    global EDITOR_ADDRESS, OWN_SERVER_PORT, DEBUGPY_PORT
     EDITOR_ADDRESS = address
 
     OWN_SERVER_PORT = start_own_server()
-    PTVSD_PORT = start_debug_server()
+    DEBUGPY_PORT = start_debug_server()
 
     send_connection_information(path_mappings)
 
     print("Waiting for debug client.")
-    ptvsd.wait_for_attach()
+    debugpy.wait_for_client()
     print("Debug client attached.")
 
 def start_own_server():
@@ -50,7 +50,7 @@ def start_debug_server():
     while True:
         port = get_random_port()
         try:
-            ptvsd.enable_attach(("localhost", port))
+            debugpy.listen(("localhost", port))
             break
         except OSError:
             pass
@@ -102,7 +102,7 @@ def send_connection_information(path_mappings):
     send_dict_as_json({
         "type" : "setup",
         "blenderPort" : OWN_SERVER_PORT,
-        "ptvsdPort" : PTVSD_PORT,
+        "debugpyPort" : DEBUGPY_PORT,
         "blenderPath" : str(blender_path),
         "scriptsFolder" : str(scripts_folder),
         "addonPathMappings" : path_mappings,
@@ -122,8 +122,8 @@ def get_random_port():
 def get_blender_port():
     return OWN_SERVER_PORT
 
-def get_ptvsd_port():
-    return PTVSD_PORT
+def get_debugpy_port():
+    return DEBUGPY_PORT
 
 def get_editor_address():
     return EDITOR_ADDRESS

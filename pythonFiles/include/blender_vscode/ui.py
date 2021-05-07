@@ -1,7 +1,7 @@
 import bpy
 from . communication import (
     get_blender_port,
-    get_ptvsd_port,
+    get_debugpy_port,
     get_editor_address
 )
 
@@ -15,7 +15,7 @@ class DevelopmentPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.label(text=f"Blender at Port {get_blender_port()}")
-        layout.label(text=f"ptvsd at Port {get_ptvsd_port()}")
+        layout.label(text=f"debugpy at Port {get_debugpy_port()}")
         layout.label(text=f"Editor at Address {get_editor_address()}")
 
 

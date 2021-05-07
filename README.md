@@ -94,8 +94,8 @@ While I can use it to speedup my daily workflow, it is very likely that those to
 - Make sure you use the newest version of VS Code.
 - Use the newest Blender 2.8 version from https://builder.blender.org/.
 - Don't have Blenders source code open in VS Code (this is still unsupported on not much tested).
-- If your Blender does not use its own Python version, enable `blender.allowModifyExternalPython` or install the packages in the error message manually (currently `ptvsd`, `flask` and `requests` are required).
+- If your Blender does not use its own Python version, enable `blender.allowModifyExternalPython` or install the packages in the error message manually (currently `debugpy`, `flask` and `requests` are required).
 
 ## Status
 
-This extension is not actively developed anymore and uses deprecated dependencies (`ptvsd`). If you are interested in working on this extension, please contact me.
+This extension is not actively developed anymore. If you are interested in working on this extension, please contact me.

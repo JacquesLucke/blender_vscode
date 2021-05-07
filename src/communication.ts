@@ -13,16 +13,16 @@ export type AddonPathMapping = { src: string, load: string };
 
 export class BlenderInstance {
     blenderPort: number;
-    ptvsdPort: number;
+    debugpyPort: number;
     path: string;
     scriptsFolder: string;
     addonPathMappings: AddonPathMapping[];
     connectionErrors: Error[];
 
-    constructor(blenderPort: number, ptvsdPort: number, path: string,
+    constructor(blenderPort: number, debugpyPort: number, path: string,
         scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
         this.blenderPort = blenderPort;
-        this.ptvsdPort = ptvsdPort;
+        this.debugpyPort = debugpyPort;
         this.path = path;
         this.scriptsFolder = scriptsFolder;
         this.addonPathMappings = addonPathMappings;
@@ -49,7 +49,7 @@ export class BlenderInstance {
     }
 
     attachDebugger() {
-        attachPythonDebuggerToBlender(this.ptvsdPort, this.path, this.scriptsFolder, this.addonPathMappings);
+        attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.scriptsFolder, this.addonPathMappings);
     }
 
     get address() {
@@ -130,7 +130,7 @@ function SERVER_handleRequest(request: any, response: any) {
 
             switch (req.type) {
                 case 'setup': {
-                    let instance = new BlenderInstance(req.blenderPort, req.ptvsdPort, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
+                    let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
                     instance.attachDebugger();
                     RunningBlenders.register(instance);
                     response.end('OK');
