@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.15] - 2021-05-10
+
+### Fixed
+- Use `debugpy` instead of deprecated `ptvsd`.
+
 ## [0.0.14] - 2021-02-27
 
 ### Fixed
