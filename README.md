@@ -84,16 +84,10 @@ Currently the support for this is very basic, but still useful.
 To run the script in a specific area type in Blender insert a comment like `#context.area: VIEW_3D`.
 The preferred way to insert this comment is to execute the `Blender: Set Script Context` command.
 
-## Core Development Tools
-
-These tools are not officially supported yet.
-While I can use it to speedup my daily workflow, it is very likely that those tools don't work on other machines yet.
-
 ## Troubleshooting
 
 - Make sure you use the newest version of VS Code.
-- Use the newest Blender 2.8 version from https://builder.blender.org/.
-- Don't have Blenders source code open in VS Code (this is still unsupported on not much tested).
+- Use the latest Blender version from https://builder.blender.org/.
 - If your Blender does not use its own Python version, enable `blender.allowModifyExternalPython` or install the packages in the error message manually (currently `debugpy`, `flask` and `requests` are required).
 
 ## Status
