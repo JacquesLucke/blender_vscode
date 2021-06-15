@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [0.0.16] - 2021-06-15
 
 ### Fixed
 - Fix after api breakage.
