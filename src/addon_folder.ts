@@ -13,8 +13,13 @@ export class AddonWorkspaceFolder {
     }
 
     public static async All() {
+        let addonFolders = foldersToWorkspaceFoldersMockup(<string[]>getConfig().get('addonFolders'));
+        if (addonFolders.length === 0) {
+            addonFolders = getWorkspaceFolders();
+        }
+
         let folders = [];
-        for (let folder of getWorkspaceFolders()) {
+        for (let folder of addonFolders) {
             let addon = new AddonWorkspaceFolder(folder);
             if (await addon.hasAddonEntryPoint()) {
                 folders.push(addon);
@@ -123,4 +128,16 @@ async function folderContainsAddonEntry(folderPath: string) {
     catch {
         return false;
     }
+}
+
+function foldersToWorkspaceFoldersMockup(folders: string[]) {
+    let mockups: vscode.WorkspaceFolder[] = [];
+    for (let i = 0; i < folders.length; i++) {
+        mockups.push({
+            "name" : path.basename(folders[i]),
+            "uri": vscode.Uri.parse(folders[i]),
+            "index": i
+        });
+    }
+    return mockups;
 }
