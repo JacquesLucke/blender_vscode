@@ -2,8 +2,11 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import {
     getConfig, readTextFile, getWorkspaceFolders,
-    getSubfolders, executeTask
+    getSubfolders, executeTask, getAnyWorkspaceFolder, pathExists
 } from './utils';
+
+// TODO: It would be superior to use custom AddonFolder interface that is not bound to the
+// vscode.WorkspaceFolder directly. The 'uri' property is only one used at this point.
 
 export class AddonWorkspaceFolder {
     folder: vscode.WorkspaceFolder;
@@ -13,7 +16,10 @@ export class AddonWorkspaceFolder {
     }
 
     public static async All() {
-        let addonFolders = foldersToWorkspaceFoldersMockup(<string[]>getConfig().get('addonFolders'));
+        // Search folders specified by settings first, if nothing is specified
+        // search workspace folders instead.
+        let addonFolders = await foldersToWorkspaceFoldersMockup(
+            <string[]>getConfig().get('addonFolders'));
         if (addonFolders.length === 0) {
             addonFolders = getWorkspaceFolders();
         }
@@ -130,12 +136,28 @@ async function folderContainsAddonEntry(folderPath: string) {
     }
 }
 
-function foldersToWorkspaceFoldersMockup(folders: string[]) {
+async function foldersToWorkspaceFoldersMockup(folders: string[]) {
     let mockups: vscode.WorkspaceFolder[] = [];
+    // Assume this functionality is only used with a single workspace folder for now.
+    let rootFolder = getAnyWorkspaceFolder();
     for (let i = 0; i < folders.length; i++) {
+        let absolutePath;
+        if (path.isAbsolute(folders[i])) {
+            absolutePath = folders[i];
+        } else {
+            absolutePath = path.join(rootFolder.uri.fsPath, folders[i])
+        }
+
+        let exists = await pathExists(absolutePath);
+        if (!exists) {
+            vscode.window.showInformationMessage(
+                `Revise settings, path to addon doesn't exist ${absolutePath}`);
+            continue;
+        }
+
         mockups.push({
-            "name" : path.basename(folders[i]),
-            "uri": vscode.Uri.parse(folders[i]),
+            "name" : path.basename(absolutePath),
+            "uri": vscode.Uri.parse(absolutePath),
             "index": i
         });
     }

@@ -207,7 +207,7 @@
           "blender.addonFolders": {
             "type": "array",
             "scope": "resource",
-            "description": "Array of paths to addon folders. If empty workspace folders are used.",
+            "description": "Array of paths to addon folders. Relative folders are resolved from the path of root workspace. If empty workspace folders are used.",
             "items": {
               "type": "string"
             }
