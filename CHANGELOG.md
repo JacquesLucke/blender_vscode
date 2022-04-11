@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Update `get-pip.py`.
+- Use `ensurepip` if available.
+
 ## [0.0.16] - 2021-06-15
 
 ### Fixed
