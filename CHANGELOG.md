@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+- New `blender.addonFolders` option. Allows to specify absolute or root workspace relative 
+directories where to search for addons. If not specified all workspace folders are searched.
+
 ### Fixed
 - Update `get-pip.py`.
 - Use `ensurepip` if available.
