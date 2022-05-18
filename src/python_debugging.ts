@@ -23,6 +23,7 @@ function attachPythonDebugger(port: number, pathMappings: PathMapping[] = []) {
         port: port,
         host: 'localhost',
         pathMappings: pathMappings,
+        justMyCode: false,
     };
     vscode.debug.startDebugging(undefined, configuration);
 }
