@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.17] - 2022-06-08
+
 ### Added
 - New `blender.addonFolders` option. Allows to specify absolute or root workspace relative 
 directories where to search for addons. If not specified all workspace folders are searched.
