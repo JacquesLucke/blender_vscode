@@ -108,7 +108,7 @@
         "properties": {
           "blender.executables": {
             "type": "array",
-            "scope": "application",
+            "scope": "resource",
             "description": "Paths to Blender executables.",
             "items": {
               "type": "object",
