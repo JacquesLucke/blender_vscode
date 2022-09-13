@@ -195,5 +195,6 @@ async function getBlenderLaunchEnv() {
         ADDONS_TO_LOAD: JSON.stringify(loadDirsWithNames),
         EDITOR_PORT: getServerPort().toString(),
         ALLOW_MODIFY_EXTERNAL_PYTHON: <boolean>config.get('allowModifyExternalPython') ? 'yes' : 'no',
+        ...<object>config.get("environmentVariables", {}),
     };
 }

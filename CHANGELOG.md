@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+
+### Added
+- New `blender.environmentVariables` option. Can be used to define environment variables passed to
+blender on `Blender Start`.
+
+### Changed
+- Changed scope of `blender.executables` to `resource`. The value is firstly looked up in workspace
+settings before user settings.
+
+### Fixed
+
 ## [0.0.17] - 2022-06-08
 
 ### Added
