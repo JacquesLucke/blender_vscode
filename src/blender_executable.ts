@@ -183,7 +183,8 @@ async function testIfPathIsBlender(filepath: string) {
 }
 
 function getBlenderLaunchArgs() {
-    return ['--python', launchPath];
+    let config = getConfig();
+    return ['--python', launchPath].concat(<string[]>config.get("additionalArguments", []));
 }
 
 async function getBlenderLaunchEnv() {
