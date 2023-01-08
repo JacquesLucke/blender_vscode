@@ -1,3 +1,4 @@
+import functools
 import re
 import bpy
 import runpy
@@ -5,23 +6,18 @@ from bpy.props import *
 from .. utils import redraw_all
 from .. communication import register_post_action
 
-class RunScriptOperator(bpy.types.Operator):
-    bl_idname = "dev.run_script"
-    bl_label = "Run Script"
 
-    filepath: StringProperty()
-
-    def execute(self, context):
-        ctx = prepare_script_context(self.filepath)
-        runpy.run_path(self.filepath, init_globals={"CTX" : ctx})
-        redraw_all()
-        return {'FINISHED'}
+def run_script(path):
+    context = prepare_script_context(path)
+    runpy.run_path(path, init_globals={"CTX": context})
+    redraw_all()
 
 
 def run_script_action(data):
     path = data["path"]
-    context = prepare_script_context(path)
-    bpy.ops.dev.run_script(context, filepath=path)
+    func = functools.partial(run_script, path)
+    bpy.app.timers.register(func, first_interval=0.5)
+
 
 def prepare_script_context(filepath):
     with open(filepath) as fs:
@@ -67,5 +63,4 @@ def get_region_in_area(area, region_type):
     return None
 
 def register():
-    bpy.utils.register_class(RunScriptOperator)
     register_post_action("script", run_script_action)
