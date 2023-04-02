@@ -12,11 +12,12 @@ blender on `Blender Start`.
 settings before user settings.
 
 ### Fixed
+- Behavior of scripts that changed context like the active object.
 
 ## [0.0.17] - 2022-06-08
 
 ### Added
-- New `blender.addonFolders` option. Allows to specify absolute or root workspace relative 
+- New `blender.addonFolders` option. Allows to specify absolute or root workspace relative
 directories where to search for addons. If not specified all workspace folders are searched.
 
 ### Fixed
