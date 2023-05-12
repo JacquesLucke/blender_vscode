@@ -4,6 +4,7 @@ import * as os from 'os';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { getStoredScriptFolders } from './scripts';
 import { AddonPathMapping } from './communication';
+import { printChannelOutput } from './extension';
 
 type PathMapping = { localRoot: string, remoteRoot: string };
 
@@ -24,6 +25,13 @@ function attachPythonDebugger(port: number, pathMappings: PathMapping[] = []) {
         host: 'localhost',
         pathMappings: pathMappings,
     };
+
+    // log config (reuse common output)
+    // let logConfig = vscode.window.createOutputChannel("Blender debugpy [tmp]");
+    // logConfig.appendLine("Configuration: " + JSON.stringify(configuration, undefined, 2));
+    // logConfig.show();
+    printChannelOutput("configuration: " + JSON.stringify(configuration, undefined, 2));
+
     vscode.debug.startDebugging(undefined, configuration);
 }
 
