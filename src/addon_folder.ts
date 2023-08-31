@@ -157,7 +157,7 @@ async function foldersToWorkspaceFoldersMockup(folders: string[]) {
 
         mockups.push({
             "name" : path.basename(absolutePath),
-            "uri": vscode.Uri.parse(absolutePath),
+            "uri": vscode.Uri.from({ scheme: "file", path: absolutePath }),
             "index": i
         });
     }
