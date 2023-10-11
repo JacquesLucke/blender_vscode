@@ -8,6 +8,8 @@
 ### Added
 - New `blender.environmentVariables` option. Can be used to define environment variables passed to
 blender on `Blender Start`.
+- New `blender.additionalArguments` option. Can be used to define additional arguments used when
+starting blender on `Blender Start`.
 
 ### Changed
 - Changed scope of `blender.executables` to `resource`. The value is firstly looked up in workspace

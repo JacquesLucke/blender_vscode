@@ -223,6 +223,20 @@
                 "BLENDER_USER_CONFIG": "C:/custom_user_config"
               }
             ]
+          },
+          "blender.additionalArguments": {
+            "type": "array",
+            "scope": "resource",
+            "title": "Startup Additional Arguments",
+            "description": "Additional arguments used for Blender start-up. List of strings.",
+            "items": {
+              "type": "string"
+            },
+            "examples": [
+              [
+                "--factory-startup"
+              ]
+            ]
           }
         }
       }
