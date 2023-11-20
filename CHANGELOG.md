@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Fixed "Run Script" support for Blender 4.0.
+
 ## [0.0.18] - 2023-04-02
 
 

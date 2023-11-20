@@ -21,7 +21,14 @@ class RunScriptOperator(bpy.types.Operator):
 def run_script_action(data):
     path = data["path"]
     context = prepare_script_context(path)
-    bpy.ops.dev.run_script(context, filepath=path)
+
+    if bpy.app.version < (4, 0, 0):
+        bpy.ops.dev.run_script(context, filepath=path)
+        return
+
+    with bpy.context.temp_override(**context):
+        bpy.ops.dev.run_script(filepath=path)
+
 
 def prepare_script_context(filepath):
     with open(filepath) as fs:
