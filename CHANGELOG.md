@@ -2,11 +2,12 @@
 
 ## Unreleased
 
+## [0.0.19] - 2023-12-05
+
 ### Fixed
 - Fixed "Run Script" support for Blender 4.0.
 
 ## [0.0.18] - 2023-04-02
-
 
 ### Added
 - New `blender.environmentVariables` option. Can be used to define environment variables passed to
