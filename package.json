@@ -146,7 +146,7 @@
             "type": "boolean",
             "scope": "resource",
             "default": true,
-            "description": "True - debug addon code only, False - allow debug external python library code."
+            "description": "If true, debug only the code in this addon. Otherwise, allow stepping into external python library code."
           },
           "blender.addon.buildTaskName": {
             "type": "string",
