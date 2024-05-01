@@ -2,7 +2,7 @@
   "name": "blender-development",
   "displayName": "Blender Development",
   "description": "Tools to simplify Blender development.",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "publisher": "JacquesLucke",
   "license": "MIT",
   "engines": {

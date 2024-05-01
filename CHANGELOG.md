@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.20] - 2024-05-01
+
 ### Added
 - New `blender.addon.justMyCode` option. Previously, this was enabled by default and made it more difficult to debug addons that used external libraries. Restart Blender debug session after changing this option.
 
