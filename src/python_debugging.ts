@@ -8,14 +8,14 @@ import { AddonPathMapping } from './communication';
 type PathMapping = { localRoot: string, remoteRoot: string };
 
 export async function attachPythonDebuggerToBlender(
-    port: number, blenderPath: string, scriptsFolder: string,
+    port: number, blenderPath: string, justMyCode: boolean, scriptsFolder: string,
     addonPathMappings: AddonPathMapping[]) {
 
     let mappings = await getPythonPathMappings(scriptsFolder, addonPathMappings);
-    attachPythonDebugger(port, mappings);
+    attachPythonDebugger(port, justMyCode, mappings);
 }
 
-function attachPythonDebugger(port: number, pathMappings: PathMapping[] = []) {
+function attachPythonDebugger(port: number, justMyCode: boolean, pathMappings: PathMapping[] = []) {
     let configuration = {
         name: `Python at Port ${port}`,
         request: "attach",
@@ -23,6 +23,7 @@ function attachPythonDebugger(port: number, pathMappings: PathMapping[] = []) {
         port: port,
         host: 'localhost',
         pathMappings: pathMappings,
+        justMyCode: justMyCode
     };
     vscode.debug.startDebugging(undefined, configuration);
 }

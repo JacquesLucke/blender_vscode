@@ -56,7 +56,6 @@ def start_debug_server():
             pass
     return port
 
-
 # Server
 #########################################
 
@@ -105,7 +104,7 @@ def send_connection_information(path_mappings):
         "debugpyPort" : DEBUGPY_PORT,
         "blenderPath" : str(blender_path),
         "scriptsFolder" : str(scripts_folder),
-        "addonPathMappings" : path_mappings,
+        "addonPathMappings" : path_mappings
     })
 
 def send_dict_as_json(data):
