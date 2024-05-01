@@ -134,7 +134,7 @@ function SERVER_handleRequest(request: any, response: any) {
             switch (req.type) {
                 case 'setup': {
                     let config = getConfig();
-                    let justMyCode:boolean = <boolean>config.get('addon.justMyCode')
+                    let justMyCode: boolean = <boolean>config.get('addon.justMyCode')
                     let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
                     instance.attachDebugger();
                     RunningBlenders.register(instance);
