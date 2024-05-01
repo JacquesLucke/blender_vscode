@@ -8,7 +8,7 @@ include_dir = Path(__file__).parent / "include"
 sys.path.append(str(include_dir))
 
 import blender_vscode
-print(json.loads(os.environ['ADDONS_TO_LOAD']))
+print("ADDONS_TO_LOAD", json.loads(os.environ['ADDONS_TO_LOAD']))
 
 try:
     blender_vscode.startup(
