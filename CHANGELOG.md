@@ -5,6 +5,9 @@
 ### Added
 - New `blender.addon.justMyCode` option. Previously, this was enabled by default and made it more difficult to debug addons that used external libraries. Restart Blender debug session after changing this option.
 
+### Fixed
+- Prioritize addon path mappings to make it more likely that the right path is mapped.
+
 ## [0.0.19] - 2023-12-05
 
 ### Fixed
