@@ -31,6 +31,11 @@ function attachPythonDebugger(port: number, justMyCode: boolean, pathMappings: P
 async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
     let mappings = [];
 
+    mappings.push(...addonPathMappings.map(item => ({
+        localRoot: item.src,
+        remoteRoot: item.load
+    })));
+
     mappings.push(await getBlenderScriptsPathMapping(scriptsFolder));
 
     for (let folder of getStoredScriptFolders()) {
@@ -39,11 +44,6 @@ async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: A
             remoteRoot: folder.path
         });
     }
-
-    mappings.push(...addonPathMappings.map(item => ({
-        localRoot: item.src,
-        remoteRoot: item.load
-    })));
 
     fixMappings(mappings);
     return mappings;
