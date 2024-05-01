@@ -12,15 +12,13 @@ from . environment import blender_path, scripts_folder
 EDITOR_ADDRESS = None
 OWN_SERVER_PORT = None
 DEBUGPY_PORT = None
-JUSTMYCODE = None
 
-def setup(address, path_mappings, justMyCode):
-    global EDITOR_ADDRESS, OWN_SERVER_PORT, DEBUGPY_PORT, JUSTMYCODE
+def setup(address, path_mappings):
+    global EDITOR_ADDRESS, OWN_SERVER_PORT, DEBUGPY_PORT
     EDITOR_ADDRESS = address
 
     OWN_SERVER_PORT = start_own_server()
     DEBUGPY_PORT = start_debug_server()
-    JUSTMYCODE = justMyCode
 
     send_connection_information(path_mappings)
 
@@ -104,7 +102,6 @@ def send_connection_information(path_mappings):
         "type" : "setup",
         "blenderPort" : OWN_SERVER_PORT,
         "debugpyPort" : DEBUGPY_PORT,
-        "justMyCode": JUSTMYCODE,
         "blenderPath" : str(blender_path),
         "scriptsFolder" : str(scripts_folder),
         "addonPathMappings" : path_mappings

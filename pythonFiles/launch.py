@@ -16,7 +16,6 @@ try:
         addons_to_load=tuple(map(lambda x: (Path(x["load_dir"]), x["module_name"]),
                                  json.loads(os.environ['ADDONS_TO_LOAD']))),
         allow_modify_external_python=os.environ['ALLOW_MODIFY_EXTERNAL_PYTHON'] == "yes",
-        justMyCode=os.environ['JUSTMYCODE'] == "True",
     )
 except Exception as e:
     if type(e) is not SystemExit:
