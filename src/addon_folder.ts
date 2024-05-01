@@ -46,6 +46,10 @@ export class AddonWorkspaceFolder {
         return <boolean>this.getConfig().get('addon.reloadOnSave');
     }
 
+    get justMyCode() {
+        return <boolean>this.getConfig().get('addon.justMyCode');
+    }
+
     public async hasAddonEntryPoint() {
         try {
             let sourceDir = await this.getSourceDirectory();
