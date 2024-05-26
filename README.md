@@ -16,7 +16,7 @@ You will be asked for the following information:
 * Which addon template should be used?
 * Where should the addon be created? This should be an empty folder, preferably without spaces or special characters in the name.
 * What is the name of the addon?
-* What is you name?
+* What is your name?
 
 ### How can I use the extension with my existing addon?
 
@@ -49,13 +49,13 @@ For that to work, Blender has to be started using the extension.
 Your addon does not need to support reloading itself.
 It only has to have correct `register` and `unregister` methods.
 
-To reload the addon every time a file is saved, active the `blender.addon.reloadOnSave` setting in VS Code.
+To reload the addon every time a file is saved, activate the `blender.addon.reloadOnSave` setting in VS Code.
 
 ## Script Tools
 
 When I say "script" I mean a piece of Python code that runs in Blender but is not an addon.
-Scripts are best to test and learn Blenders Python API but also to solve simple tasks at hand.
-Usually scripts are written in Blenders text editor.
+Scripts are best to test and learn Blender's Python API but also to solve simple tasks at hand.
+Usually scripts are written in Blender's text editor.
 However, the text editor has fairly limited capabilities compared to modern text editors and IDEs.
 
 For script writing this extension offers
