@@ -20,12 +20,11 @@ export class AddonWorkspaceFolder {
         // search workspace folders instead.
         let addonFolders = await foldersToWorkspaceFoldersMockup(
             <string[]>getConfig().get('addonFolders'));
-        if (addonFolders.length === 0) {
-            addonFolders = getWorkspaceFolders();
-        }
+        
+        let searchableFolders = addonFolders.length !== 0 ? addonFolders : getWorkspaceFolders(); 
 
         let folders = [];
-        for (let folder of addonFolders) {
+        for (let folder of searchableFolders) {
             let addon = new AddonWorkspaceFolder(folder);
             if (await addon.hasAddonEntryPoint()) {
                 folders.push(addon);
@@ -166,7 +165,7 @@ async function foldersToWorkspaceFoldersMockup(folders: string[]) {
 
         mockups.push({
             "name" : path.basename(absolutePath),
-            "uri": vscode.Uri.parse(absolutePath),
+            "uri": vscode.Uri.from({ scheme: "file", path: absolutePath }),
             "index": i
         });
     }
