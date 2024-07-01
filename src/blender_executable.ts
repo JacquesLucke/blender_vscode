@@ -38,8 +38,35 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
+    public static async GetDefault() {
+        let allBlenderPaths = <BlenderPathData[]>getConfig().get('executables');
+        let data = allBlenderPaths.find(item => item.isDefault === true)
+        // Prompt user to select default Blender if none is found and update the settings
+        if (data === undefined)
+        {
+            data = await getFilteredBlenderPath({
+                label: 'Default Blender Executable',
+                selectNewLabel: 'Choose a default Blender executable...',
+                predicate: () => true,
+                setSettings: item => { item.isDefault = true; } 
+            });
+
+            // Mark the selected Blender as default, update config
+            let item = allBlenderPaths.find(item => item.path === data?.path);
+            if (item !== undefined) {
+                item.isDefault = true
+                getConfig().update('executables', allBlenderPaths, vscode.ConfigurationTarget.Workspace);
+            }
+        }
+        return new BlenderExecutable(data);
+    }   
+    
     public static async LaunchAny() {
         await (await this.GetAny()).launch();
+    }
+
+    public static async LaunchDefault() {
+        await (await this.GetDefault()).launch();
     }
 
     public static async LaunchDebug(folder: BlenderWorkspaceFolder) {
@@ -89,6 +116,7 @@ interface BlenderPathData {
     path: string;
     name: string;
     isDebug: boolean;
+    isDefault: boolean;
 }
 
 interface BlenderType {
@@ -131,6 +159,7 @@ async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderPa
         path: filepath,
         name: '',
         isDebug: false,
+        isDefault: false,
     };
     type.setSettings(pathData);
     return pathData;

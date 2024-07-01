@@ -16,6 +16,7 @@ import {
 export function activate(context: vscode.ExtensionContext) {
     let commands: [string, () => Promise<void>][] = [
         ['blender.start', COMMAND_start],
+        ['blender.startDefault', COMMAND_startDefault],
         ['blender.stop', COMMAND_stop],
         ['blender.build', COMMAND_build],
         ['blender.buildAndStart', COMMAND_buildAndStart],
@@ -73,6 +74,10 @@ async function COMMAND_start() {
     else {
         await BlenderExecutable.LaunchDebug(blenderFolder);
     }
+}
+
+async function COMMAND_startDefault() {
+    await BlenderExecutable.LaunchDefault()
 }
 
 async function COMMAND_stop() {
