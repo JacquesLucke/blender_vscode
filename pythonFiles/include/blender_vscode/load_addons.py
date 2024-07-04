@@ -4,9 +4,20 @@ import sys
 import traceback
 from pathlib import Path
 from . communication import send_dict_as_json
-from . environment import user_addon_directory, addon_directories
+from . environment import get_user_addon_directory, addon_directories
+
 
 def setup_addon_links(addons_to_load):
+
+    user_addon_directory = get_user_addon_directory(Path(next(addons_to_load.keys())))
+    print(f"USER ADDON: {user_addon_directory}")
+    print(f"USER ADDON: {user_addon_directory}")
+    print(f"USER ADDON: {user_addon_directory}")
+    print(f"USER ADDON: {user_addon_directory}")
+    print(f"USER ADDON: {user_addon_directory}")
+    print(f"USER ADDON: {user_addon_directory}")
+    print(f"USER ADDON: {user_addon_directory}")
+    print(f"USER ADDON: {user_addon_directory}")
     if not os.path.exists(user_addon_directory):
         os.makedirs(user_addon_directory)
 

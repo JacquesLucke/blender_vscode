@@ -16,5 +16,13 @@ else:
 
 version = bpy.app.version
 scripts_folder = blender_path.parent / f"{version[0]}.{version[1]}" / "scripts"
-user_addon_directory = Path(bpy.utils.user_resource('SCRIPTS', path="addons"))
+
+
+def get_user_addon_directory(source_path: Path):
+    if version >= (4, 2, 0) and next(source_path.glob("blender_manifest.toml"), None):
+        return Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
+    else:
+        return Path(bpy.utils.user_resource('SCRIPTS', path="addons"))
+
+
 addon_directories = tuple(map(Path, addon_utils.paths()))
