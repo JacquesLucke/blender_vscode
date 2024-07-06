@@ -1,7 +1,18 @@
-import bpy
 import sys
+from dataclasses import dataclass
+from pathlib import Path
 
-def startup(editor_address, addons_to_load, allow_modify_external_python):
+import bpy
+
+
+@dataclass
+class AddonInfo:
+    load_dir: Path
+    module_name: str
+    module_path: str
+
+
+def startup(editor_address, addons_to_load: list[AddonInfo], allow_modify_external_python):
     if bpy.app.version < (2, 80, 34):
         handle_fatal_error("Please use a newer version of Blender")
 
@@ -18,8 +29,7 @@ def startup(editor_address, addons_to_load, allow_modify_external_python):
 
     load_addons.load(addons_to_load)
 
-    from . import ui
-    from . import operators
+    from . import operators, ui
 
     ui.register()
     operators.register()

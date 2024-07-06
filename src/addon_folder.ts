@@ -76,9 +76,11 @@ export class AddonWorkspaceFolder {
     public async getLoadDirectoryAndModuleName() {
         let load_dir = await this.getLoadDirectory();
         let module_name = await this.getModuleName();
+        let module_path = await this.getModulePath();
         return {
             'load_dir' : load_dir,
             'module_name' : module_name,
+            'module_path': module_path,
         };
     }
 
