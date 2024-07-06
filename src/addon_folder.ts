@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import {
     getConfig, readTextFile, getWorkspaceFolders,
     getSubfolders, executeTask, getAnyWorkspaceFolder, pathExists
@@ -10,9 +11,11 @@ import {
 
 export class AddonWorkspaceFolder {
     folder: vscode.WorkspaceFolder;
+    isLegacy: boolean;
 
     constructor(folder: vscode.WorkspaceFolder) {
         this.folder = folder;
+        this.isLegacy = fs.existsSync(path.join(folder.uri.fsPath, "blender_manifest.toml"));
     }
 
     public static async All() {
@@ -82,7 +85,11 @@ export class AddonWorkspaceFolder {
     public async getModuleName() {
         let value = <string>getConfig(this.uri).get('addon.moduleName');
         if (value === 'auto') {
-            return path.basename(await this.getLoadDirectory());
+            let module_base = path.basename(await this.getLoadDirectory());
+            if (this.isLegacy) {
+                module_base = "bl_ext.user_default.".concat(module_base)
+            }
+            return module_base;
         }
         else {
             return value;

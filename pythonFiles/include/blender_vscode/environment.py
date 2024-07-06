@@ -4,6 +4,8 @@ import addon_utils
 from pathlib import Path
 import platform
 
+from .utils import is_addon_legacy
+
 python_path = Path(sys.executable)
 blender_path = Path(bpy.app.binary_path)
 blender_directory = blender_path.parent
@@ -19,7 +21,7 @@ scripts_folder = blender_path.parent / f"{version[0]}.{version[1]}" / "scripts"
 
 
 def get_user_addon_directory(source_path: Path):
-    if version >= (4, 2, 0) and next(source_path.glob("blender_manifest.toml"), None):
+    if is_addon_legacy(source_path):
         return Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
     else:
         return Path(bpy.utils.user_resource('SCRIPTS', path="addons"))
