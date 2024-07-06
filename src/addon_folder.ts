@@ -82,7 +82,7 @@ export class AddonWorkspaceFolder {
         };
     }
 
-    public async getModuleName() {
+    public async getModulePath() {
         let value = <string>getConfig(this.uri).get('addon.moduleName');
         if (value === 'auto') {
             let module_base = path.basename(await this.getLoadDirectory());
@@ -94,6 +94,14 @@ export class AddonWorkspaceFolder {
         else {
             return value;
         }
+    }
+
+    public async getModuleName() {
+        let path = await this.getModulePath();
+        if (this.isLegacy) {
+            return path.split(".").slice(-1)[0];
+        }
+        return path
     }
 
     public async getLoadDirectory() {
