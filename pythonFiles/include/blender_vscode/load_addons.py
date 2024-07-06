@@ -38,19 +38,23 @@ def setup_addon_links(addons_to_load: tuple):
 
 def load(addons_to_load):
     for source_path, module_name in addons_to_load:
-        # if is_addon_legacy(Path(source_path)):
-        #     module_name = "bl_ext.user_default." + module_name
-        #     print(module_name)
-        #     print(module_name)
-        #     print(module_name)
-        #     print(module_name)
-        #     print(module_name)
-        #     print(module_name)
-        #     print(module_name)
-        #     print(module_name)
-        #     print(module_name)
-        #     print(module_name)
-        #     print(module_name)
+        if is_addon_legacy(Path(source_path)):
+            bpy.ops.extensions.repo_refresh_all()
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
+            print(module_name)
 
         try:
             bpy.ops.preferences.addon_enable(module=module_name)
