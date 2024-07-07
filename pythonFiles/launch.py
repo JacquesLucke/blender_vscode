@@ -1,6 +1,6 @@
-import json
 import os
 import sys
+import json
 import traceback
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 include_dir = Path(__file__).parent / "include"
 sys.path.append(str(include_dir))
 
+# Get proper type hinting without impacting runtime
 if TYPE_CHECKING:
     from .include import blender_vscode
 else:

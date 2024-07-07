@@ -7,7 +7,7 @@ import bpy
 
 from . import AddonInfo
 from .communication import send_dict_as_json
-from .environment import addon_directories, get_user_addon_directory
+from .environment import addon_directories
 from .utils import is_addon_legacy
 
 
@@ -36,6 +36,14 @@ def setup_addon_links(addons_to_load: list[AddonInfo]):
     return path_mappings
 
 
+def get_user_addon_directory(source_path: Path):
+    """Return either the user scripts or user extensions directory depending on the addon type."""
+    if is_addon_legacy(source_path):
+        return Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
+    else:
+        return Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
+
+
 def load(addons_to_load: list[AddonInfo]):
     for addon_info in addons_to_load:
         if is_addon_legacy(Path(addon_info.load_dir)):
@@ -47,8 +55,7 @@ def load(addons_to_load: list[AddonInfo]):
             addon_name = "bl_ext.user_default." + addon_info.module_name
 
         try:
-            # bpy.ops.preferences.addon_enable(module=addon_name)
-            bpy.ops.dev.update_addon(module_name=addon_name)
+            bpy.ops.preferences.addon_enable(module=addon_name)
         except:
             traceback.print_exc()
             send_dict_as_json({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
@@ -60,11 +67,9 @@ def create_link_in_user_addon_directory(directory, link_path):
 
     if sys.platform == "win32":
         import _winapi
-
         _winapi.CreateJunction(str(directory), str(link_path))
     else:
         os.symlink(str(directory), str(link_path), target_is_directory=True)
-
 
 def is_in_any_addon_directory(module_path):
     for path in addon_directories:
