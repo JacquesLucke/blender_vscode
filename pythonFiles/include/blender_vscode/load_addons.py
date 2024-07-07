@@ -39,10 +39,14 @@ def setup_addon_links(addons_to_load: list[AddonInfo]):
 def load(addons_to_load: list[AddonInfo]):
     for addon_info in addons_to_load:
         if is_addon_legacy(Path(addon_info.load_dir)):
+            bpy.ops.preferences.addon_refresh()
+            addon_name = addon_info.module_name
+        else:
             bpy.ops.extensions.repo_refresh_all()
+            addon_name = addon_info.module_path
 
         try:
-            bpy.ops.preferences.addon_enable(module=addon_info.module_path)
+            bpy.ops.preferences.addon_enable(module=addon_name)
         except:
             traceback.print_exc()
             send_dict_as_json({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})

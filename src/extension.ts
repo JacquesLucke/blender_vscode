@@ -118,8 +118,10 @@ async function reloadAddons(addons: AddonWorkspaceFolder[]) {
     if (instances.length === 0) return;
 
     await rebuildAddons(addons);
-    let names = await Promise.all(addons.map(a => a.getModulePath()));
-    instances.forEach(instance => instance.post({ type: 'reload', names: names }));
+    let names = await Promise.all(addons.map(a => a.getModuleName()));
+    let paths = await Promise.all(addons.map(a => a.getModulePath()))
+    let dirs = await Promise.all(addons.map(a => a.folder.uri.fsPath))
+    instances.forEach(instance => instance.post({ type: 'reload', names: names, paths: paths, dirs: dirs}));
 }
 
 async function rebuildAddons(addons: AddonWorkspaceFolder[]) {

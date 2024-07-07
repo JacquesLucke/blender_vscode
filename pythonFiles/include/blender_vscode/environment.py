@@ -22,9 +22,9 @@ scripts_folder = blender_path.parent / f"{version[0]}.{version[1]}" / "scripts"
 
 def get_user_addon_directory(source_path: Path):
     if is_addon_legacy(source_path):
-        return Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
-    else:
         return Path(bpy.utils.user_resource('SCRIPTS', path="addons"))
+    else:
+        return Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
 
 
 addon_directories = tuple(map(Path, addon_utils.paths()))
