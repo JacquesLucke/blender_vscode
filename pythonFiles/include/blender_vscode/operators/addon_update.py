@@ -38,11 +38,11 @@ class UpdateAddonOperator(bpy.types.Operator):
 
 def reload_addon_action(data):
     module_names = []
-    for name, path, dir in zip(data["names"], data["paths"], data["dirs"]):
+    for name, dir in zip(data["names"], data["dirs"]):
         if is_addon_legacy(Path(dir)):
             module_names.append(name)
         else:
-            module_names.append(path)
+            module_names.append("bl_ext.user_default." + name)
 
     for name in module_names:
         bpy.ops.dev.update_addon(module_name=name)

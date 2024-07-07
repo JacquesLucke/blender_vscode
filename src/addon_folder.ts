@@ -73,11 +73,9 @@ export class AddonWorkspaceFolder {
     public async getLoadDirectoryAndModuleName() {
         let load_dir = await this.getLoadDirectory();
         let module_name = await this.getModuleName();
-        let module_path = await this.getExtensionModulePath();
         return {
             'load_dir' : load_dir,
             'module_name' : module_name,
-            'module_path': module_path,
         };
     }
 
@@ -89,10 +87,6 @@ export class AddonWorkspaceFolder {
         else {
             return value;
         }
-    }
-    
-    public async getExtensionModulePath() {
-        return "bl_ext.user_default.".concat(await this.getModuleName())
     }
     
     public async getLoadDirectory() {

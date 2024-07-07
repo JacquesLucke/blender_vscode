@@ -9,7 +9,6 @@ import bpy
 class AddonInfo:
     load_dir: Path
     module_name: str
-    module_path: str
 
 
 def startup(editor_address, addons_to_load: list[AddonInfo], allow_modify_external_python):

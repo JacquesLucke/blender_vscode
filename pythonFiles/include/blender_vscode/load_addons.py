@@ -43,7 +43,8 @@ def load(addons_to_load: list[AddonInfo]):
             addon_name = addon_info.module_name
         else:
             bpy.ops.extensions.repo_refresh_all()
-            addon_name = addon_info.module_path
+            # addon_name = "bl_ext.user_default." + addon_info.module_path
+            addon_name = "bl_ext.user_default." + addon_info.module_name
 
         try:
             # bpy.ops.preferences.addon_enable(module=addon_name)
