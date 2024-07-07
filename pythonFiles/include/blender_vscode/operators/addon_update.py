@@ -1,3 +1,4 @@
+from pathlib import Path
 import bpy
 import sys
 import traceback
@@ -38,7 +39,7 @@ class UpdateAddonOperator(bpy.types.Operator):
 def reload_addon_action(data):
     module_names = []
     for name, path, dir in zip(data["names"], data["paths"], data["dirs"]):
-        if is_addon_legacy(dir):
+        if is_addon_legacy(Path(dir)):
             module_names.append(name)
         else:
             module_names.append(path)
