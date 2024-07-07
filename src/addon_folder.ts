@@ -11,11 +11,9 @@ import {
 
 export class AddonWorkspaceFolder {
     folder: vscode.WorkspaceFolder;
-    isLegacy: boolean;
 
     constructor(folder: vscode.WorkspaceFolder) {
         this.folder = folder;
-        this.isLegacy = fs.existsSync(path.join(folder.uri.fsPath, "blender_manifest.toml"));
     }
 
     public static async All() {
@@ -53,6 +51,10 @@ export class AddonWorkspaceFolder {
         return <boolean>this.getConfig().get('addon.justMyCode');
     }
 
+    public async isLegacy() {
+        return fs.existsSync(path.join(await this.getSourceDirectory(), "blender_manifest.toml"))
+    }
+
     public async hasAddonEntryPoint() {
         try {
             let sourceDir = await this.getSourceDirectory();
@@ -88,7 +90,7 @@ export class AddonWorkspaceFolder {
         let value = <string>getConfig(this.uri).get('addon.moduleName');
         if (value === 'auto') {
             let module_base = path.basename(await this.getLoadDirectory());
-            if (this.isLegacy) {
+            if (await this.isLegacy()) {
                 module_base = "bl_ext.user_default.".concat(module_base)
             }
             return module_base;
@@ -100,7 +102,7 @@ export class AddonWorkspaceFolder {
 
     public async getModuleName() {
         let path = await this.getModulePath();
-        if (this.isLegacy) {
+        if (await this.isLegacy()) {
             return path.split(".").slice(-1)[0];
         }
         return path

@@ -27,12 +27,12 @@ def startup(editor_address, addons_to_load: list[AddonInfo], allow_modify_extern
     from . import communication
     communication.setup(editor_address, path_mappings)
 
-    load_addons.load(addons_to_load)
-
     from . import operators, ui
 
     ui.register()
     operators.register()
+
+    load_addons.load(addons_to_load)
 
 def handle_fatal_error(message):
     print()
