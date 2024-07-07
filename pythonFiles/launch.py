@@ -16,7 +16,6 @@ else:
 print(json.loads(os.environ["ADDONS_TO_LOAD"]))
 
 try:
-    # addons_to_load = [blender_vscode.AddonInfo(**info) for info in json.loads(os.environ["ADDONS_TO_LOAD"])]
     addons_to_load = []
     for info in json.loads(os.environ["ADDONS_TO_LOAD"]):
         addon_info = blender_vscode.AddonInfo(**info)
