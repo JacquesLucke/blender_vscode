@@ -89,7 +89,7 @@ export class AddonWorkspaceFolder {
         }
     }
 
- public async getLoadDirectory() {
+    public async getLoadDirectory() {
         let value = <string>getConfig(this.uri).get('addon.loadDirectory');
         if (value === 'auto') {
             return this.getSourceDirectory();
