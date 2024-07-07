@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import {
     getConfig, readTextFile, getWorkspaceFolders,
     getSubfolders, executeTask, getAnyWorkspaceFolder, pathExists
@@ -51,10 +50,6 @@ export class AddonWorkspaceFolder {
         return <boolean>this.getConfig().get('addon.justMyCode');
     }
 
-    public async isLegacy() {
-        return fs.existsSync(path.join(await this.getSourceDirectory(), "blender_manifest.toml"))
-    }
-
     public async hasAddonEntryPoint() {
         try {
             let sourceDir = await this.getSourceDirectory();
@@ -78,7 +73,7 @@ export class AddonWorkspaceFolder {
     public async getLoadDirectoryAndModuleName() {
         let load_dir = await this.getLoadDirectory();
         let module_name = await this.getModuleName();
-        let module_path = await this.getModulePath();
+        let module_path = await this.getExtensionModulePath();
         return {
             'load_dir' : load_dir,
             'module_name' : module_name,
@@ -86,28 +81,20 @@ export class AddonWorkspaceFolder {
         };
     }
 
-    public async getModulePath() {
+    public async getModuleName() {
         let value = <string>getConfig(this.uri).get('addon.moduleName');
         if (value === 'auto') {
-            let module_base = path.basename(await this.getLoadDirectory());
-            if (await this.isLegacy()) {
-                module_base = "bl_ext.user_default.".concat(module_base)
-            }
-            return module_base;
+            return path.basename(await this.getLoadDirectory());
         }
         else {
             return value;
         }
     }
-
-    public async getModuleName() {
-        let path = await this.getModulePath();
-        if (await this.isLegacy()) {
-            return path.split(".").slice(-1)[0];
-        }
-        return path
+    
+    public async getExtensionModulePath() {
+        return "bl_ext.user_default.".concat(await this.getModuleName())
     }
-
+    
     public async getLoadDirectory() {
         let value = <string>getConfig(this.uri).get('addon.loadDirectory');
         if (value === 'auto') {

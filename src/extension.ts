@@ -119,7 +119,7 @@ async function reloadAddons(addons: AddonWorkspaceFolder[]) {
 
     await rebuildAddons(addons);
     let names = await Promise.all(addons.map(a => a.getModuleName()));
-    let paths = await Promise.all(addons.map(a => a.getModulePath()))
+    let paths = await Promise.all(addons.map(a => a.getExtensionModulePath()))
     let dirs = await Promise.all(addons.map(a => a.getSourceDirectory()))
     instances.forEach(instance => instance.post({ type: 'reload', names: names, paths: paths, dirs: dirs}));
 }
