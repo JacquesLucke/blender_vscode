@@ -22,7 +22,7 @@ def setup_addon_links(addons_to_load: list[AddonInfo]):
         if not os.path.exists(user_addon_directory):
             os.makedirs(user_addon_directory)
 
-        if not str(user_addon_directory) in sys.path:
+        if is_addon_legacy(Path(addon_info.load_dir)) and not str(user_addon_directory) in sys.path:
             sys.path.append(str(user_addon_directory))
 
         if is_in_any_addon_directory(addon_info.load_dir):
