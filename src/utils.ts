@@ -221,3 +221,10 @@ export function isValidPythonModuleName(text: string): boolean {
     let match = text.match(/^[_a-z][_0-9a-z]*$/i);
     return match !== null;
 }
+
+export function toTitleCase(str: string) {
+  return str.replace(
+    /\w\S*/g,
+    text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+  );
+}

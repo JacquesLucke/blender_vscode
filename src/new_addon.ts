@@ -6,7 +6,7 @@ import { letUserPickItem } from './select_utils';
 import {
     cancel, readTextFile, writeTextFile, getWorkspaceFolders,
     addFolderToWorkspace, multiReplaceText, pathExists,
-    isValidPythonModuleName, renamePath
+    isValidPythonModuleName, renamePath, toTitleCase
 } from './utils';
 
 type AddonBuilder = (path: string, addonName: string, authorName: string, supportLegacy: boolean) => Promise<string>;
@@ -219,7 +219,8 @@ async function copyModifiedInitFile(src: string, dst: string, addonName: string,
 
 async function copyModifiedManifestFile(src: string, dst: string, addonName: string, authorName: string) {
     let replacements = {
-        ADDON_NAME: addonName,
+        ADDON_ID: addonName.toLowerCase().replace(/\s/g, '_'),
+        ADDON_NAME: toTitleCase(addonName),
         AUTHOR_NAME: authorName,
     };
     await copyFileWithReplacedText(src, dst, replacements);

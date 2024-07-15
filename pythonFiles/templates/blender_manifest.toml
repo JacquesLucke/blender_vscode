@@ -2,7 +2,7 @@ schema_version = "1.0.0"
 
 # Example of manifest file for a Blender extension
 # Change the values according to your extension
-id = "ADDON_NAME"
+id = "ADDON_ID"
 version = "1.0.0"
 name = "ADDON_NAME"
 tagline = "This is another extension"
