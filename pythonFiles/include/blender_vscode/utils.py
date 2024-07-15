@@ -1,6 +1,15 @@
+from pathlib import Path
 import bpy
 import queue
 import traceback
+
+def is_addon_legacy(addon_dir: Path):
+    """Return whether an addon uses the legacy bl_info behavior, or the new blender_manifest behavior"""
+    if bpy.app.version < (4, 2, 0):
+        return True
+    if not (addon_dir / "blender_manifest.toml").exists():
+        return True
+    return False
 
 def redraw_all():
     for window in bpy.context.window_manager.windows:

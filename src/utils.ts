@@ -47,8 +47,10 @@ export function handleErrors(func: () => Promise<void>) {
             await func();
         }
         catch (err) {
-            if (err.message !== CANCEL) {
-                vscode.window.showErrorMessage(err.message);
+            if (err instanceof Error) {
+                if (err.message !== CANCEL) {
+                    vscode.window.showErrorMessage(err.message);
+                }
             }
         }
     };
