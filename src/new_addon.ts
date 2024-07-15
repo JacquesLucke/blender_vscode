@@ -9,16 +9,16 @@ import {
     isValidPythonModuleName, renamePath
 } from './utils';
 
-type AddonBuilder = (path: string, addonName: string, authorName: string) => Promise<string>;
+type AddonBuilder = (path: string, addonName: string, authorName: string, supportLegacy: boolean) => Promise<string>;
 
 const addonTemplateDir = path.join(templateFilesDir, 'addons');
 
 export async function COMMAND_newAddon() {
     let builder = await getNewAddonGenerator();
-    let [addonName, authorName] = await askUser_SettingsForNewAddon();
+    let [addonName, authorName, supportLegacy] = await askUser_SettingsForNewAddon();
     let folderPath = await getFolderForNewAddon();
     folderPath = await fixAddonFolderName(folderPath);
-    let mainPath = await builder(folderPath, addonName, authorName);
+    let mainPath = await builder(folderPath, addonName, authorName, supportLegacy);
 
     await vscode.window.showTextDocument(vscode.Uri.file(mainPath));
     await vscode.commands.executeCommand('cursorBottom');
@@ -124,6 +124,12 @@ function getFolderNameAlternatives(name: string): string[] {
 }
 
 async function askUser_SettingsForNewAddon() {
+    let items = [];
+    items.push({ label: "Yes", data: true });
+    items.push({ label: "No", data: false });
+    let item = await letUserPickItem(items, "Support legacy Blender versions (<4.2)?");
+    let supportLegacy = item.data;
+
     let addonName = await vscode.window.showInputBox({ placeHolder: 'Addon Name' });
     if (addonName === undefined) {
         return Promise.reject(cancel());
@@ -140,10 +146,10 @@ async function askUser_SettingsForNewAddon() {
         return Promise.reject(new Error('Can\'t create an addon without an author name.'));
     }
 
-    return [<string>addonName, <string>authorName];
+    return [<string>addonName, <string>authorName, supportLegacy];
 }
 
-async function generateAddon_Simple(folder: string, addonName: string, authorName: string) {
+async function generateAddon_Simple(folder: string, addonName: string, authorName: string, supportLegacy: boolean) {
     let srcDir = path.join(addonTemplateDir, 'simple');
 
     let initSourcePath = path.join(srcDir, '__init__.py');
@@ -153,7 +159,7 @@ async function generateAddon_Simple(folder: string, addonName: string, authorNam
     return initTargetPath;
 }
 
-async function generateAddon_WithAutoLoad(folder: string, addonName: string, authorName: string) {
+async function generateAddon_WithAutoLoad(folder: string, addonName: string, authorName: string, supportLegacy: boolean) {
     let srcDir = path.join(addonTemplateDir, 'with_auto_load');
 
     let initSourcePath = path.join(srcDir, '__init__.py');
