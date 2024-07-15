@@ -204,7 +204,7 @@ async function copyModifiedInitFile(src: string, dst: string, addonName: string,
     // Remove bl_info if not supporting legacy addon system
     if (supportLegacy) {
         replacements = {
-            ADDON_NAME: addonName,
+            ADDON_NAME: toTitleCase(addonName),
             AUTHOR_NAME: authorName,
         }
     }
