@@ -154,7 +154,7 @@ async function generateAddon_Simple(folder: string, addonName: string, authorNam
 
     let initSourcePath = path.join(srcDir, '__init__.py');
     let initTargetPath = path.join(folder, '__init__.py');
-    await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName);
+    await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName, supportLegacy);
 
     return initTargetPath;
 }
@@ -164,7 +164,7 @@ async function generateAddon_WithAutoLoad(folder: string, addonName: string, aut
 
     let initSourcePath = path.join(srcDir, '__init__.py');
     let initTargetPath = path.join(folder, '__init__.py');
-    await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName);
+    await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName, supportLegacy);
 
     let autoLoadSourcePath = path.join(srcDir, 'auto_load.py');
     let autoLoadTargetPath = path.join(folder, 'auto_load.py');
@@ -191,11 +191,22 @@ async function getDefaultFileName() {
     return item.label;
 }
 
-async function copyModifiedInitFile(src: string, dst: string, addonName: string, authorName: string) {
-    await copyFileWithReplacedText(src, dst, {
-        ADDON_NAME: addonName,
-        AUTHOR_NAME: authorName,
-    });
+async function copyModifiedInitFile(src: string, dst: string, addonName: string, authorName: string, supportLegacy: boolean) {
+    let replacements;
+
+    // Remove bl_info if not supporting legacy addon system
+    if (supportLegacy) {
+        replacements = {
+            ADDON_NAME: addonName,
+            AUTHOR_NAME: authorName,
+        }
+    }
+    else {
+        replacements = {
+            "bl_info.+=.+{[\\s\\S]*}\\s*": "",
+        }
+    }
+    await copyFileWithReplacedText(src, dst, replacements);
 }
 
 async function copyFileWithReplacedText(src: string, dst: string, replacements: object) {

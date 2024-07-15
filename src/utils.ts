@@ -211,7 +211,9 @@ export function startsWithNumber(text: string) {
 
 export function multiReplaceText(text: string, replacements: object) {
     for (let old of Object.keys(replacements)) {
-        text = text.replace(old, <string>(<any>replacements)[old]);
+        console.log(old)
+        let matcher = RegExp(old);
+        text = text.replace(matcher, <string>(<any>replacements)[old]);
     }
     return text;
 }
