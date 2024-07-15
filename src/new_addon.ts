@@ -12,6 +12,7 @@ import {
 type AddonBuilder = (path: string, addonName: string, authorName: string, supportLegacy: boolean) => Promise<string>;
 
 const addonTemplateDir = path.join(templateFilesDir, 'addons');
+const manifestFile = path.join(addonTemplateDir, '..', 'blender_manifest.toml')
 
 export async function COMMAND_newAddon() {
     let builder = await getNewAddonGenerator();
@@ -21,7 +22,7 @@ export async function COMMAND_newAddon() {
     let mainPath = await builder(folderPath, addonName, authorName, supportLegacy);
 
     await vscode.window.showTextDocument(vscode.Uri.file(mainPath));
-    await vscode.commands.executeCommand('cursorBottom');
+    // await vscode.commands.executeCommand('cursorBottom');
     addFolderToWorkspace(folderPath);
 }
 
@@ -125,8 +126,8 @@ function getFolderNameAlternatives(name: string): string[] {
 
 async function askUser_SettingsForNewAddon() {
     let items = [];
-    items.push({ label: "Yes", data: true });
     items.push({ label: "No", data: false });
+    items.push({ label: "Yes", data: true });
     let item = await letUserPickItem(items, "Support legacy Blender versions (<4.2)?");
     let supportLegacy = item.data;
 
@@ -156,7 +157,10 @@ async function generateAddon_Simple(folder: string, addonName: string, authorNam
     let initTargetPath = path.join(folder, '__init__.py');
     await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName, supportLegacy);
 
-    return initTargetPath;
+    let manifestTargetPath = path.join(folder, 'blender_manifest.toml');
+    await copyModifiedManifestFile(manifestFile, manifestTargetPath, addonName, authorName);
+    
+    return manifestTargetPath;
 }
 
 async function generateAddon_WithAutoLoad(folder: string, addonName: string, authorName: string, supportLegacy: boolean) {
@@ -165,7 +169,10 @@ async function generateAddon_WithAutoLoad(folder: string, addonName: string, aut
     let initSourcePath = path.join(srcDir, '__init__.py');
     let initTargetPath = path.join(folder, '__init__.py');
     await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName, supportLegacy);
-
+    
+    let manifestTargetPath = path.join(folder, 'blender_manifest.toml');
+    await copyModifiedManifestFile(manifestFile, manifestTargetPath, addonName, authorName);
+    
     let autoLoadSourcePath = path.join(srcDir, 'auto_load.py');
     let autoLoadTargetPath = path.join(folder, 'auto_load.py');
     await copyFileWithReplacedText(autoLoadSourcePath, autoLoadTargetPath, {});
@@ -178,7 +185,7 @@ async function generateAddon_WithAutoLoad(folder: string, addonName: string, aut
         return defaultFilePath;
     }
     catch {
-        return initTargetPath;
+        return manifestTargetPath;
     }
 }
 
@@ -203,9 +210,17 @@ async function copyModifiedInitFile(src: string, dst: string, addonName: string,
     }
     else {
         replacements = {
-            "bl_info.+=.+{[\\s\\S]*}\\s*": "",
+            'bl_info.+=.+{[\\s\\S]*}\\s*': '',
         }
     }
+    await copyFileWithReplacedText(src, dst, replacements);
+}
+
+async function copyModifiedManifestFile(src: string, dst: string, addonName: string, authorName: string) {
+    let replacements = {
+        ADDON_NAME: addonName,
+        AUTHOR_NAME: authorName,
+    };
     await copyFileWithReplacedText(src, dst, replacements);
 }
 
