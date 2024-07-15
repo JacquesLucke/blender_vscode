@@ -209,6 +209,7 @@ async function copyModifiedInitFile(src: string, dst: string, addonName: string,
         }
     }
     else {
+        // https://regex101.com/r/RmBWrk/1
         replacements = {
             'bl_info.+=.+{[\\s\\S]*}\\s*': '',
         }
