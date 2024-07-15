@@ -142,8 +142,8 @@ async function askUser_SettingsForNewAddon() {
     }
     
     let items = [];
-    items.push({ label: "No", data: false });
     items.push({ label: "Yes", data: true });
+    items.push({ label: "No", data: false });
     let item = await letUserPickItem(items, "Support legacy Blender versions (<4.2)?");
     let supportLegacy = item.data;
 
