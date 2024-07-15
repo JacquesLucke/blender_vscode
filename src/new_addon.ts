@@ -125,12 +125,6 @@ function getFolderNameAlternatives(name: string): string[] {
 }
 
 async function askUser_SettingsForNewAddon() {
-    let items = [];
-    items.push({ label: "No", data: false });
-    items.push({ label: "Yes", data: true });
-    let item = await letUserPickItem(items, "Support legacy Blender versions (<4.2)?");
-    let supportLegacy = item.data;
-
     let addonName = await vscode.window.showInputBox({ placeHolder: 'Addon Name' });
     if (addonName === undefined) {
         return Promise.reject(cancel());
@@ -138,7 +132,7 @@ async function askUser_SettingsForNewAddon() {
     else if (addonName === "") {
         return Promise.reject(new Error('Can\'t create an addon without a name.'));
     }
-
+    
     let authorName = await vscode.window.showInputBox({ placeHolder: 'Your Name' });
     if (authorName === undefined) {
         return Promise.reject(cancel());
@@ -146,6 +140,12 @@ async function askUser_SettingsForNewAddon() {
     else if (authorName === "") {
         return Promise.reject(new Error('Can\'t create an addon without an author name.'));
     }
+    
+    let items = [];
+    items.push({ label: "No", data: false });
+    items.push({ label: "Yes", data: true });
+    let item = await letUserPickItem(items, "Support legacy Blender versions (<4.2)?");
+    let supportLegacy = item.data;
 
     return [<string>addonName, <string>authorName, supportLegacy];
 }
