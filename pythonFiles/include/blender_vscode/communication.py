@@ -1,4 +1,3 @@
-import bpy
 import time
 import flask
 import debugpy
