@@ -12,7 +12,7 @@ import {
 type AddonBuilder = (path: string, addonName: string, authorName: string, supportLegacy: boolean) => Promise<string>;
 
 const addonTemplateDir = path.join(templateFilesDir, 'addons');
-const manifestFile = path.join(addonTemplateDir, '..', 'blender_manifest.toml')
+const manifestFile = path.join(templateFilesDir, 'blender_manifest.toml')
 
 export async function COMMAND_newAddon() {
     let builder = await getNewAddonGenerator();
