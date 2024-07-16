@@ -66,9 +66,11 @@ def create_link_in_user_addon_directory(directory, link_path):
 
     if sys.platform == "win32":
         import _winapi
+
         _winapi.CreateJunction(str(directory), str(link_path))
     else:
         os.symlink(str(directory), str(link_path), target_is_directory=True)
+
 
 def is_in_any_addon_directory(module_path):
     for path in addon_directories:

@@ -8,6 +8,7 @@ modules = (
     stop_blender,
 )
 
+
 def register():
     for module in modules:
         module.register()

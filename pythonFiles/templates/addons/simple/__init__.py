@@ -12,18 +12,18 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name" : "ADDON_NAME",
-    "author" : "AUTHOR_NAME",
-    "description" : "",
-    "blender" : (2, 80, 0),
-    "version" : (0, 0, 1),
-    "location" : "",
-    "warning" : "",
-    "category" : "Generic"
+    "name": "ADDON_NAME",
+    "author": "AUTHOR_NAME",
+    "description": "",
+    "blender": (2, 80, 0),
+    "version": (0, 0, 1),
+    "location": "",
+    "warning": "",
+    "category": "Generic",
 }
 
-def register():
-    ...
 
-def unregister():
-    ...
+def register(): ...
+
+
+def unregister(): ...
