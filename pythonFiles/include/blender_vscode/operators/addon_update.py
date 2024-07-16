@@ -16,7 +16,7 @@ class UpdateAddonOperator(bpy.types.Operator):
     def execute(self, context):
         try:
             bpy.ops.preferences.addon_disable(module=self.module_name)
-        except:
+        except Exception:
             traceback.print_exc()
             send_dict_as_json({"type": "disableFailure"})
             return {"CANCELLED"}
@@ -27,7 +27,7 @@ class UpdateAddonOperator(bpy.types.Operator):
 
         try:
             bpy.ops.preferences.addon_enable(module=self.module_name)
-        except:
+        except Exception:
             traceback.print_exc()
             send_dict_as_json({"type": "enableFailure"})
             return {"CANCELLED"}

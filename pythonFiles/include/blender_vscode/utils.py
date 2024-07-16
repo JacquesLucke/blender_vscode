@@ -35,7 +35,7 @@ def always():
         func = execution_queue.get()
         try:
             func()
-        except:
+        except Exception:
             traceback.print_exc()
     return 0.1
 

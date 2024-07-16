@@ -55,7 +55,7 @@ def load(addons_to_load: list[AddonInfo]):
 
         try:
             bpy.ops.preferences.addon_enable(module=addon_name)
-        except:
+        except Exception:
             traceback.print_exc()
             send_dict_as_json({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
 
