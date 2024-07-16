@@ -22,7 +22,6 @@ export async function COMMAND_newAddon() {
     let mainPath = await builder(folderPath, addonName, authorName, supportLegacy);
 
     await vscode.window.showTextDocument(vscode.Uri.file(mainPath));
-    // await vscode.commands.executeCommand('cursorBottom');
     addFolderToWorkspace(folderPath);
 }
 
