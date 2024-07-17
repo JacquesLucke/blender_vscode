@@ -55,7 +55,7 @@ def load(addons_to_load: list[AddonInfo]):
 
         try:
             bpy.ops.preferences.addon_enable(module=addon_name)
-        except:
+        except Exception:
             traceback.print_exc()
             send_dict_as_json({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
 
@@ -66,9 +66,11 @@ def create_link_in_user_addon_directory(directory, link_path):
 
     if sys.platform == "win32":
         import _winapi
+
         _winapi.CreateJunction(str(directory), str(link_path))
     else:
         os.symlink(str(directory), str(link_path), target_is_directory=True)
+
 
 def is_in_any_addon_directory(module_path):
     for path in addon_directories:

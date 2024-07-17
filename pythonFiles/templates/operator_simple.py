@@ -3,4 +3,4 @@ class CLASS_NAME(OPERATOR_CLASS):
     bl_label = "LABEL"
 
     def execute(self, context):
-        return {'FINISHED'}
+        return {"FINISHED"}
