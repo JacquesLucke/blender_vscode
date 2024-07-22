@@ -4,7 +4,7 @@ import queue
 import traceback
 
 
-def is_addon_legacy(addon_dir: Path):
+def is_addon_legacy(addon_dir: Path) -> bool:
     """Return whether an addon uses the legacy bl_info behavior, or the new blender_manifest behavior"""
     if bpy.app.version < (4, 2, 0):
         return True

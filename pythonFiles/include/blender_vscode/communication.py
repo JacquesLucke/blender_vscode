@@ -5,12 +5,18 @@ import random
 import requests
 import threading
 from functools import partial
+from typing import TYPE_CHECKING
 from .utils import run_in_main_thread
-from .environment import blender_path, scripts_folder
+from .environment import BLENDER_PATH, SCRIPTS_FOLDER
 
 EDITOR_ADDRESS = None
 OWN_SERVER_PORT = None
 DEBUGPY_PORT = None
+
+
+# Get proper type hinting without impacting runtime
+if TYPE_CHECKING: 
+    from .load_addons import PathMapping
 
 
 def setup(address, path_mappings):
@@ -105,14 +111,14 @@ def register_post_action(type, handler):
 ###############################
 
 
-def send_connection_information(path_mappings):
+def send_connection_information(path_mappings: "PathMapping"):
     send_dict_as_json(
         {
             "type": "setup",
             "blenderPort": OWN_SERVER_PORT,
             "debugpyPort": DEBUGPY_PORT,
-            "blenderPath": str(blender_path),
-            "scriptsFolder": str(scripts_folder),
+            "blenderPath": str(BLENDER_PATH),
+            "scriptsFolder": str(SCRIPTS_FOLDER),
             "addonPathMappings": path_mappings,
         }
     )
