@@ -2,13 +2,13 @@ import os
 import sys
 import traceback
 from pathlib import Path
-from typing import TypedDict, List, Union
+from typing import TypedDict, List, Union, Optional
 
 import bpy
 
 from . import AddonInfo
 from .communication import send_dict_as_json
-from .environment import ADDON_DIRECTORIES
+from .environment import addon_directories
 from .utils import is_addon_legacy
 
 
@@ -28,8 +28,7 @@ def setup_addon_links(addons_to_load: list[AddonInfo]) -> List[PathMapping]:
             os.makedirs(user_addon_directory, exist_ok=True)
             sys.path.append(str(user_addon_directory))
 
-        if is_in_any_addon_directory(addon_info.load_dir):
-            # this  should be improved https://github.com/JacquesLucke/blender_vscode/issues/168
+        if is_in_any_addon_directory(addon_info.load_dir) or is_in_any_extension_directory(addon_info.load_dir):
             load_path = addon_info.load_dir
         else:
             load_path = os.path.join(user_addon_directory, addon_info.module_name)
@@ -55,8 +54,8 @@ def load(addons_to_load: list[AddonInfo]):
             addon_name = addon_info.module_name
         else:
             bpy.ops.extensions.repo_refresh_all()
-            addon_name = "bl_ext.user_default." + addon_info.module_name
-
+            repo = is_in_any_extension_directory(addon_info.load_dir) or "user_default"
+            addon_name = "bl_ext." + repo.module + '.' + addon_info.module_name
         try:
             bpy.ops.preferences.addon_enable(module=addon_name)
         except Exception:
@@ -76,12 +75,19 @@ def create_link_in_user_addon_directory(directory: Union[str, os.PathLike], link
         os.symlink(str(directory), str(link_path), target_is_directory=True)
 
 
-def is_in_any_addon_directory(module_path: Path):
-    for repo in bpy.context.preferences.extensions.repos:
-        repo: bpy.types.UserExtensionRepo
-        if repo.enabled and repo.directory == module_path.parent:
-            return True
-    for path in ADDON_DIRECTORIES:
+def is_in_any_addon_directory(module_path: Path) -> bool:
+    for path in addon_directories:
         if path == module_path.parent:
             return True
     return False
+
+
+def is_in_any_extension_directory(module_path: Path) -> Optional[bpy.types.UserExtensionRepo]:
+    for repo in bpy.context.preferences.extensions.repos:
+        if not repo.enabled:
+            continue
+        if repo.use_custom_directory and Path(repo.custom_directory) == module_path.parent:
+            return repo
+        if not repo.use_custom_directory and Path(repo.directory) == module_path.parent:
+            return repo
+    return None
