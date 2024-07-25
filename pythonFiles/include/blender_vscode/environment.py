@@ -4,16 +4,16 @@ import addon_utils
 from pathlib import Path
 import platform
 
-PYTHON_PATH = Path(sys.executable)
-BLENDER_PATH = Path(bpy.app.binary_path)
-blender_directory = BLENDER_PATH.parent
+python_path = Path(sys.executable)
+blender_path = Path(bpy.app.binary_path)
+blender_directory = blender_path.parent
 
 # Test for MacOS app bundles
 if platform.system() == "Darwin":
-    USE_OWN_PYTHON = blender_directory.parent in PYTHON_PATH.parents
+    use_own_python = blender_directory.parent in python_path.parents
 else:
-    USE_OWN_PYTHON = blender_directory in PYTHON_PATH.parents
+    use_own_python = blender_directory in python_path.parents
 
-_version = bpy.app.version
-SCRIPTS_FOLDER = BLENDER_PATH.parent / f"{_version[0]}.{_version[1]}" / "scripts"
-ADDON_DIRECTORIES = tuple(map(Path, addon_utils.paths()))
+version = bpy.app.version
+scripts_folder = blender_path.parent / f"{version[0]}.{version[1]}" / "scripts"
+addon_directories = tuple(map(Path, addon_utils.paths()))
