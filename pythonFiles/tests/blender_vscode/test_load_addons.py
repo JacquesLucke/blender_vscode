@@ -1,6 +1,8 @@
+import contextlib
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch, Mock
+from typing import Dict
 
 import pytest
 
@@ -9,23 +11,31 @@ import pytest
 def bpy_global_defaults(request: pytest.FixtureRequest):
     sys.modules["bpy"] = Mock()
     sys.modules["addon_utils"] = Mock()
-    patches = (
-        patch("bpy.app.binary_path", return_value="/bin/usr/blender"),
-        patch("bpy.app.version", (2, 9, 0)),
-        patch("addon_utils.paths", return_value=[]),
-    )
-    [p.start() for p in patches]
+    # DANGER: patching imports with global scope. You can not override them in function.
+    # https://docs.pytest.org/en/latest/example/parametrize.html#apply-indirect-on-particular-arguments
+    patches = {
+        "bpy.app.binary_path": patch("bpy.app.binary_path", "/bin/usr/blender"),
+        "bpy.app.version": patch("bpy.app.version", (2, 9, 0)),
+        "addon_utils.paths": patch("addon_utils.paths", return_value=[]),
+    }
+    with contextlib.ExitStack() as stack:
+        active_patches = {key: stack.enter_context(value) for key, value in patches.items()}
+        yield active_patches
 
-    yield patches
-
-    [p.stop() for p in patches]
-    del sys.modules["bpy"]
-    del sys.modules["addon_utils"]
-    del sys.modules["blender_vscode"]
+    for module_name in [k for k in sys.modules.keys()]:
+        if (
+            module_name.startswith("blender_vscode")
+            or module_name.startswith("bpy")
+            or module_name.startswith("addon_utils")
+        ):
+            try:
+                del sys.modules[module_name]
+            except:
+                pass
 
 
 class TestSetupAddonLinks:
-    @patch("blender_vscode.utils.is_addon_legacy", return_value=True)
+    @patch("blender_vscode.load_addons.is_addon_legacy", return_value=True, create=True)
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=False)
     @patch("blender_vscode.load_addons.is_in_any_extension_directory", return_value=True)
     @patch("blender_vscode.load_addons.create_link_in_user_addon_directory", return_value=None)
@@ -56,15 +66,16 @@ class TestSetupAddonLinks:
         ]
         get_user_addon_directory.assert_called_once()
         create_link_in_user_addon_directory.assert_not_called()
+        is_in_any_extension_directory.assert_called()
 
-    @patch("blender_vscode.utils.is_addon_legacy", return_value=False)
+    @patch("blender_vscode.load_addons.is_addon_legacy", return_value=False)
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=False)
     @patch("blender_vscode.load_addons.is_in_any_extension_directory", return_value=True)
     @patch(
         "blender_vscode.load_addons.create_link_in_user_addon_directory",
         return_value=MagicMock(
             enabled=True, use_custom_directory=False, custom_directory="", directory="scripts/extensions/blender_org"
-        )
+        ),
     )
     @patch("blender_vscode.load_addons.get_user_addon_directory", return_value=Path("scripts/extensions/user_default"))
     def test_setup_addon_links_develop_extension_in_extension_dir(
@@ -85,25 +96,29 @@ class TestSetupAddonLinks:
 
         mappings = setup_addon_links(addons_to_load=addons_to_load)
 
-        get_user_addon_directory.assert_called_once()
-        create_link_in_user_addon_directory.assert_not_called()
         assert mappings == [
             {
                 "src": "scripts\\extensions\\blender_org\\test-extension",
                 "load": "scripts\\extensions\\blender_org\\test-extension",
             }
         ]
+        get_user_addon_directory.assert_called_once()
+        create_link_in_user_addon_directory.assert_not_called()
+        is_in_any_extension_directory.assert_called()
 
 
 class TestIsInAnyAddonDirectory:
-    def test_is_in_any_addon_directory(self):
-        with patch("addon_utils.paths", return_value=["scripts\\addons"]) as repos:
-            from blender_vscode import load_addons
+    def test_is_in_any_addon_directory(self, bpy_global_defaults: Dict):
+        bpy_global_defaults["addon_utils.paths"].return_value = ["scripts\\addons"]
+        import sys
 
-            ret = load_addons.is_in_any_addon_directory(Path("scripts/addons/my-addon1"))
-            assert ret
-            ret = load_addons.is_in_any_addon_directory(Path("scripts/my-addon2"))
-            assert not ret
+        import blender_vscode.load_addons as load_addons
+
+        ret = load_addons.is_in_any_addon_directory(Path("scripts/addons/my-addon1"))
+        assert ret
+
+        ret = load_addons.is_in_any_addon_directory(Path("scripts/my-addon2"))
+        assert not ret
 
 
 class TestIsInAnyExtensionDirectory:
@@ -111,7 +126,7 @@ class TestIsInAnyExtensionDirectory:
         repo_mock = Mock(
             enabled=True, use_custom_directory=False, custom_directory="", directory="scripts/extensions/blender_org"
         )
-        with patch("bpy.context", **{"preferences.extensions.repos": [repo_mock]}) as repos:
+        with patch("blender_vscode.load_addons.bpy", **{"context.preferences.extensions.repos": [repo_mock]}) as repos:
             from blender_vscode import load_addons
 
             ret = load_addons.is_in_any_extension_directory(Path("scripts/addons/my-addon1"))
@@ -122,12 +137,14 @@ class TestIsInAnyExtensionDirectory:
 
 
 class TestLoad:
-    @patch("bpy.ops.preferences.addon_refresh")
-    @patch("bpy.ops.preferences.addon_enable")
-    @patch("blender_vscode.utils.is_addon_legacy", return_value=True)
-    def test_load_legacy_addon_from_blender_addons(
+    @patch("blender_vscode.load_addons.bpy.ops.preferences.addon_refresh")
+    @patch("blender_vscode.load_addons.bpy.ops.preferences.addon_enable")
+    @patch("blender_vscode.load_addons.bpy.ops.extensions.repo_refresh_all")
+    @patch("blender_vscode.load_addons.is_addon_legacy", return_value=True)
+    def test_load_legacy_addon_from_addons_dir(
         self,
         is_addon_legacy: MagicMock,
+        repo_refresh_all: MagicMock,
         addon_enable: MagicMock,
         addon_refresh: MagicMock,
     ):
@@ -140,12 +157,14 @@ class TestLoad:
 
         addon_enable.assert_called_once_with(module="test-addon")
         is_addon_legacy.assert_called_once()
+        addon_refresh.assert_called_once()
+        repo_refresh_all.assert_not_called()
 
-    @patch("bpy.ops.preferences.addon_refresh")
-    @patch("bpy.ops.preferences.addon_enable")
-    @patch("bpy.ops.extensions.repo_refresh_all")
-    @patch("blender_vscode.utils.is_addon_legacy", return_value=False)
-    def test_load_extension(
+    @patch("blender_vscode.load_addons.bpy.ops.preferences.addon_refresh")
+    @patch("blender_vscode.load_addons.bpy.ops.preferences.addon_enable", return_value=None)
+    @patch("blender_vscode.load_addons.bpy.ops.extensions.repo_refresh_all", return_value="asd")
+    @patch("blender_vscode.load_addons.is_addon_legacy", return_value=False)
+    def test_load_extension_from_extensions_dir(
         self,
         is_addon_legacy: MagicMock,
         repo_refresh_all: MagicMock,
@@ -160,16 +179,19 @@ class TestLoad:
             module="blender_org",
         )
 
-        with patch("bpy.context", **{"preferences.extensions.repos": [repo_mock]}) as repos:
+        with patch("blender_vscode.load_addons.bpy.context", **{"preferences.extensions.repos": [repo_mock]}):
+            # with patch("blender_vscode.load_addons.bpy.ops.extensions.repo_refresh_all"):
             from blender_vscode import AddonInfo
-            from blender_vscode.load_addons import load
 
             addons_to_load = [
                 AddonInfo(load_dir=Path("scripts/extensions/blender_org/test-addon2"), module_name="testaddon2"),
             ]
 
+            from blender_vscode.load_addons import load
+
             load(addons_to_load=addons_to_load)
 
-        is_addon_legacy.assert_called_once()
-        repo_refresh_all.assert_called_once()
-        addon_enable.assert_called_once_with(module="bl_ext.blender_org.testaddon2")
+            addon_enable.assert_called_once_with(module="bl_ext.blender_org.testaddon2")
+            is_addon_legacy.assert_called_once()
+            repo_refresh_all.assert_called_once()
+            addon_refresh.assert_not_called()
