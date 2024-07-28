@@ -54,8 +54,9 @@ def load(addons_to_load: list[AddonInfo]):
             addon_name = addon_info.module_name
         else:
             bpy.ops.extensions.repo_refresh_all()
-            repo = is_in_any_extension_directory(addon_info.load_dir) or "user_default"
-            addon_name = "bl_ext." + repo.module + '.' + addon_info.module_name
+            repo = is_in_any_extension_directory(addon_info.load_dir)
+            module = getattr(repo, "module", "user_default")
+            addon_name = ".".join(("bl_ext", module, addon_info.module_name,))
         try:
             bpy.ops.preferences.addon_enable(module=addon_name)
         except Exception:
@@ -86,8 +87,7 @@ def is_in_any_extension_directory(module_path: Path) -> Optional[bpy.types.UserE
     for repo in bpy.context.preferences.extensions.repos:
         if not repo.enabled:
             continue
-        if repo.use_custom_directory and Path(repo.custom_directory) == module_path.parent:
-            return repo
-        if not repo.use_custom_directory and Path(repo.directory) == module_path.parent:
+        repo_dir = repo.custom_directory if repo.use_custom_directory else repo.directory
+        if Path(repo_dir) == module_path.parent:
             return repo
     return None
