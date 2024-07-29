@@ -136,12 +136,6 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_extension_directory.assert_not_called()
 
 
-# return_value=MagicMock(
-#     enabled=True,
-#     use_custom_directory=False,
-#     custom_directory="",
-#     directory="/4.2/scripts/extensions/blender_org",
-# ),
 @patch("blender_vscode.load_addons.os.makedirs")
 @patch("blender_vscode.load_addons.is_addon_legacy", return_value=False)
 @patch("blender_vscode.load_addons.create_link_in_user_addon_directory")
