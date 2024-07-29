@@ -4,6 +4,7 @@ import sys
 import traceback
 from bpy.props import *
 from ..utils import is_addon_legacy, redraw_all
+from ..load_addons import is_in_any_extension_directory
 from ..communication import send_dict_as_json, register_post_action
 
 
@@ -44,7 +45,10 @@ def reload_addon_action(data):
         if is_addon_legacy(Path(dir)):
             module_names.append(name)
         else:
-            module_names.append("bl_ext.user_default." + name)
+            repo = is_in_any_extension_directory(Path(dir))
+            module = getattr(repo, "module", "user_default")
+            addon_name = ".".join(("bl_ext", module, name))
+            module_names.append(addon_name)
 
     for name in module_names:
         bpy.ops.dev.update_addon(module_name=name)
