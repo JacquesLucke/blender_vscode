@@ -16,18 +16,26 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
     path_mappings: List[Dict] = []
 
     for addon_info in addons_to_load:
-        user_addon_directory = get_user_addon_directory(Path(addon_info.load_dir))
-        print(f"USER ADDON: {user_addon_directory}")
-
-        if is_addon_legacy(Path(addon_info.load_dir)) and str(user_addon_directory) not in sys.path:
-            os.makedirs(user_addon_directory, exist_ok=True)
-            sys.path.append(str(user_addon_directory))
-
-        if is_in_any_addon_directory(addon_info.load_dir) or is_in_any_extension_directory(addon_info.load_dir):
-            load_path = addon_info.load_dir
+        default_directory = get_user_addon_directory(Path(addon_info.load_dir))
+        if is_addon_legacy(Path(addon_info.load_dir)):
+            if is_in_any_addon_directory(addon_info.load_dir):
+                # blender knows about addon and can load it
+                load_path = addon_info.load_dir
+            else:  # is in external dir of is in extensions dir
+                load_path = os.path.join(default_directory, addon_info.module_name)
+                if str(load_path) not in sys.path:
+                    sys.path.append(str(load_path))
+                create_link_in_user_addon_directory(addon_info.load_dir, load_path)
         else:
-            load_path = os.path.join(user_addon_directory, addon_info.module_name)
-            create_link_in_user_addon_directory(addon_info.load_dir, load_path)
+            if is_in_any_extension_directory(Path(addon_info.load_dir)):
+                # blender knows about extension and can load it
+                load_path = addon_info.load_dir
+            else:
+                os.makedirs(default_directory, exist_ok=True)
+                load_path = os.path.join(default_directory, addon_info.module_name)
+                if str(load_path) not in sys.path:
+                    sys.path.append(str(load_path))
+                create_link_in_user_addon_directory(addon_info.load_dir, load_path)
 
         path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
 
@@ -51,13 +59,7 @@ def load(addons_to_load: List[AddonInfo]):
             bpy.ops.extensions.repo_refresh_all()
             repo = is_in_any_extension_directory(addon_info.load_dir)
             module = getattr(repo, "module", "user_default")
-            addon_name = ".".join(
-                (
-                    "bl_ext",
-                    module,
-                    addon_info.module_name,
-                )
-            )
+            addon_name = ".".join(("bl_ext", module, addon_info.module_name))
         try:
             bpy.ops.preferences.addon_enable(module=addon_name)
         except Exception:
