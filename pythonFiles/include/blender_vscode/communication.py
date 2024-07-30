@@ -6,7 +6,7 @@ import requests
 import threading
 from functools import partial
 from .utils import run_in_main_thread
-from .environment import blender_path, scripts_folder
+from .environment import blender_path, scripts_folder, python_path
 
 EDITOR_ADDRESS = None
 OWN_SERVER_PORT = None
@@ -52,6 +52,9 @@ def start_debug_server():
     while True:
         port = get_random_port()
         try:
+            # for < 2.92 support (debugpy has problems when using bpy.app.binary_path_python)
+            # https://github.com/microsoft/debugpy/issues/1330
+            debugpy.configure(python=str(python_path))
             debugpy.listen(("localhost", port))
             break
         except OSError:
