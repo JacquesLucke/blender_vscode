@@ -35,6 +35,7 @@ def bpy_global_defaults(request: pytest.FixtureRequest):
                 pass
 
 
+@patch("blender_vscode.load_addons.sys", path=[])
 @patch("blender_vscode.load_addons.os.makedirs")
 @patch("blender_vscode.load_addons.is_addon_legacy", return_value=True)
 @patch("blender_vscode.load_addons.create_link_in_user_addon_directory")
@@ -50,6 +51,7 @@ class TestSetupAddonLinksDevelopAddon:
         create_link_in_user_addon_directory: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
+        sys_mock: MagicMock,
     ):
         """Example: user is developing addon in `/home/user/blenderProject`"""
         from blender_vscode import AddonInfo
@@ -83,6 +85,7 @@ class TestSetupAddonLinksDevelopAddon:
         create_link_in_user_addon_directory: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
+        sys_mock: MagicMock,
     ):
         """Example: user is developing addon in `/4.2/scripts/extensions/blender_org`"""
         from blender_vscode import AddonInfo
@@ -115,6 +118,7 @@ class TestSetupAddonLinksDevelopAddon:
         create_link_in_user_addon_directory: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
+        sys_mock: MagicMock,
     ):
         """Example: user is developing addon in `/4.2/scripts/extensions/blender_org`"""
         from blender_vscode import AddonInfo
@@ -136,6 +140,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_extension_directory.assert_not_called()
 
 
+@patch("blender_vscode.load_addons.sys", path=[])
 @patch("blender_vscode.load_addons.os.makedirs")
 @patch("blender_vscode.load_addons.is_addon_legacy", return_value=False)
 @patch("blender_vscode.load_addons.create_link_in_user_addon_directory")
@@ -151,6 +156,7 @@ class TestSetupAddonLinksDevelopExtension:
         create_link_in_user_addon_directory: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
+        sys_mock: MagicMock,
     ):
         """Example: user is developing extension in `/4.2/scripts/extensions/blender_org`"""
         repo_mock = Mock(
@@ -190,6 +196,7 @@ class TestSetupAddonLinksDevelopExtension:
         create_link_in_user_addon_directory: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
+        sys_mock: MagicMock,
     ):
         """Example: user is developing extension in `/4.2/scripts/addons/test-extension`"""
         is_in_any_extension_directory.return_value = None
@@ -221,6 +228,7 @@ class TestSetupAddonLinksDevelopExtension:
         create_link_in_user_addon_directory: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
+        sys_mock: MagicMock,
     ):
         """Example: user is developing extension in `/home/user/blenderProjects/test-extension`"""
         from blender_vscode.load_addons import setup_addon_links
