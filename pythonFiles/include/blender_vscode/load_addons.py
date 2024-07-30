@@ -33,8 +33,6 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
             else:
                 os.makedirs(default_directory, exist_ok=True)
                 load_path = os.path.join(default_directory, addon_info.module_name)
-                if str(load_path) not in sys.path:
-                    sys.path.append(str(load_path))
                 create_link_in_user_addon_directory(addon_info.load_dir, load_path)
 
         path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
