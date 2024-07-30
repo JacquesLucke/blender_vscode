@@ -10,10 +10,13 @@ import pytest
 
 @pytest.fixture(scope="function", autouse=True)
 def bpy_global_defaults(request: pytest.FixtureRequest):
+    # selection of modules provided with blender
+    # when fake-bpy-module is installed: override it
+    # when bpy is not available: provide Mock for further patching
     sys.modules["bpy"] = Mock()
     sys.modules["addon_utils"] = Mock()
     # DANGER: patching imports with global scope. You can not override them in function.
-    # https://docs.pytest.org/en/latest/example/parametrize.html#apply-indirect-on-particular-arguments
+    # those defaults are required by global variables in blender_vscode.environment
     patches = {
         "bpy.app.binary_path": patch("bpy.app.binary_path", "/bin/usr/blender"),
         "bpy.app.version": patch("bpy.app.version", (2, 9, 0)),
