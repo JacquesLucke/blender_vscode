@@ -282,10 +282,10 @@ class TestIsInAnyExtensionDirectory:
             assert ret is repo_mock
 
 
+@patch("blender_vscode.load_addons.bpy.ops.preferences.addon_refresh")
+@patch("blender_vscode.load_addons.bpy.ops.preferences.addon_enable")
+@patch("blender_vscode.load_addons.bpy.ops.extensions.repo_refresh_all")
 class TestLoad:
-    @patch("blender_vscode.load_addons.bpy.ops.preferences.addon_refresh")
-    @patch("blender_vscode.load_addons.bpy.ops.preferences.addon_enable")
-    @patch("blender_vscode.load_addons.bpy.ops.extensions.repo_refresh_all")
     @patch("blender_vscode.load_addons.is_addon_legacy", return_value=True)
     def test_load_legacy_addon_from_addons_dir(
         self,
@@ -306,9 +306,6 @@ class TestLoad:
         addon_refresh.assert_called_once()
         repo_refresh_all.assert_not_called()
 
-    @patch("blender_vscode.load_addons.bpy.ops.preferences.addon_refresh")
-    @patch("blender_vscode.load_addons.bpy.ops.preferences.addon_enable", return_value=None)
-    @patch("blender_vscode.load_addons.bpy.ops.extensions.repo_refresh_all", return_value="asd")
     @patch("blender_vscode.load_addons.is_addon_legacy", return_value=False)
     def test_load_extension_from_extensions_dir(
         self,
@@ -326,7 +323,6 @@ class TestLoad:
         )
 
         with patch("blender_vscode.load_addons.bpy.context", **{"preferences.extensions.repos": [repo_mock]}):
-            # with patch("blender_vscode.load_addons.bpy.ops.extensions.repo_refresh_all"):
             from blender_vscode import AddonInfo
 
             addons_to_load = [
