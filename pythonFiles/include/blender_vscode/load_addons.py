@@ -22,6 +22,7 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
                 # blender knows about addon and can load it
                 load_path = addon_info.load_dir
             else:  # is in external dir of is in extensions dir
+                os.makedirs(default_directory, exist_ok=True)
                 load_path = os.path.join(default_directory, addon_info.module_name)
                 if str(load_path) not in sys.path:
                     sys.path.append(str(load_path))
