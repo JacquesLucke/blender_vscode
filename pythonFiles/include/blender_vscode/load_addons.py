@@ -85,7 +85,7 @@ def is_in_any_addon_directory(module_path: Path) -> bool:
     return False
 
 
-def is_in_any_extension_directory(module_path: Path) -> Optional[bpy.types.UserExtensionRepo]:
+def is_in_any_extension_directory(module_path: Path) -> Optional["bpy.types.UserExtensionRepo"]:
     for repo in bpy.context.preferences.extensions.repos:
         if not repo.enabled:
             continue
