@@ -2,7 +2,11 @@ import os
 import sys
 import textwrap
 import subprocess
+
+import bpy
+
 from pathlib import Path
+
 from . import handle_fatal_error
 from .environment import python_path, use_own_python
 
@@ -57,11 +61,13 @@ def install_pip():
 
 
 def get_package_install_directory():
-    for path in sys.path:
-        if os.path.basename(path) in ("dist-packages", "site-packages"):
-            return path
-
-    handle_fatal_error("Don't know where to install packages. Please make a bug report.")
+    # user modules loaded are loaded by default by blender from this path
+    # https://docs.blender.org/manual/en/4.2/editors/preferences/file_paths.html#script-directories
+    modules_path = bpy.utils.user_resource("SCRIPTS", path="modules")
+    if modules_path not in sys.path:
+        # if the path does not exist blender will not load it, usually occurs in fresh install
+        sys.path.append(modules_path)
+    return modules_path
 
 
 def module_can_be_imported(name):
