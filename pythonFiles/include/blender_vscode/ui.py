@@ -1,15 +1,12 @@
 import bpy
-from . communication import (
-    get_blender_port,
-    get_debugpy_port,
-    get_editor_address
-)
+from .communication import get_blender_port, get_debugpy_port, get_editor_address
+
 
 class DevelopmentPanel(bpy.types.Panel):
     bl_idname = "DEV_PT_panel"
     bl_label = "Development"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_category = "Dev"
 
     def draw(self, context):
@@ -19,9 +16,8 @@ class DevelopmentPanel(bpy.types.Panel):
         layout.label(text=f"Editor at Address {get_editor_address()}")
 
 
-classes = (
-    DevelopmentPanel,
-)
+classes = (DevelopmentPanel,)
+
 
 def register():
     for cls in classes:

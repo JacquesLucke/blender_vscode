@@ -2,7 +2,7 @@
   "name": "blender-development",
   "displayName": "Blender Development",
   "description": "Tools to simplify Blender development.",
-  "version": "0.0.16",
+  "version": "0.0.21",
   "publisher": "JacquesLucke",
   "license": "MIT",
   "engines": {
@@ -108,7 +108,7 @@
         "properties": {
           "blender.executables": {
             "type": "array",
-            "scope": "application",
+            "scope": "resource",
             "description": "Paths to Blender executables.",
             "items": {
               "type": "object",
@@ -141,6 +141,12 @@
             "scope": "resource",
             "default": false,
             "description": "Reload addon in Blender when a document is saved."
+          },
+          "blender.addon.justMyCode": {
+            "type": "boolean",
+            "scope": "resource",
+            "default": true,
+            "description": "If true, debug only the code in this addon. Otherwise, allow stepping into external python library code."
           },
           "blender.addon.buildTaskName": {
             "type": "string",
@@ -203,6 +209,40 @@
                 }
               }
             }
+          },
+          "blender.addonFolders": {
+            "type": "array",
+            "scope": "resource",
+            "description": "Array of paths to addon folders. Relative folders are resolved from the path of root workspace. If empty workspace folders are used.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blender.environmentVariables": {
+            "type": "object",
+            "scope": "resource",
+            "title": "Startup Environment Variables",
+            "description": "Environment variables set before Blender starts. Keys of the object are used as environment variable names, values as values.",
+            "examples": [
+              {
+                "BLENDER_USER_SCRIPTS": "C:/custom_scripts_folder",
+                "BLENDER_USER_CONFIG": "C:/custom_user_config"
+              }
+            ]
+          },
+          "blender.additionalArguments": {
+            "type": "array",
+            "scope": "resource",
+            "title": "Startup Additional Arguments",
+            "description": "Additional arguments used for Blender start-up. List of strings.",
+            "items": {
+              "type": "string"
+            },
+            "examples": [
+              [
+                "--factory-startup"
+              ]
+            ]
           }
         }
       }

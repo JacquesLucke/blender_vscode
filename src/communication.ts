@@ -1,6 +1,7 @@
 import * as http from 'http';
 import * as vscode from 'vscode';
 import * as request from 'request';
+import { getConfig } from './utils';
 import { attachPythonDebuggerToBlender } from './python_debugging';
 
 const RESPONSIVE_LIMIT_MS = 1000;
@@ -14,15 +15,17 @@ export type AddonPathMapping = { src: string, load: string };
 export class BlenderInstance {
     blenderPort: number;
     debugpyPort: number;
+    justMyCode: boolean;
     path: string;
     scriptsFolder: string;
     addonPathMappings: AddonPathMapping[];
     connectionErrors: Error[];
 
-    constructor(blenderPort: number, debugpyPort: number, path: string,
+    constructor(blenderPort: number, debugpyPort: number, justMyCode: boolean, path: string,
         scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
         this.blenderPort = blenderPort;
         this.debugpyPort = debugpyPort;
+        this.justMyCode = justMyCode;
         this.path = path;
         this.scriptsFolder = scriptsFolder;
         this.addonPathMappings = addonPathMappings;
@@ -49,7 +52,7 @@ export class BlenderInstance {
     }
 
     attachDebugger() {
-        attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.scriptsFolder, this.addonPathMappings);
+        attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings);
     }
 
     get address() {
@@ -130,7 +133,9 @@ function SERVER_handleRequest(request: any, response: any) {
 
             switch (req.type) {
                 case 'setup': {
-                    let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
+                    let config = getConfig();
+                    let justMyCode: boolean = <boolean>config.get('addon.justMyCode')
+                    let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
                     instance.attachDebugger();
                     RunningBlenders.register(instance);
                     response.end('OK');

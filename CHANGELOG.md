@@ -1,5 +1,50 @@
 # Changelog
 
+## Unreleased
+
+## [0.0.21] - 2024-07-16
+
+### Added
+- Initial support for extensions for Blender 4.2.
+
+## [0.0.20] - 2024-05-01
+
+### Added
+- New `blender.addon.justMyCode` option. Previously, this was enabled by default and made it more difficult to debug addons that used external libraries. Restart Blender debug session after changing this option.
+
+### Fixed
+- Prioritize addon path mappings to make it more likely that the right path is mapped.
+
+## [0.0.19] - 2023-12-05
+
+### Fixed
+- Fixed "Run Script" support for Blender 4.0.
+
+## [0.0.18] - 2023-04-02
+
+### Added
+- New `blender.environmentVariables` option. Can be used to define environment variables passed to
+blender on `Blender Start`.
+- New `blender.additionalArguments` option. Can be used to define additional arguments used when
+starting blender on `Blender Start`.
+
+### Changed
+- Changed scope of `blender.executables` to `resource`. The value is firstly looked up in workspace
+settings before user settings.
+
+### Fixed
+- Behavior of scripts that changed context like the active object.
+
+## [0.0.17] - 2022-06-08
+
+### Added
+- New `blender.addonFolders` option. Allows to specify absolute or root workspace relative
+directories where to search for addons. If not specified all workspace folders are searched.
+
+### Fixed
+- Update `get-pip.py`.
+- Use `ensurepip` if available.
+
 ## [0.0.16] - 2021-06-15
 
 ### Fixed

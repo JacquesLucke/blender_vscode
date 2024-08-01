@@ -47,8 +47,10 @@ export function handleErrors(func: () => Promise<void>) {
             await func();
         }
         catch (err) {
-            if (err.message !== CANCEL) {
-                vscode.window.showErrorMessage(err.message);
+            if (err instanceof Error) {
+                if (err.message !== CANCEL) {
+                    vscode.window.showErrorMessage(err.message);
+                }
             }
         }
     };
@@ -209,7 +211,8 @@ export function startsWithNumber(text: string) {
 
 export function multiReplaceText(text: string, replacements: object) {
     for (let old of Object.keys(replacements)) {
-        text = text.replace(old, <string>(<any>replacements)[old]);
+        let matcher = RegExp(old, 'g');
+        text = text.replace(matcher, <string>(<any>replacements)[old]);
     }
     return text;
 }
@@ -217,4 +220,11 @@ export function multiReplaceText(text: string, replacements: object) {
 export function isValidPythonModuleName(text: string): boolean {
     let match = text.match(/^[_a-z][_0-9a-z]*$/i);
     return match !== null;
+}
+
+export function toTitleCase(str: string) {
+  return str.replace(
+    /\w\S*/g,
+    text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+  );
 }

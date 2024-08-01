@@ -183,7 +183,8 @@ async function testIfPathIsBlender(filepath: string) {
 }
 
 function getBlenderLaunchArgs() {
-    return ['--python', launchPath];
+    let config = getConfig();
+    return ['--python', launchPath].concat(<string[]>config.get("additionalArguments", []));
 }
 
 async function getBlenderLaunchEnv() {
@@ -195,5 +196,6 @@ async function getBlenderLaunchEnv() {
         ADDONS_TO_LOAD: JSON.stringify(loadDirsWithNames),
         EDITOR_PORT: getServerPort().toString(),
         ALLOW_MODIFY_EXTERNAL_PYTHON: <boolean>config.get('allowModifyExternalPython') ? 'yes' : 'no',
+        ...<object>config.get("environmentVariables", {}),
     };
 }
