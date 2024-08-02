@@ -2,7 +2,7 @@
   "name": "blender-development",
   "displayName": "Blender Development",
   "description": "Tools to simplify Blender development.",
-  "version": "0.0.18",
+  "version": "0.0.21",
   "publisher": "JacquesLucke",
   "license": "MIT",
   "engines": {
@@ -142,6 +142,12 @@
             "default": false,
             "description": "Reload addon in Blender when a document is saved."
           },
+          "blender.addon.justMyCode": {
+            "type": "boolean",
+            "scope": "resource",
+            "default": true,
+            "description": "If true, debug only the code in this addon. Otherwise, allow stepping into external python library code."
+          },
           "blender.addon.buildTaskName": {
             "type": "string",
             "scope": "resource",
@@ -222,6 +228,20 @@
                 "BLENDER_USER_SCRIPTS": "C:/custom_scripts_folder",
                 "BLENDER_USER_CONFIG": "C:/custom_user_config"
               }
+            ]
+          },
+          "blender.additionalArguments": {
+            "type": "array",
+            "scope": "resource",
+            "title": "Startup Additional Arguments",
+            "description": "Additional arguments used for Blender start-up. List of strings.",
+            "items": {
+              "type": "string"
+            },
+            "examples": [
+              [
+                "--factory-startup"
+              ]
             ]
           }
         }

@@ -10,14 +10,14 @@ import { getAnyWorkspaceFolder } from './utils';
 type PathMapping = { localRoot: string, remoteRoot: string };
 
 export async function attachPythonDebuggerToBlender(
-    port: number, blenderPath: string, scriptsFolder: string,
+    port: number, blenderPath: string, justMyCode: boolean, scriptsFolder: string,
     addonPathMappings: AddonPathMapping[]) {
 
     let mappings = await getPythonPathMappings(scriptsFolder, addonPathMappings);
-    attachPythonDebugger(port, mappings);
+    attachPythonDebugger(port, justMyCode, mappings);
 }
 
-function attachPythonDebugger(port: number, pathMappings: PathMapping[] = []) {
+function attachPythonDebugger(port: number, justMyCode: boolean, pathMappings: PathMapping[] = []) {
     let configuration = {
         name: `Python at Port ${port}`,
         request: "attach",
@@ -25,6 +25,7 @@ function attachPythonDebugger(port: number, pathMappings: PathMapping[] = []) {
         port: port,
         host: 'localhost',
         pathMappings: pathMappings,
+        justMyCode: justMyCode
     };
 
     // log config (reuse common output)
@@ -56,7 +57,7 @@ async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: A
     // add blender scripts last, otherwise it seem to take all the scope and not let the proper mapping of other files
     mappings.push(await getBlenderScriptsPathMapping(scriptsFolder));
 
-    // finally add the worspace folder as last resort for mapping loose scripts inside it
+    // finally add the workspace folder as last resort for mapping loose scripts inside it
     let wsFolder = getAnyWorkspaceFolder();
     // extension_1.printChannelOutput("wsFolder: " + JSON.stringify(wsFolder, undefined, 2));
     mappings.push({

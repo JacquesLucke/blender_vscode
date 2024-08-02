@@ -46,6 +46,10 @@ export class AddonWorkspaceFolder {
         return <boolean>this.getConfig().get('addon.reloadOnSave');
     }
 
+    get justMyCode() {
+        return <boolean>this.getConfig().get('addon.justMyCode');
+    }
+
     public async hasAddonEntryPoint() {
         try {
             let sourceDir = await this.getSourceDirectory();
@@ -126,6 +130,11 @@ async function tryFindActualAddonFolder(root: string) {
 }
 
 async function folderContainsAddonEntry(folderPath: string) {
+    let manifestPath = path.join(folderPath, "blender_manifest.toml");
+    if (await pathExists(manifestPath)) {
+        return true;
+    }
+        
     let initPath = path.join(folderPath, '__init__.py');
     try {
         let content = await readTextFile(initPath);
