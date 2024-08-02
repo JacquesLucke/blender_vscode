@@ -3,8 +3,8 @@ import bpy
 import sys
 import traceback
 from bpy.props import *
-from ..utils import is_addon_legacy, redraw_all
-from ..load_addons import is_in_any_extension_directory
+from ..utils import is_addon_legacy, redraw_all, addon_has_bl_info
+from ..load_addons import is_in_any_extension_directory, is_in_any_addon_directory
 from ..communication import send_dict_as_json, register_post_action
 
 
@@ -43,6 +43,10 @@ def reload_addon_action(data):
     module_names = []
     for name, dir in zip(data["names"], data["dirs"]):
         if is_addon_legacy(Path(dir)):
+            module_names.append(name)
+        elif addon_has_bl_info(Path(dir)) and is_in_any_addon_directory(Path(dir)):
+            # this addon is compatible with legacy addons and extensions
+            # but user is developing it in addon directory. Treat it as addon.
             module_names.append(name)
         else:
             repo = is_in_any_extension_directory(Path(dir))

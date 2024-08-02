@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 import bpy
 import queue
@@ -10,6 +11,21 @@ def is_addon_legacy(addon_dir: Path) -> bool:
         return True
     if not (addon_dir / "blender_manifest.toml").exists():
         return True
+    return False
+
+
+def addon_has_bl_info(addon_dir: Path) -> bool:
+    """Perform best effort check to find bl_info. Does not perform an import on file to avoid code execution."""
+    with open(addon_dir / "__init__.py") as init_addon_file:
+        node = ast.parse(init_addon_file.read())
+        for element in node.body:
+            if not isinstance(element, ast.Assign):
+                continue
+            for target in element.targets:
+                if not isinstance(target, ast.Name):
+                    continue
+                if target.id == "bl_info":
+                    return True
     return False
 
 

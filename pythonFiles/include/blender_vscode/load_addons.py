@@ -9,7 +9,7 @@ import bpy
 from . import AddonInfo
 from .communication import send_dict_as_json
 from .environment import addon_directories
-from .utils import is_addon_legacy
+from .utils import is_addon_legacy, addon_has_bl_info
 
 
 def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
@@ -17,7 +17,7 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
 
     for addon_info in addons_to_load:
         default_directory = get_user_addon_directory(Path(addon_info.load_dir))
-        if is_addon_legacy(Path(addon_info.load_dir)):
+        if is_addon_legacy(addon_info.load_dir):
             if is_in_any_addon_directory(addon_info.load_dir):
                 # blender knows about addon and can load it
                 load_path = addon_info.load_dir
@@ -28,7 +28,11 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
                     sys.path.append(str(load_path))
                 create_link_in_user_addon_directory(addon_info.load_dir, load_path)
         else:
-            if is_in_any_extension_directory(Path(addon_info.load_dir)):
+            if addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
+                # this addon is compatible with legacy addons and extensions
+                # but user is developing it in addon directory. Treat it as addon.
+                load_path = addon_info.load_dir
+            elif is_in_any_extension_directory(addon_info.load_dir):
                 # blender knows about extension and can load it
                 load_path = addon_info.load_dir
             else:
@@ -52,6 +56,11 @@ def get_user_addon_directory(source_path: Path):
 def load(addons_to_load: List[AddonInfo]):
     for addon_info in addons_to_load:
         if is_addon_legacy(Path(addon_info.load_dir)):
+            bpy.ops.preferences.addon_refresh()
+            addon_name = addon_info.module_name
+        elif addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
+            # this addon is compatible with legacy addons and extensions
+            # but user is developing it in addon directory. Treat it as addon.
             bpy.ops.preferences.addon_refresh()
             addon_name = addon_info.module_name
         else:
