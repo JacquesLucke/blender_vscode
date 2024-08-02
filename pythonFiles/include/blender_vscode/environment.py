@@ -4,7 +4,10 @@ import addon_utils
 from pathlib import Path
 import platform
 
-python_path = Path(sys.executable)
+# binary_path_python was removed in blender 2.92
+# but it is the most reliable way of getting python path for older versions
+# https://github.com/JacquesLucke/blender_vscode/issues/80
+python_path = Path(getattr(bpy.app, "binary_path_python", sys.executable))
 blender_path = Path(bpy.app.binary_path)
 blender_directory = blender_path.parent
 

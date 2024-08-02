@@ -1,6 +1,7 @@
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import List
 
 import bpy
 
@@ -11,7 +12,7 @@ class AddonInfo:
     module_name: str
 
 
-def startup(editor_address, addons_to_load: list[AddonInfo], allow_modify_external_python):
+def startup(editor_address, addons_to_load: List[AddonInfo], allow_modify_external_python):
     if bpy.app.version < (2, 80, 34):
         handle_fatal_error("Please use a newer version of Blender")
 
