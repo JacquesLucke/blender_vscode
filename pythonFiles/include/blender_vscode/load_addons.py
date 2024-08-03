@@ -53,7 +53,8 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List
                     load_path = os.path.join(extensions_default_dir, addon_info.module_name)
                     make_temporary_link(addon_info.load_dir, load_path)
             path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
-        except Exception:
+        except Exception as e:
+            print(e)
             load_status.append({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
         else:
             path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
