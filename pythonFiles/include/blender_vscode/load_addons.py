@@ -1,4 +1,3 @@
-import atexit
 import os
 import sys
 import traceback
@@ -48,8 +47,8 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List
                     # blender knows about extension and can load it
                     load_path = addon_info.load_dir
                 else:
-                    extensions_default_dir = Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
                     # blender does not know about extension, and it must be linked to default location
+                    extensions_default_dir = Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
                     os.makedirs(extensions_default_dir, exist_ok=True)
                     load_path = os.path.join(extensions_default_dir, addon_info.module_name)
                     make_temporary_link(addon_info.load_dir, load_path)
