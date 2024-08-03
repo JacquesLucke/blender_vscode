@@ -12,10 +12,14 @@ from .communication import send_dict_as_json
 from .environment import addon_directories
 from .utils import is_addon_legacy, addon_has_bl_info
 
+def fake_poll(*args, **kwargs):
+    return False
 
 def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
     path_mappings: List[Dict] = []
-
+    load_status: List[Dict] = []
+    # disable bpy.ops.preferences.copy_prev() is not happy with links that are about to be crated
+    bpy.types.PREFERENCES_OT_copy_prev.poll = fake_poll
     for addon_info in addons_to_load:
         default_directory = get_user_addon_directory(Path(addon_info.load_dir))
         if is_addon_legacy(addon_info.load_dir):
