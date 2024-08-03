@@ -19,22 +19,25 @@ def fake_poll(*args, **kwargs):
 
 def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List[Dict]]:
     path_mappings: List[Dict] = []
+
+    addons_default_dir = bpy.utils.user_resource("SCRIPTS", path="addons")
+    # always make sure addons are in path, important when running fresh blender install
+    # do it always to avoid very confusing logic in the loop below
+    os.makedirs(addons_default_dir, exist_ok=True)
+    if str(addons_default_dir) not in sys.path:
+        sys.path.append(str(addons_default_dir))
+
     load_status: List[Dict] = []
     # disable bpy.ops.preferences.copy_prev() is not happy with links that are about to be crated
     bpy.types.PREFERENCES_OT_copy_prev.poll = fake_poll
     for addon_info in addons_to_load:
-        default_directory = get_user_addon_directory(Path(addon_info.load_dir))
         try:
             if is_addon_legacy(addon_info.load_dir):
-                # always make sure addon are in path, important when running fresh blender install
-                os.makedirs(default_directory, exist_ok=True)
-                if str(load_path) not in sys.path:
-                    sys.path.append(str(load_path))
                 if is_in_any_addon_directory(addon_info.load_dir):
                     # blender knows about addon and can load it
                     load_path = addon_info.load_dir
-                else:  # is in external dir of is in extensions dir
-                    load_path = os.path.join(default_directory, addon_info.module_name)
+                else:  # addon is in external dir or is in extensions dir
+                    load_path = os.path.join(addons_default_dir, addon_info.module_name)
                     make_temporary_link(addon_info.load_dir, load_path)
             else:
                 if addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
@@ -45,23 +48,18 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List
                     # blender knows about extension and can load it
                     load_path = addon_info.load_dir
                 else:
-                    os.makedirs(default_directory, exist_ok=True)
-                    load_path = os.path.join(default_directory, addon_info.module_name)
+                    extensions_default_dir = Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
+                    # blender does not know about extension, and it must be linked to default location
+                    os.makedirs(extensions_default_dir, exist_ok=True)
+                    load_path = os.path.join(extensions_default_dir, addon_info.module_name)
                     make_temporary_link(addon_info.load_dir, load_path)
+            path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
         except Exception:
             load_status.append({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
         else:
             path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
 
     return path_mappings, load_status
-
-
-def get_user_addon_directory(source_path: Path):
-    """Return either the user scripts or user extensions directory depending on the addon type."""
-    if is_addon_legacy(source_path):
-        return Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
-    else:
-        return Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
 
 
 def load(addons_to_load: List[AddonInfo]):
