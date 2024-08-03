@@ -1,3 +1,4 @@
+import atexit
 import os
 import sys
 import traceback
@@ -26,7 +27,7 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
                 load_path = os.path.join(default_directory, addon_info.module_name)
                 if str(load_path) not in sys.path:
                     sys.path.append(str(load_path))
-                create_link_in_user_addon_directory(addon_info.load_dir, load_path)
+                make_temporary_link(addon_info.load_dir, load_path)
         else:
             if addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
                 # this addon is compatible with legacy addons and extensions
@@ -38,7 +39,7 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
             else:
                 os.makedirs(default_directory, exist_ok=True)
                 load_path = os.path.join(default_directory, addon_info.module_name)
-                create_link_in_user_addon_directory(addon_info.load_dir, load_path)
+                make_temporary_link(addon_info.load_dir, load_path)
 
         path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
 
@@ -75,7 +76,7 @@ def load(addons_to_load: List[AddonInfo]):
             send_dict_as_json({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
 
 
-def create_link_in_user_addon_directory(directory: Union[str, os.PathLike], link_path: Union[str, os.PathLike]):
+def make_temporary_link(directory: Union[str, os.PathLike], link_path: Union[str, os.PathLike]):
     if os.path.exists(link_path):
         os.remove(link_path)
 
@@ -85,6 +86,12 @@ def create_link_in_user_addon_directory(directory: Union[str, os.PathLike], link
         _winapi.CreateJunction(str(directory), str(link_path))
     else:
         os.symlink(str(directory), str(link_path), target_is_directory=True)
+
+    def cleanup():
+        if os.path.exists(link_path):
+            os.remove(link_path)
+
+    atexit.register(cleanup)
 
 
 def is_in_any_addon_directory(module_path: Path) -> bool:
