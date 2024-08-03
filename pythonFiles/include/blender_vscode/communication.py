@@ -1,5 +1,5 @@
 import time
-from typing import Dict
+from typing import Dict, List
 import flask
 import debugpy
 import random
@@ -14,13 +14,18 @@ OWN_SERVER_PORT = None
 DEBUGPY_PORT = None
 
 
-def setup(address, path_mappings):
+def setup(address, path_mappings:  List[Dict], load_status: List[Dict]):
     global EDITOR_ADDRESS, OWN_SERVER_PORT, DEBUGPY_PORT
     EDITOR_ADDRESS = address
 
     OWN_SERVER_PORT = start_own_server()
     DEBUGPY_PORT = start_debug_server()
 
+    for status in load_status:
+        send_dict_as_json(status)
+
+    if not path_mappings:
+        return
     send_connection_information(path_mappings)
 
     print("Waiting for debug client.")
