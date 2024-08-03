@@ -3,7 +3,7 @@ import os.path
 import sys
 from pathlib import Path
 from typing import Dict
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import MagicMock, patch, Mock, PropertyMock
 
 import pytest
 
@@ -15,17 +15,29 @@ def bpy_global_defaults(request: pytest.FixtureRequest):
     # when bpy is not available: provide Mock for further patching
     sys.modules["bpy"] = Mock()
     sys.modules["addon_utils"] = Mock()
-    # DANGER: patching imports with global scope. You can not override them in function.
+    # DANGER: patching imports with global scope. Use returned patches to modify those values.
     # those defaults are required by global variables in blender_vscode.environment
+    # todo those values are different for different blender versions
     patches = {
-        "bpy.app.binary_path": patch("bpy.app.binary_path", "/bin/usr/blender"),
-        "bpy.app.version": patch("bpy.app.version", (2, 9, 0)),
+        "bpy.app": patch(
+            "bpy.app",
+            binary_path="/bin/usr/blender",
+            # binary_path_python="/bin/usr/blender/Lib/bin/python",  # enable to emulate blender <2.92
+            version=(2, 93, 0),
+            spec_set=[
+                "binary_path",
+                "version",
+                "timers",
+                # "binary_path_python",  # enable to emulate blender <2.92
+            ],
+        ),
         "addon_utils.paths": patch("addon_utils.paths", return_value=[]),
     }
     with contextlib.ExitStack() as stack:
         active_patches = {key: stack.enter_context(value) for key, value in patches.items()}
         yield active_patches
 
+    # unload modules
     for module_name in [k for k in sys.modules.keys()]:
         if (
             module_name.startswith("blender_vscode")
@@ -149,11 +161,45 @@ class TestSetupAddonLinksDevelopAddon:
 @patch("blender_vscode.load_addons.create_link_in_user_addon_directory")
 @patch("blender_vscode.load_addons.get_user_addon_directory", return_value=Path("/4.2/scripts/extensions/user_default"))
 @patch("blender_vscode.load_addons.is_in_any_extension_directory", return_value=None)
+@patch("blender_vscode.load_addons.addon_has_bl_info", return_value=False)
 class TestSetupAddonLinksDevelopExtension:
+    @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=True)
+    def test_setup_addon_links_develop_extension_in_addon_dir_is_treated_as_addon(
+        self,
+        is_in_any_addon_directory: MagicMock,
+        addon_has_bl_info: MagicMock,
+        is_in_any_extension_directory: MagicMock,
+        get_user_addon_directory: MagicMock,
+        create_link_in_user_addon_directory: MagicMock,
+        is_addon_legacy: MagicMock,
+        makedirs: MagicMock,
+        sys_mock: MagicMock,
+    ):
+        """Example: user is developing extension  in `/4.2/scripts/addon/test-extension` **but** extension supports legacy addons"""
+        addon_has_bl_info.return_value = True
+        is_in_any_extension_directory.return_value = None
+
+        from blender_vscode import AddonInfo
+        from blender_vscode.load_addons import setup_addon_links
+
+        addons_to_load = [AddonInfo(load_dir=Path("/4.2/scripts/addons/test-extension"), module_name="test_extension")]
+
+        mappings = setup_addon_links(addons_to_load=addons_to_load)
+
+        assert mappings == [
+            {
+                "src": os.path.sep.join("/4.2/scripts/addons/test-extension".split("/")),
+                "load": os.path.sep.join("/4.2/scripts/addons/test-extension".split("/")),
+            }
+        ]
+        makedirs.assert_not_called()
+        create_link_in_user_addon_directory.assert_not_called()
+
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=False)
     def test_setup_addon_links_develop_extension_in_extension_dir(
         self,
         is_in_any_addon_directory: MagicMock,
+        addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
         get_user_addon_directory: MagicMock,
         create_link_in_user_addon_directory: MagicMock,
@@ -194,6 +240,7 @@ class TestSetupAddonLinksDevelopExtension:
     def test_setup_addon_links_develop_extension_in_addon_dir(
         self,
         is_in_any_addon_directory: MagicMock,
+        addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
         get_user_addon_directory: MagicMock,
         create_link_in_user_addon_directory: MagicMock,
@@ -226,6 +273,7 @@ class TestSetupAddonLinksDevelopExtension:
     def test_setup_addon_links_develop_extension_in_external_dir(
         self,
         is_in_any_addon_directory: MagicMock,
+        addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
         get_user_addon_directory: MagicMock,
         create_link_in_user_addon_directory: MagicMock,
@@ -288,11 +336,15 @@ class TestIsInAnyExtensionDirectory:
 @patch("blender_vscode.load_addons.bpy.ops.preferences.addon_refresh")
 @patch("blender_vscode.load_addons.bpy.ops.preferences.addon_enable")
 @patch("blender_vscode.load_addons.bpy.ops.extensions.repo_refresh_all")
+@patch("blender_vscode.load_addons.addon_has_bl_info", return_value=False)
+@patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=False)
 class TestLoad:
     @patch("blender_vscode.load_addons.is_addon_legacy", return_value=True)
     def test_load_legacy_addon_from_addons_dir(
         self,
         is_addon_legacy: MagicMock,
+        addon_has_bl_info: MagicMock,
+        is_in_any_addon_directory: MagicMock,
         repo_refresh_all: MagicMock,
         addon_enable: MagicMock,
         addon_refresh: MagicMock,
@@ -313,6 +365,8 @@ class TestLoad:
     def test_load_extension_from_extensions_dir(
         self,
         is_addon_legacy: MagicMock,
+        addon_has_bl_info: MagicMock,
+        is_in_any_addon_directory: MagicMock,
         repo_refresh_all: MagicMock,
         addon_enable: MagicMock,
         addon_refresh: MagicMock,
@@ -340,3 +394,27 @@ class TestLoad:
             is_addon_legacy.assert_called_once()
             repo_refresh_all.assert_called_once()
             addon_refresh.assert_not_called()
+
+    @patch("blender_vscode.load_addons.is_addon_legacy", return_value=False)
+    def test_load_extension_extension_in_addon_dir_is_treated_as_addon(
+        self,
+        is_addon_legacy: MagicMock,
+        addon_has_bl_info: MagicMock,
+        is_in_any_addon_directory: MagicMock,
+        repo_refresh_all: MagicMock,
+        addon_enable: MagicMock,
+        addon_refresh: MagicMock,
+    ):
+        addon_has_bl_info.return_value = True
+        is_in_any_addon_directory.return_value = True
+        from blender_vscode import AddonInfo
+
+        addons_to_load = [AddonInfo(load_dir=Path("/4.2/scripts/addons/test-addon"), module_name="test-addon")]
+        from blender_vscode.load_addons import load
+
+        load(addons_to_load=addons_to_load)
+
+        addon_enable.assert_called_once_with(module="test-addon")
+        is_addon_legacy.assert_called_once()
+        addon_refresh.assert_called_once()
+        repo_refresh_all.assert_not_called()
