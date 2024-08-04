@@ -10,6 +10,7 @@ from . import AddonInfo
 from .communication import send_dict_as_json
 from .environment import addon_directories
 from .utils import is_addon_legacy
+from .vs_code_settings import EXTENSIONS_REPOSITORY
 
 
 def setup_addon_links(addons_to_load: List[AddonInfo]):
@@ -42,7 +43,16 @@ def get_user_addon_directory(source_path: Path):
     if is_addon_legacy(source_path):
         return Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
     else:
-        return Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
+        ensure_extension_repo_exists(EXTENSIONS_REPOSITORY)
+        return Path(bpy.utils.user_resource("EXTENSIONS", path=EXTENSIONS_REPOSITORY))
+
+
+def ensure_extension_repo_exists(extensions_repository: str):
+    for repo in bpy.context.preferences.extensions.repos:
+        repo: bpy.types.UserExtensionRepo
+        if repo.module == extensions_repository and repo.name == extensions_repository:
+            return repo
+    return bpy.context.preferences.extensions.repos.new(name=extensions_repository, module=extensions_repository)
 
 
 def load(addons_to_load: List[AddonInfo]):
@@ -52,7 +62,7 @@ def load(addons_to_load: List[AddonInfo]):
             addon_name = addon_info.module_name
         else:
             bpy.ops.extensions.repo_refresh_all()
-            addon_name = "bl_ext.user_default." + addon_info.module_name
+            addon_name = "bl_ext." + EXTENSIONS_REPOSITORY + "." + addon_info.module_name
 
         try:
             bpy.ops.preferences.addon_enable(module=addon_name)
