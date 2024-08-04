@@ -1,4 +1,6 @@
 import time
+from typing import Callable
+
 import flask
 import debugpy
 import random
@@ -12,16 +14,23 @@ EDITOR_ADDRESS = None
 OWN_SERVER_PORT = None
 DEBUGPY_PORT = None
 
+server = flask.Flask("Blender Server")
+post_handlers = {}
 
-def setup(address, path_mappings):
-    global EDITOR_ADDRESS, OWN_SERVER_PORT, DEBUGPY_PORT
+
+def setupFlaskServer(address: str):
+    global EDITOR_ADDRESS, OWN_SERVER_PORT
     EDITOR_ADDRESS = address
-
     OWN_SERVER_PORT = start_own_server()
+    send_flask_connection_information()
+
+
+def setupDebugpyServer(path_mappings):
+    global DEBUGPY_PORT
+
     DEBUGPY_PORT = start_debug_server()
 
-    send_connection_information(path_mappings)
-
+    send_debugpy_connection_information(path_mappings)
     print("Waiting for debug client.")
     debugpy.wait_for_client()
     print("Debug client attached.")
@@ -65,9 +74,6 @@ def start_debug_server():
 # Server
 #########################################
 
-server = flask.Flask("Blender Server")
-post_handlers = {}
-
 
 @server.route("/", methods=["POST"])
 def handle_post():
@@ -75,6 +81,7 @@ def handle_post():
     print("Got POST:", data)
 
     if data["type"] in post_handlers:
+        print("Calling handler: ", post_handlers[data["type"]], "with", data)
         return post_handlers[data["type"]](data)
 
     return "OK"
@@ -82,21 +89,23 @@ def handle_post():
 
 @server.route("/", methods=["GET"])
 def handle_get():
-    flask.request
     data = flask.request.get_json()
     print("Got GET:", data)
 
     if data["type"] == "ping":
         pass
+    else:
+        raise Exception(data)
     return "OK"
 
 
-def register_post_handler(type, handler):
-    assert type not in post_handlers
+def register_post_handler(type: str, handler: Callable):
+    assert type not in post_handlers, post_handlers
     post_handlers[type] = handler
+    print("Added POST handler:", type)
 
 
-def register_post_action(type, handler):
+def register_post_action(type: str, handler: Callable):
     def request_handler_wrapper(data):
         run_in_main_thread(partial(handler, data))
         return "OK"
@@ -108,10 +117,19 @@ def register_post_action(type, handler):
 ###############################
 
 
-def send_connection_information(path_mappings):
+def send_flask_connection_information():
     send_dict_as_json(
         {
-            "type": "setup",
+            "type": "setupFlask",
+            "blenderPort": OWN_SERVER_PORT,
+        }
+    )
+
+
+def send_debugpy_connection_information(path_mappings):
+    send_dict_as_json(
+        {
+            "type": "setupDebugpy",
             "blenderPort": OWN_SERVER_PORT,
             "debugpyPort": DEBUGPY_PORT,
             "blenderPath": str(blender_path),
@@ -122,8 +140,14 @@ def send_connection_information(path_mappings):
 
 
 def send_dict_as_json(data):
-    print("Sending:", data)
+    print("Sending POST:", data)
     requests.post(EDITOR_ADDRESS, json=data)
+
+
+def send_get_setting(name: str):
+    data = {"type": "setting", "name": name}
+    print("Sending GET:", data)
+    requests.get(EDITOR_ADDRESS, json=data)
 
 
 # Utils

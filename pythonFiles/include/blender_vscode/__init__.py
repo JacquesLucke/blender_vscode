@@ -1,4 +1,5 @@
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -20,13 +21,25 @@ def startup(editor_address, addons_to_load: List[AddonInfo], allow_modify_extern
 
     installation.ensure_packages_are_installed(["debugpy", "flask", "requests"], allow_modify_external_python)
 
+    from . import communication
+
+    communication.setupFlaskServer(editor_address)
+
+    from .vs_code_settings import handle_setting_change, EXTENSIONS_REPOSITORY
+
+    communication.register_post_handler("setting", handle_setting_change)
+    _extensions_repository = communication.send_get_setting("addon.extensionsRepository")
+
+    while EXTENSIONS_REPOSITORY is None:
+        from .vs_code_settings import EXTENSIONS_REPOSITORY
+        time.sleep(0.05)
+        print("Waiting for settings...")
+
     from . import load_addons
 
     path_mappings = load_addons.setup_addon_links(addons_to_load)
 
-    from . import communication
-
-    communication.setup(editor_address, path_mappings)
+    communication.setupDebugpyServer(path_mappings)
 
     from . import operators, ui
 

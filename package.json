@@ -184,6 +184,17 @@
               "my_addon_name"
             ],
             "description": "Name or the symlink that is created in Blenders addon folder."
+          }, 
+          "blender.addon.extensionsRepository": {
+            "type": "string",
+            "scope": "resource",
+            "default": "vscode_development",
+            "examples": [
+              "vscode_development",
+              "user_default",
+              "blender_org"
+            ],
+            "description": "Blender extensions only: repository to use when developing addon. \nBlender -> Preferences -> Get Extensions -> Repositories (dropdown, top right)"
           },
           "blender.core.buildDebugCommand": {
             "type": "string",

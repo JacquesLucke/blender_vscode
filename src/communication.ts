@@ -14,23 +14,18 @@ export type AddonPathMapping = { src: string, load: string };
 
 export class BlenderInstance {
     blenderPort: number;
-    debugpyPort: number;
-    justMyCode: boolean;
-    path: string;
-    scriptsFolder: string;
-    addonPathMappings: AddonPathMapping[];
+    // debugpyPort: number;
+    // justMyCode: boolean;
+    // path: string;
+    // scriptsFolder: string;
+    // addonPathMappings: AddonPathMapping[];
     connectionErrors: Error[];
 
-    constructor(blenderPort: number, debugpyPort: number, justMyCode: boolean, path: string,
-        scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
+    constructor(blenderPort: number) {
         this.blenderPort = blenderPort;
-        this.debugpyPort = debugpyPort;
-        this.justMyCode = justMyCode;
-        this.path = path;
-        this.scriptsFolder = scriptsFolder;
-        this.addonPathMappings = addonPathMappings;
         this.connectionErrors = [];
     }
+
 
     post(data: object): void {
         request.post(this.address, { json: data });
@@ -51,8 +46,8 @@ export class BlenderInstance {
         });
     }
 
-    attachDebugger() {
-        attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings);
+    attachDebugger(debugpyPort: number, justMyCode: boolean, path: string, scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
+        attachPythonDebuggerToBlender(debugpyPort, path, justMyCode, scriptsFolder, addonPathMappings);
     }
 
     get address() {
@@ -65,6 +60,14 @@ export class BlenderInstances {
 
     constructor() {
         this.instances = [];
+    }
+
+    getBlenderInstance(blenderPort: number): BlenderInstance | undefined {
+        for (const blenderInstance of this.instances) {
+            if (blenderInstance.blenderPort == blenderPort)
+                return blenderInstance;
+        }
+        return undefined;
     }
 
     register(instance: BlenderInstance) {
@@ -86,7 +89,7 @@ export class BlenderInstances {
             }
 
             for (let instance of this.instances) {
-                instance.ping().then(() => addInstance(instance)).catch(() => {});
+                instance.ping().then(() => addInstance(instance)).catch(() => { });
             }
             setTimeout(() => resolve(responsiveInstances.slice()), timeout);
         });
@@ -124,20 +127,43 @@ export function getServerPort(): number {
     return server.address().port;
 }
 
-function SERVER_handleRequest(request: any, response: any) {
-    if (request.method === 'POST') {
+function SERVER_handleRequest(request: any, response: http.ServerResponse) {
+    if (request.method === 'GET') {
         let body = '';
         request.on('data', (chunk: any) => body += chunk.toString());
         request.on('end', () => {
             let req = JSON.parse(body);
 
             switch (req.type) {
-                case 'setup': {
+                case 'setting': {
                     let config = getConfig();
-                    let justMyCode: boolean = <boolean>config.get('addon.justMyCode')
-                    let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
-                    instance.attachDebugger();
+                    let settingValue: any = config.get(req.name)
+                    response.end('OK');
+                    RunningBlenders.sendToResponsive({ type: "setting", name: req.name, value: settingValue.toString() })
+                }
+            }
+        })
+    } else if (request.method === 'POST') {
+        let body = '';
+        request.on('data', (chunk: any) => body += chunk.toString());
+        request.on('end', () => {
+            let req = JSON.parse(body);
+
+            switch (req.type) {
+                case 'setupFlask': {
+                    let instance = new BlenderInstance(req.blenderPort)
                     RunningBlenders.register(instance);
+                    response.end('OK');
+                    break;
+                }
+                case 'setupDebugpy': {
+                    let config = getConfig();
+                    let instance = RunningBlenders.getBlenderInstance(req.blenderPort)
+                    if (instance == undefined) {
+                        console.error("Can not find blender instance!")
+                    }
+                    let justMyCode: boolean = <boolean>config.get('addon.justMyCode')
+                    instance?.attachDebugger(req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings)
                     response.end('OK');
                     break;
                 }
