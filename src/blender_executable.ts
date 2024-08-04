@@ -2,6 +2,8 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
+import * as fs from 'fs';
+import * as util from 'util';
 
 import { launchPath } from './paths';
 import { getServerPort } from './communication';
@@ -10,6 +12,11 @@ import { getConfig, cancel, runTask } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderWorkspaceFolder } from './blender_folder';
 
+
+// const readFileAsync = util.promisify(fs.readFile)
+// const writeFileAsync = util.promisify(fs.writeFile)
+const readdir = util.promisify(fs.readdir)
+const stat = util.promisify(fs.stat)
 
 export class BlenderExecutable {
     data: BlenderPathData;
@@ -98,10 +105,80 @@ interface BlenderType {
     setSettings: (item: BlenderPathData) => void;
 }
 
+// those paths will be listed 1 level deep
+const typicalWindowsBlenderFoundationPaths: string[] = [
+    path.join(process.env.ProgramFiles ? process.env.ProgramFiles : "C:\\Program Files", "Blender Foundation"),
+    path.join(process.env["ProgramFiles(x86)"] ? process.env["ProgramFiles(x86)"] : "C:\\Program Files (x86)", "Blender Foundation"),
+]
+
+function getBlenderInPathSync(): BlenderPathData[] {
+    let path_env = process.env.PATH?.split(";");
+    if (!path_env) {
+        return [];
+    }
+    let blenders: BlenderPathData[] = [];
+    let exe = process.platform === "win32" ? "blender.exe" : "blender"
+    if (process.platform === "win32") {
+        // expands typical path to subdirs
+        for (const typicalPath of typicalWindowsBlenderFoundationPaths) {
+            if (fs.existsSync(typicalPath) && fs.lstatSync(typicalPath).isDirectory()) {
+                path_env = path_env.concat(fs.readdirSync(typicalPath)
+                    .map(subdir => path.join(typicalPath, subdir)))
+            }
+        }
+    }
+    for (let p of path_env) {
+        let executable = path.join(p, exe)
+        if (fs.existsSync(executable) && fs.statSync(executable).isFile()) {
+            blenders.push({ path: executable, name: "", isDebug: false })
+        }
+    }
+    return blenders;
+}
+
+async function getDirectories(path_: string): Promise<string[]> {
+    let filesAndDirectories = await readdir(path_);
+
+    let directories: string[] = [];
+    await Promise.all(
+        filesAndDirectories.map(async name => {
+            const stats = await stat(path.join(path_, name));
+            if (stats.isDirectory()) directories.push(name);
+        })
+    );
+    return directories;
+}
+
+async function getBlenderInEnvPath(): Promise<BlenderPathData[]> {
+    let path_env = process.env.PATH?.split(";");
+    if (path_env === undefined) {
+        return [];
+    }
+    let blenders: BlenderPathData[] = [];
+    const exe = process.platform === "win32" ? "blender.exe" : "blender"
+    if (process.platform === "win32") {
+        for (const typicalPath of typicalWindowsBlenderFoundationPaths) {
+            const dirs = await getDirectories(typicalPath).catch((err: NodeJS.ErrnoException) => []);
+            path_env = path_env?.concat(dirs.map(dir => path.join(typicalPath, dir)))
+        }
+    }
+    for (const p of path_env) {
+        const executable = path.join(p, exe)
+        const stats = await stat(executable).catch((err: NodeJS.ErrnoException) => undefined);
+        if (stats === undefined) continue;
+        if (stats.isFile()) {
+            blenders.push({ path: executable, name: "", isDebug: false })
+        }
+    }
+    return blenders;
+}
+
 async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
     let config = getConfig();
     let allBlenderPaths = <BlenderPathData[]>config.get('executables');
-    let usableBlenderPaths = allBlenderPaths.filter(type.predicate);
+    let defaultPaths: BlenderPathData[] = await getBlenderInEnvPath();
+    let deduplicatedDefaultPaths = defaultPaths.filter(defaultPath => !allBlenderPaths.some(userDefinedBlednerPath => userDefinedBlednerPath.path === defaultPath.path))
+    let usableBlenderPaths = allBlenderPaths.filter(type.predicate).concat(deduplicatedDefaultPaths);
 
     let items = [];
     for (let pathData of usableBlenderPaths) {
