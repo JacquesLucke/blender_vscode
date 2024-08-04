@@ -18,7 +18,6 @@ KEEP_ADDON_INSTALLED = False
 def register_post_action_change_keep_addon_installed(data: Dict):
     global KEEP_ADDON_INSTALLED
     KEEP_ADDON_INSTALLED = bool(data["value"])
-    print("Changing KEEP_INSTALLED", KEEP_ADDON_INSTALLED)
 
 
 def _fake_poll(*args, **kwargs):
