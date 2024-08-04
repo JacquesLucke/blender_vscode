@@ -1,3 +1,4 @@
+import atexit
 import os
 import sys
 import traceback
@@ -11,8 +12,16 @@ from .communication import send_dict_as_json
 from .environment import addon_directories
 from .utils import is_addon_legacy, addon_has_bl_info
 
+KEEP_ADDON_INSTALLED = False
 
-def fake_poll(*args, **kwargs):
+
+def register_post_action_change_keep_addon_installed(data: Dict):
+    global KEEP_ADDON_INSTALLED
+    KEEP_ADDON_INSTALLED = bool(data["value"])
+    print("Changing KEEP_INSTALLED", KEEP_ADDON_INSTALLED)
+
+
+def _fake_poll(*args, **kwargs):
     return False
 
 
@@ -28,7 +37,7 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List
 
     load_status: List[Dict] = []
     # disable bpy.ops.preferences.copy_prev() is not happy with links that are about to be crated
-    bpy.types.PREFERENCES_OT_copy_prev.poll = fake_poll
+    bpy.types.PREFERENCES_OT_copy_prev.poll = _fake_poll
     for addon_info in addons_to_load:
         try:
             if is_addon_legacy(addon_info.load_dir):
@@ -53,8 +62,8 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List
                     load_path = os.path.join(extensions_default_dir, addon_info.module_name)
                     make_temporary_link(addon_info.load_dir, load_path)
             path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
-        except Exception as e:
-            print(e)
+        except Exception:
+            traceback.print_exc()
             load_status.append({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
         else:
             path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
@@ -85,7 +94,25 @@ def load(addons_to_load: List[AddonInfo]):
 
 
 def make_temporary_link(directory: Union[str, os.PathLike], link_path: Union[str, os.PathLike]):
+    if os.path.exists(link_path):
+        try:
+            os.remove(link_path)
+        except PermissionError as ex:
+            print(
+                f'ERROR: Could not remove path "{link_path}" due to insufficient permission. Please remove it manually.'
+            )
+            raise ex
+
+    if sys.platform == "win32":
+        import _winapi
+
+        _winapi.CreateJunction(str(directory), str(link_path))
+    else:
+        os.symlink(str(directory), str(link_path), target_is_directory=True)
+
     def cleanup():
+        if KEEP_ADDON_INSTALLED:
+            return
         if not os.path.exists(link_path):
             return
         try:
@@ -95,14 +122,6 @@ def make_temporary_link(directory: Union[str, os.PathLike], link_path: Union[str
                 f'ERROR: Could not remove path "{link_path}" due to insufficient permission. Please remove it manually.'
             )
             raise ex
-
-    cleanup()
-    if sys.platform == "win32":
-        import _winapi
-
-        _winapi.CreateJunction(str(directory), str(link_path))
-    else:
-        os.symlink(str(directory), str(link_path), target_is_directory=True)
 
     atexit.register(cleanup)
 

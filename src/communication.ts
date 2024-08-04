@@ -124,7 +124,7 @@ export function getServerPort(): number {
     return server.address().port;
 }
 
-function SERVER_handleRequest(request: any, response: any) {
+function SERVER_handleRequest(request: http.IncomingMessage, response: http.ServerResponse) {
     if (request.method === 'POST') {
         let body = '';
         request.on('data', (chunk: any) => body += chunk.toString());
@@ -135,10 +135,12 @@ function SERVER_handleRequest(request: any, response: any) {
                 case 'setup': {
                     let config = getConfig();
                     let justMyCode: boolean = <boolean>config.get('addon.justMyCode')
+                    let keepAddonInstalled: boolean = <boolean>config.get('addon.keepAddonInstalled')
                     let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
                     instance.attachDebugger();
                     RunningBlenders.register(instance);
                     response.end('OK');
+                    RunningBlenders.sendToAll({"type": "keepAddonInstalled", "value": keepAddonInstalled})
                     break;
                 }
                 case 'enableFailure': {
