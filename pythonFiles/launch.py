@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 else:
     import blender_vscode
 
-print(json.loads(os.environ["ADDONS_TO_LOAD"]))
+print("ADDONS_TO_LOAD", json.loads(os.environ["ADDONS_TO_LOAD"]))
 
 try:
     addons_to_load = []
