@@ -9,7 +9,7 @@ from .environment import python_path, use_own_python
 cwd_for_subprocesses = python_path.parent
 
 
-def ensure_packages_are_installed(package_names, allow_modify_external_python):
+def ensure_packages_are_installed(package_names, allow_modify_external_python: bool):
     if packages_are_installed(package_names):
         return
 
