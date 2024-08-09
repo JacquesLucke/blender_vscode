@@ -15,15 +15,16 @@ from .utils import is_addon_legacy, addon_has_bl_info
 def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
     path_mappings: List[Dict] = []
 
-    addons_default_dir = bpy.utils.user_resource("SCRIPTS", path="addons")
+    addons_default_dir = Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
     # always make sure addons are in path, important when running fresh blender install
     # do it always to avoid very confusing logic in the loop below
     os.makedirs(addons_default_dir, exist_ok=True)
     if str(addons_default_dir) not in sys.path:
         sys.path.append(str(addons_default_dir))
 
-    remove_invalid_addon_links()
-    remove_invalid_extension_links()
+    remove_broken_addon_links()
+    if bpy.app.version >= (4, 2, 0):
+        remove_broken_extension_links()
 
     for addon_info in addons_to_load:
         if is_addon_legacy(addon_info.load_dir):
@@ -37,7 +38,7 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
                         print("INFO: Removing old link:", existing_addon_with_the_same_target)
                         os.remove(existing_addon_with_the_same_target)
                     existing_addon_with_the_same_target = does_addon_link_exist(addon_info.load_dir)
-                load_path = os.path.join(addons_default_dir, addon_info.module_name)
+                load_path = addons_default_dir / addon_info.module_name
                 create_link_in_user_addon_directory(addon_info.load_dir, load_path)
         else:
             if addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
@@ -57,7 +58,7 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
                     existing_extension_with_the_same_target = does_extension_link_exist(addon_info.load_dir)
                 extensions_default_dir = Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
                 os.makedirs(extensions_default_dir, exist_ok=True)
-                load_path = os.path.join(extensions_default_dir, addon_info.module_name)
+                load_path = extensions_default_dir / addon_info.module_name
                 create_link_in_user_addon_directory(addon_info.load_dir, load_path)
         path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
 
@@ -103,32 +104,35 @@ def does_extension_link_exist(development_directory: Path) -> Optional[Path]:
             existing_extension_dir = Path(repo_dir, file)
             target = _resolve_link(existing_extension_dir)
             if target:
-                print("DEBUG: Checking", development_directory, "with target", target)
+                # print("DEBUG: Checking", development_directory, "with target", target)
                 windows_being_windows = target.lstrip(r"\\?")
                 if Path(windows_being_windows) == Path(development_directory):
                     return existing_extension_dir
     return None
 
 
-def remove_invalid_addon_links():
-    addons_default_dir = bpy.utils.user_resource("SCRIPTS", path="addons")
+def remove_broken_addon_links():
+    addons_default_dir = Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
     for file in os.listdir(addons_default_dir):
-        existing_addon_dir = Path(addons_default_dir, file)
-        target = _resolve_link(existing_addon_dir)
+        addon_dir = addons_default_dir / file
+        if not addon_dir.is_dir():
+            continue
+        target = _resolve_link(addon_dir)
         if target and not os.path.exists(target):
-            print("INFO: Removing invalid link:", existing_addon_dir)
-            os.remove(existing_addon_dir)
+            print("INFO: Removing invalid link:", addon_dir)
+            os.remove(addon_dir)
 
 
-def remove_invalid_extension_links():
+def remove_broken_extension_links():
     for repo in bpy.context.preferences.extensions.repos:
         if not repo.enabled:
             continue
         repo_dir = repo.custom_directory if repo.use_custom_directory else repo.directory
-        if not os.path.isdir(repo_dir):
+        repo_dir = Path(repo_dir)
+        if not repo_dir.is_dir():
             continue
         for file in os.listdir(repo_dir):
-            existing_extension_dir = Path(repo_dir, file)
+            existing_extension_dir = repo_dir / file
             target = _resolve_link(existing_extension_dir)
             if target and not os.path.exists(target):
                 print("INFO: Removing invalid link:", existing_extension_dir)

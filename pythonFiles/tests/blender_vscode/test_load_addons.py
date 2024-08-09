@@ -64,7 +64,7 @@ def bpy_utils_user_resource(resource_type, path=None):
 @patch("blender_vscode.load_addons.is_addon_legacy", return_value=True)
 @patch("blender_vscode.load_addons.create_link_in_user_addon_directory")
 @patch("blender_vscode.load_addons.bpy.utils.user_resource", side_effect=bpy_utils_user_resource)
-@patch("blender_vscode.load_addons.bpy", **{"context.preferences.extensions.repos": []})
+@patch("blender_vscode.load_addons.bpy.context", **{"preferences.extensions.repos": []})
 @patch("blender_vscode.load_addons.os.listdir", return_value=[])
 class TestSetupAddonLinksDevelopAddon:
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=False)
@@ -74,7 +74,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_extension_directory: MagicMock,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
-        bpy: MagicMock,
+        bpy_context: MagicMock,
         user_resource: MagicMock,
         create_link_in_user_addon_directory: MagicMock,
         is_addon_legacy: MagicMock,
@@ -100,7 +100,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_extension_directory.assert_not_called()
         create_link_in_user_addon_directory.assert_called_once_with(
             Path("/home/user/blenderProject/test-addon"),
-            os.path.sep.join("/4.2/scripts/addons/test_addon".split("/")),
+            Path("/4.2/scripts/addons/test_addon"),
         )
 
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=False)
@@ -110,7 +110,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_extension_directory: MagicMock,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
-        bpy: MagicMock,
+        bpy_context: MagicMock,
         user_resource: MagicMock,
         create_link_in_user_addon_directory: MagicMock,
         is_addon_legacy: MagicMock,
@@ -145,7 +145,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_extension_directory: MagicMock,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
-        bpy: MagicMock,
+        bpy_context: MagicMock,
         user_resource: MagicMock,
         create_link_in_user_addon_directory: MagicMock,
         is_addon_legacy: MagicMock,
@@ -179,7 +179,7 @@ class TestSetupAddonLinksDevelopAddon:
 @patch("blender_vscode.load_addons.bpy.utils.user_resource", side_effect=bpy_utils_user_resource)
 @patch("blender_vscode.load_addons.is_in_any_extension_directory", return_value=None)
 @patch("blender_vscode.load_addons.addon_has_bl_info", return_value=False)
-@patch("blender_vscode.load_addons.bpy", **{"context.preferences.extensions.repos": []})
+@patch("blender_vscode.load_addons.bpy.context", **{"preferences.extensions.repos": []})
 @patch("blender_vscode.load_addons.os.listdir", return_value=[])
 class TestSetupAddonLinksDevelopExtension:
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=True)
@@ -187,7 +187,7 @@ class TestSetupAddonLinksDevelopExtension:
         self,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
-        bpy: MagicMock,
+        bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
         user_resource: MagicMock,
@@ -220,7 +220,7 @@ class TestSetupAddonLinksDevelopExtension:
         self,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
-        bpy: MagicMock,
+        bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
         user_resource: MagicMock,
@@ -263,7 +263,7 @@ class TestSetupAddonLinksDevelopExtension:
         self,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
-        bpy: MagicMock,
+        bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
         user_resource: MagicMock,
@@ -297,7 +297,7 @@ class TestSetupAddonLinksDevelopExtension:
         self,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
-        bpy: MagicMock,
+        bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
         user_resource: MagicMock,
