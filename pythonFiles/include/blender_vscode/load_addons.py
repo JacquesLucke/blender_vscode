@@ -78,14 +78,14 @@ def _resolve_link(path: Path) -> Optional[str]:
 
 
 def does_addon_link_exist(development_directory: Path) -> Optional[Path]:
-    """Search default addon path and return path that links to `development_directory`"""
+    """Search default addon path and return first path that links to `development_directory`"""
     addons_default_dir = bpy.utils.user_resource("SCRIPTS", path="addons")
     for file in os.listdir(addons_default_dir):
         existing_addon_dir = Path(addons_default_dir, file)
         target = _resolve_link(existing_addon_dir)
         if target:
-            print("DEBUG: Checking", development_directory, "with target", target)
-            windows_being_windows = target.rstrip(r"\\?")
+            windows_being_windows = target.lstrip(r"\\?")
+            # print("DEBUG: Checking", development_directory, "\nwith target    ", windows_being_windows)
             if Path(windows_being_windows) == Path(development_directory):
                 return existing_addon_dir
     return None
@@ -163,7 +163,16 @@ def load(addons_to_load: List[AddonInfo]):
 
 def create_link_in_user_addon_directory(directory: Union[str, os.PathLike], link_path: Union[str, os.PathLike]):
     if os.path.exists(link_path):
-        os.remove(link_path)
+        try:
+            os.remove(link_path)
+        except PermissionError as e:
+            print(
+                f"""ERROR: path "{link_path}" can not be removed. **Please remove it manually!** 
+    Most likely causes:
+    - path requires admin permission to remove
+    - path is a real directory with the same name as addon (removing might cause data loss!)"""
+            )
+            raise e
 
     if sys.platform == "win32":
         import _winapi
