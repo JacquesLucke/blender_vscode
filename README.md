@@ -133,6 +133,17 @@ Currently the support for this is very basic, but still useful.
 To run the script in a specific area type in Blender insert a comment like `#context.area: VIEW_3D`.
 The preferred way to insert this comment is to execute the `Blender: Set Script Context` command.
 
+### How can I pass command line argument to my script?
+
+Specify your arguments in `blender.additionalArguments` after `--`, which
+ indicates [End option processing, following arguments passed unchanged](https://docs.blender.org/manual/en/latest/advanced/command_line/arguments.html). Access via Python’s `sys.argv`
+
+Be aware about:
+
+- [sys.exit gotcha](https://docs.blender.org/api/current/info_gotcha.html#sys-exit) 
+- and [register_cli_command](https://docs.blender.org/api/current/bpy.utils.html#bpy.utils.register_cli_command) 
+
+
 ## Troubleshooting
 
 - Make sure you use the newest version of VS Code.
