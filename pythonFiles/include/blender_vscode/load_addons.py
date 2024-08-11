@@ -68,13 +68,17 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
 def _resolve_link(path: Path) -> Optional[str]:
     """Return target if is symlink or juntion"""
     try:
-        return os.readlink(path)
+        return os.readlink(str(path))
     except OSError as e:
         # OSError: [WinError 4390] The file or directory is not a reparse point
         if e.winerror == 4390:
             return None
         else:
             raise e
+    except ValueError as e:
+        # there are major differences in python 3.7.0 behaves, 3.7.9 gives different errors
+        print("Warning: can not resolve link target", e.args)
+        return None
 
 
 def does_addon_link_exist(development_directory: Path) -> Optional[Path]:
