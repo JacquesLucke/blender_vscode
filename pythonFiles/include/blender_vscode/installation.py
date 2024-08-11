@@ -49,11 +49,6 @@ def install_package(name: str):
         handle_fatal_error(f"could not install {name}")
 
 
-def _strip_pip_version(name: str) -> str:
-    name_strip_comparison_sign = name.replace(">", "=").replace("<", "=")
-    return name_strip_comparison_sign.split("=")[0]
-
-
 def install_pip():
     # try ensurepip before get-pip.py
     if module_can_be_imported("ensurepip"):
@@ -82,3 +77,8 @@ def module_can_be_imported(name: str):
         return True
     except ModuleNotFoundError:
         return False
+
+
+def _strip_pip_version(name: str) -> str:
+    name_strip_comparison_sign = name.replace(">", "=").replace("<", "=")
+    return name_strip_comparison_sign.split("=")[0]
