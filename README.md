@@ -9,6 +9,14 @@ The extension is [installed](https://code.visualstudio.com/docs/editor/extension
 
 ## Addon Tools
 
+You can develop your addon anywhere, VS Code will create a **permanent soft link** (in windows: junction) to link you workspace:
+- for addons to `bpy.utils.user_resource("SCRIPTS", path="addons")`
+- for extensions to `bpy.utils.user_resource("EXTENSIONS", path="user_default")`
+
+Warning:
+- on windows uninstalling linked addon (junction) will result in data loss. If you are lucky you will get `PermissionError` when blender will try to delete git history.
+- on linux/mac from blender [2.80](https://projects.blender.org/blender/blender/commit/e6ba760ce8fda5cf2e18bf26dddeeabdb4021066) blender handles uninstalling links correctly. Addon will be unlinked and no data loss will occur.
+
 ### How do I create a new addon?
 
 Execute the **Blender: New Addon** operator and use the setup wizard.
