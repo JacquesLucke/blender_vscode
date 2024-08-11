@@ -56,7 +56,7 @@ To reload the addon every time a file is saved, activate the `blender.addon.relo
 
 Add the path to .blend file to `additionalArguments`:
 
-```json
+```javascript
 "blender.additionalArguments": [
     "--factory-startup", // any arguments you want
     // "--open-last", // Open the most recently opened blend file, or:
@@ -69,7 +69,7 @@ Add the path to .blend file to `additionalArguments`:
 By default, Blender started from VS Code uses your global Blender settings (ex windows: `%appdata%\Blender Foundation\Blender\<version>`). 
 To prevent any accidental changes to your daily setup, change environment var in VS Code setting:
 
-```json
+```javascript
 "blender.environmentVariables": {
     "BLENDER_USER_RESOURCES": "./blender_vscode_development" // changes folder for addon, extension, modules, config
 },
