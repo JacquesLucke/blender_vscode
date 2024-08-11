@@ -88,6 +88,10 @@ Environment Variables:
   $BLENDER_USER_DATAFILES  Directory for user data files (icons, translations, ..).
 ```
 
+### How to use with multiple addons?
+
+Use VS Code feature [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces). Each folder in workspace is treated as addon root.
+
 ## Script Tools
 
 When I say "script" I mean a piece of Python code that runs in Blender but is not an addon.
