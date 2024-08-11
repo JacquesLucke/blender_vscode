@@ -83,7 +83,7 @@ The preferred way to insert this comment is to execute the `Blender: Set Script 
 
 - Make sure you use the newest version of VS Code.
 - Use the latest Blender version from https://www.blender.org/download/.
-- Check [CHANGELOG](./CHANGELOG.md) and check for breaking changes.
+- Check [CHANGELOG](./CHANGELOG.md) for breaking changes.
 - Search Issues for similar problems.
 
 ## Status
