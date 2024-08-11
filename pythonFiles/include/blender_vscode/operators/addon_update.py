@@ -22,7 +22,7 @@ class UpdateAddonOperator(bpy.types.Operator):
             return {"CANCELLED"}
 
         for name in list(sys.modules.keys()):
-            if name.startswith(self.module_name):
+            if name == self.module_name or name.startswith(self.module_name + "."):
                 del sys.modules[name]
 
         try:

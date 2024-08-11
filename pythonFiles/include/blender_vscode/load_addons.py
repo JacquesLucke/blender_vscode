@@ -2,6 +2,7 @@ import os
 import sys
 import traceback
 from pathlib import Path
+from typing import List
 
 import bpy
 
@@ -11,7 +12,7 @@ from .environment import addon_directories
 from .utils import is_addon_legacy
 
 
-def setup_addon_links(addons_to_load: list[AddonInfo]):
+def setup_addon_links(addons_to_load: List[AddonInfo]):
 
     path_mappings = []
 
@@ -44,7 +45,7 @@ def get_user_addon_directory(source_path: Path):
         return Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
 
 
-def load(addons_to_load: list[AddonInfo]):
+def load(addons_to_load: List[AddonInfo]):
     for addon_info in addons_to_load:
         if is_addon_legacy(Path(addon_info.load_dir)):
             bpy.ops.preferences.addon_refresh()

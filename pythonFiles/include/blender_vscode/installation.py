@@ -44,7 +44,9 @@ def ensure_package_is_installed(name):
 
 def install_package(name):
     target = get_package_install_directory()
-    subprocess.run([str(python_path), "-m", "pip", "install", name, "--target", target], cwd=cwd_for_subprocesses)
+    command = [str(python_path), "-m", "pip", "install", name, "--target", target]
+    print("Execute: ", " ".join(command))
+    subprocess.run(command, cwd=cwd_for_subprocesses)
 
     if not module_can_be_imported(name):
         handle_fatal_error(f"could not install {name}")
@@ -53,7 +55,9 @@ def install_package(name):
 def install_pip():
     # try ensurepip before get-pip.py
     if module_can_be_imported("ensurepip"):
-        subprocess.run([str(python_path), "-m", "ensurepip", "--upgrade"], cwd=cwd_for_subprocesses)
+        command = [str(python_path), "-m", "ensurepip", "--upgrade"]
+        print("Execute: ", " ".join(command))
+        subprocess.run(command, cwd=cwd_for_subprocesses)
         return
     # pip can not necessarily be imported into Blender after this
     get_pip_path = Path(__file__).parent / "external" / "get-pip.py"
