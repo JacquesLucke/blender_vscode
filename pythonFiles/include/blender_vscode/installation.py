@@ -1,6 +1,4 @@
-import os
 import sys
-import textwrap
 import subprocess
 
 import bpy
@@ -10,7 +8,7 @@ from pathlib import Path
 from . import handle_fatal_error
 from .environment import python_path
 
-cwd_for_subprocesses = python_path.parent
+_CWD_FOR_SUBPROCESSES = python_path.parent
 
 
 def ensure_packages_are_installed(package_names):
@@ -43,7 +41,7 @@ def install_package(name: str):
     target = get_package_install_directory()
     command = [str(python_path), "-m", "pip", "install", name, "--target", target]
     print("Execute: ", " ".join(command))
-    subprocess.run(command, cwd=cwd_for_subprocesses)
+    subprocess.run(command, cwd=_CWD_FOR_SUBPROCESSES)
 
     if not module_can_be_imported(name):
         handle_fatal_error(f"could not install {name}")
@@ -54,11 +52,11 @@ def install_pip():
     if module_can_be_imported("ensurepip"):
         command = [str(python_path), "-m", "ensurepip", "--upgrade"]
         print("Execute: ", " ".join(command))
-        subprocess.run(command, cwd=cwd_for_subprocesses)
+        subprocess.run(command, cwd=_CWD_FOR_SUBPROCESSES)
         return
     # pip can not necessarily be imported into Blender after this
     get_pip_path = Path(__file__).parent / "external" / "get-pip.py"
-    subprocess.run([str(python_path), str(get_pip_path)], cwd=cwd_for_subprocesses)
+    subprocess.run([str(python_path), str(get_pip_path)], cwd=_CWD_FOR_SUBPROCESSES)
 
 
 def get_package_install_directory() -> str:
