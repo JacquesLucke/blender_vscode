@@ -66,16 +66,17 @@ Add the path to .blend file to `additionalArguments`:
 
 ### How can I separate development environment from my daily work?
 
-By default, Blender started from VS Code uses your global Blender settings (ex windows: `%appdata%\Blender Foundation\Blender\<version>`). 
+By default, Blender started from VS Code uses your global Blender settings (in windows: `%appdata%\Blender Foundation\Blender\<version>`). 
+
 To prevent any accidental changes to your daily setup, change environment var in VS Code setting:
 
 ```javascript
 "blender.environmentVariables": {
-    "BLENDER_USER_RESOURCES": "./blender_vscode_development" // changes folder for addon, extension, modules, config
+    "BLENDER_USER_RESOURCES": "./blender_vscode_development" // changes folder for addons, extensions, modules, config
 },
 ```
 
-See blender --help for more env vars with finer controls: 
+See `blender --help` for more environment vars with finer controls: 
 
 ```shell
 Environment Variables:
