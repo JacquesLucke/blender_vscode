@@ -27,7 +27,8 @@ To do this, move the file into a new empty folder and rename it to `__init__.py`
 To use the extension with your addon, just load the addon folder into Visual Studio Code.
 Then execute the `Blender: Start` command.
 This will ask you for a path to a Blender executable.
-Only Blender 2.8 is supported.
+
+Only Blender 2.8.34 is supported.
 
 After you choose a path, Blender will open.
 The terminal output can be seen inside of VS Code.
@@ -50,6 +51,41 @@ Your addon does not need to support reloading itself.
 It only has to have correct `register` and `unregister` methods.
 
 To reload the addon every time a file is saved, activate the `blender.addon.reloadOnSave` setting in VS Code.
+
+### How can I open custom blender file automatically when running `Blender: Start`?
+
+Add the path to .blend file to `additionalArguments`:
+
+```json
+"blender.additionalArguments": [
+    "--factory-startup", // any arguments you want
+    // "--open-last", // Open the most recently opened blend file, or:
+    "./path/to/my-file.blend" // prefered to be last argument, watch out for trailing spaces (which are invisible in VS code UI)
+],
+```
+
+### How can I separate development environment from my daily work?
+
+By default, Blender started from VS Code uses your global Blender settings (ex windows: `%appdata%\Blender Foundation\Blender\<version>`). 
+To prevent any accidental changes to your daily setup, change environment var in VS Code setting:
+
+```json
+"blender.environmentVariables": {
+    "BLENDER_USER_RESOURCES": "./blender_vscode_development" // changes folder for addon, extension, modules, config
+},
+```
+
+See blender --help for more env vars with finer controls: 
+
+```shell
+Environment Variables:
+  $BLENDER_USER_RESOURCES  Replace default directory of all user files.
+                           Other 'BLENDER_USER_*' variables override when set.
+  $BLENDER_USER_CONFIG     Directory for user configuration files.
+  $BLENDER_USER_SCRIPTS    Directory for user scripts.
+  $BLENDER_USER_EXTENSIONS Directory for user extensions.
+  $BLENDER_USER_DATAFILES  Directory for user data files (icons, translations, ..).
+```
 
 ## Script Tools
 
@@ -93,3 +129,7 @@ The preferred way to insert this comment is to execute the `Blender: Set Script 
 ## Status
 
 This extension is not actively developed anymore. However, if you are interested in working on this extension, please contact me.
+
+## Contributing
+
+See [DEVELOPMENT.md](./DEVELOPMENT.md)

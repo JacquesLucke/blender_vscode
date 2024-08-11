@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Added
+- Support bl_order in auto_load.py (#118)
+- Allow user to develop addon even it is placed in directories like (#172)
+    - `\4.2\scripts\addons` -> default dir for addons
+    - `\4.2\extensions\blender_org` -> directory indicated by `bpy.context.preferences.extensions.repos` (list of directories) 
+- Remove duplicate links to development (VSCode) directory (#172)
+- Remove broken links in addon and extension dir (#172)
+
+### Changed 
+- Addon_update operator: Check more precisely which module to delete (#175)
+- Formatted all python code with `black -l 120` (#167)
+
+### Fixed
+- Find correct python path for blender 2.92 and before (#174). This partly fixes compatibility with blender 2.80.
+
 ## [0.0.21] - 2024-07-16
 
 ### Added
