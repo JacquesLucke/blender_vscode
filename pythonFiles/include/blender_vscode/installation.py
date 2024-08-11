@@ -8,17 +8,14 @@ import bpy
 from pathlib import Path
 
 from . import handle_fatal_error
-from .environment import python_path, use_own_python
+from .environment import python_path
 
 cwd_for_subprocesses = python_path.parent
 
 
-def ensure_packages_are_installed(package_names, allow_modify_external_python):
+def ensure_packages_are_installed(package_names):
     if packages_are_installed(package_names):
         return
-
-    if not use_own_python and not allow_modify_external_python:
-        handle_cannot_install_packages(package_names)
 
     install_packages(package_names)
 
@@ -37,12 +34,12 @@ def install_packages(package_names):
     assert packages_are_installed(package_names)
 
 
-def ensure_package_is_installed(name):
+def ensure_package_is_installed(name: str):
     if not module_can_be_imported(name):
         install_package(name)
 
 
-def install_package(name):
+def install_package(name: str):
     target = get_package_install_directory()
     command = [str(python_path), "-m", "pip", "install", name, "--target", target]
     print("Execute: ", " ".join(command))
@@ -50,6 +47,11 @@ def install_package(name):
 
     if not module_can_be_imported(name):
         handle_fatal_error(f"could not install {name}")
+
+
+def _strip_pip_version(name: str) -> str:
+    name_strip_comparison_sign = name.replace(">", "=").replace("<", "=")
+    return name_strip_comparison_sign.split("=")[0]
 
 
 def install_pip():
@@ -64,7 +66,7 @@ def install_pip():
     subprocess.run([str(python_path), str(get_pip_path)], cwd=cwd_for_subprocesses)
 
 
-def get_package_install_directory():
+def get_package_install_directory() -> str:
     # user modules loaded are loaded by default by blender from this path
     # https://docs.blender.org/manual/en/4.2/editors/preferences/file_paths.html#script-directories
     modules_path = bpy.utils.user_resource("SCRIPTS", path="modules")
@@ -74,24 +76,9 @@ def get_package_install_directory():
     return modules_path
 
 
-def module_can_be_imported(name):
+def module_can_be_imported(name: str):
     try:
-        __import__(name)
+        __import__(_strip_pip_version(name))
         return True
     except ModuleNotFoundError:
         return False
-
-
-def handle_cannot_install_packages(package_names):
-    handle_fatal_error(
-        textwrap.dedent(
-            f"""\
-        Installing packages in Python distributions, that
-        don't come with Blender, is not allowed currently.
-        Please enable 'blender.allowModifyExternalPython'
-        in VS Code or install those packages yourself:
-
-        {str(package_names):53}\
-    """
-        )
-    )
