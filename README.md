@@ -143,6 +143,9 @@ Be aware about:
 - [sys.exit gotcha](https://docs.blender.org/api/current/info_gotcha.html#sys-exit) 
 - and [register_cli_command](https://docs.blender.org/api/current/bpy.utils.html#bpy.utils.register_cli_command) 
 
+## Core Blender development
+
+This addon has some ability to help with Blender source code development (C, Cpp, python) but it is undocumented.
 
 ## Troubleshooting
 
