@@ -86,14 +86,14 @@ export class BlenderInstances {
             }
 
             for (let instance of this.instances) {
-                instance.ping().then(() => addInstance(instance)).catch(() => {});
+                instance.ping().then(() => addInstance(instance)).catch(() => { });
             }
             setTimeout(() => resolve(responsiveInstances.slice()), timeout);
         });
     }
 
     sendToResponsive(data: object, timeout: number = RESPONSIVE_LIMIT_MS) {
-        for (let instance of this.instances) {
+        for (const instance of this.instances) {
             instance.isResponsive(timeout).then(responsive => {
                 if (responsive) instance.post(data);
             }).catch();
@@ -101,7 +101,7 @@ export class BlenderInstances {
     }
 
     sendToAll(data: object) {
-        for (let instance of this.instances) {
+        for (const instance of this.instances) {
             instance.post(data);
         }
     }

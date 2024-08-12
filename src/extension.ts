@@ -13,27 +13,16 @@ import {
     COMMAND_openScriptsFolder
 } from './scripts';
 
-let outputChannel: vscode.OutputChannel;
+export let outputChannel: vscode.OutputChannel;
 
-/**
- * Prints the given content on the output channel.
- *
- * @param content The content to be printed.
- * @param reveal Whether the output channel should be revealed.
- */
-export const printChannelOutput = (content: string, reveal = false): void => {
-    outputChannel.appendLine(content);
-    if (reveal) {
-        outputChannel.show(true);
-    }
-};
 
 /* Registration
  *********************************************/
 
 export function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel("Blender debugpy");
-    printChannelOutput("activated...", true);
+    outputChannel.appendLine("Addon staring.");
+    outputChannel.show(true);
 
     let commands: [string, () => Promise<void>][] = [
         ['blender.start', COMMAND_start],
