@@ -14,7 +14,7 @@ You can develop your addon anywhere, VS Code will create a **permanent soft link
 - for extensions to `bpy.utils.user_resource("EXTENSIONS", path="user_default")`
 
 Warning:
-- on windows uninstalling linked addon (junction) will result in data loss. If you are lucky you will get `PermissionError` when blender will try to delete git history.
+- on windows uninstalling linked addon (junction) will result in data loss. If you are lucky you will get `PermissionError` when Blender tries to delete git history.
 - on linux/mac from blender [2.80](https://projects.blender.org/blender/blender/commit/e6ba760ce8fda5cf2e18bf26dddeeabdb4021066) blender handles uninstalling links correctly. Addon will be unlinked and no data loss will occur.
 
 ### How do I create a new addon?
@@ -36,7 +36,7 @@ To use the extension with your addon, just load the addon folder into Visual Stu
 Then execute the `Blender: Start` command.
 This will ask you for a path to a Blender executable.
 
-Only Blender 2.8.34 is supported.
+Only Blender 2.8.34 onwards is supported.
 
 After you choose a path, Blender will open.
 The terminal output can be seen inside of VS Code.
@@ -60,7 +60,7 @@ It only has to have correct `register` and `unregister` methods.
 
 To reload the addon every time a file is saved, activate the `blender.addon.reloadOnSave` setting in VS Code.
 
-### How can I open custom blender file automatically when running `Blender: Start`?
+### How can I open blender file automatically when running `Blender: Start`?
 
 Add the path to .blend file to `additionalArguments`:
 
