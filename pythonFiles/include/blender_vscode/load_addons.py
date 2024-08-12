@@ -12,7 +12,10 @@ from .communication import send_dict_as_json
 from .environment import addon_directories
 from .utils import is_addon_legacy, addon_has_bl_info
 
-_EXTENSIONS_DEFAULT_DIR = Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
+if bpy.app.version >= (4, 2, 0):
+    _EXTENSIONS_DEFAULT_DIR = Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
+else:
+    _EXTENSIONS_DEFAULT_DIR = None
 _ADDONS_DEFAULT_DIR = Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
 
 
@@ -48,14 +51,13 @@ Path "{e.filename}" can not be removed. **Please remove it manually!** Most like
 
 
 def _link_addon_or_extension(addon_info: AddonInfo) -> Path:
-    addons_default_dir = Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
     if is_addon_legacy(addon_info.load_dir):
         if is_in_any_addon_directory(addon_info.load_dir):
             # blender knows about addon and can load it
             load_path = addon_info.load_dir
         else:  # addon is in external dir or is in extensions dir
             _remove_duplicate_addon_links(addon_info)
-            load_path = addons_default_dir / addon_info.module_name
+            load_path = _ADDONS_DEFAULT_DIR / addon_info.module_name
             create_link_in_user_addon_directory(addon_info.load_dir, load_path)
     else:
         if addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
@@ -111,7 +113,7 @@ def _resolve_link_windows_cmd(path: Path) -> Optional[str]:
 
 
 def _resolve_link(path: Path) -> Optional[str]:
-    """Return target if is symlink or juntion"""
+    """Return target if is symlink or jucntion"""
     try:
         return os.readlink(str(path))
     except OSError as e:
@@ -131,9 +133,8 @@ def _resolve_link(path: Path) -> Optional[str]:
 
 def does_addon_link_exist(development_directory: Path) -> Optional[Path]:
     """Search default addon path and return first path that links to `development_directory`"""
-    addons_default_dir = bpy.utils.user_resource("SCRIPTS", path="addons")
-    for file in os.listdir(addons_default_dir):
-        existing_addon_dir = Path(addons_default_dir, file)
+    for file in os.listdir(_ADDONS_DEFAULT_DIR):
+        existing_addon_dir = Path(_ADDONS_DEFAULT_DIR, file)
         target = _resolve_link(existing_addon_dir)
         if target:
             windows_being_windows = target.lstrip(r"\\?")
@@ -161,9 +162,8 @@ def does_extension_link_exist(development_directory: Path) -> Optional[Path]:
 
 
 def remove_broken_addon_links():
-    addons_default_dir = Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
-    for file in os.listdir(addons_default_dir):
-        addon_dir = addons_default_dir / file
+    for file in os.listdir(_ADDONS_DEFAULT_DIR):
+        addon_dir = _ADDONS_DEFAULT_DIR / file
         if not addon_dir.is_dir():
             continue
         target = _resolve_link(addon_dir)
