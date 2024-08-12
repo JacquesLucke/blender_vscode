@@ -89,6 +89,7 @@ The preferred way to insert this comment is to execute the `Blender: Set Script 
 - Make sure you use the newest version of VS Code.
 - Use the latest Blender version from https://builder.blender.org/.
 - If your Blender does not use its own Python version, enable `blender.allowModifyExternalPython` or install the packages in the error message manually (currently `debugpy`, `flask` and `requests` are required).
+- Look in VS Code output window.
 
 ## Status
 
