@@ -7,7 +7,7 @@ import * as util from 'util';
 
 import { launchPath } from './paths';
 import { getServerPort } from './communication';
-import { letUserPickItem } from './select_utils';
+import { letUserPickItem, PickItem } from './select_utils';
 import { getConfig, cancel, runTask } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderWorkspaceFolder } from './blender_folder';
@@ -92,7 +92,7 @@ export class BlenderExecutable {
     }
 }
 
-interface BlenderPathData {
+export interface BlenderPathData {
     path: string;
     name: string;
     isDebug: boolean;
@@ -110,31 +110,6 @@ const typicalWindowsBlenderFoundationPaths: string[] = [
     path.join(process.env.ProgramFiles ? process.env.ProgramFiles : "C:\\Program Files", "Blender Foundation"),
     path.join(process.env["ProgramFiles(x86)"] ? process.env["ProgramFiles(x86)"] : "C:\\Program Files (x86)", "Blender Foundation"),
 ]
-
-function getBlenderInPathSync(): BlenderPathData[] {
-    let path_env = process.env.PATH?.split(";");
-    if (!path_env) {
-        return [];
-    }
-    let blenders: BlenderPathData[] = [];
-    let exe = process.platform === "win32" ? "blender.exe" : "blender"
-    if (process.platform === "win32") {
-        // expands typical path to subdirs
-        for (const typicalPath of typicalWindowsBlenderFoundationPaths) {
-            if (fs.existsSync(typicalPath) && fs.lstatSync(typicalPath).isDirectory()) {
-                path_env = path_env.concat(fs.readdirSync(typicalPath)
-                    .map(subdir => path.join(typicalPath, subdir)))
-            }
-        }
-    }
-    for (let p of path_env) {
-        let executable = path.join(p, exe)
-        if (fs.existsSync(executable) && fs.statSync(executable).isFile()) {
-            blenders.push({ path: executable, name: "", isDebug: false })
-        }
-    }
-    return blenders;
-}
 
 async function getDirectories(path_: string): Promise<string[]> {
     let filesAndDirectories = await readdir(path_);
@@ -155,13 +130,13 @@ async function getBlenderInEnvPath(): Promise<BlenderPathData[]> {
         return [];
     }
     let blenders: BlenderPathData[] = [];
-    const exe = process.platform === "win32" ? "blender.exe" : "blender"
     if (process.platform === "win32") {
         for (const typicalPath of typicalWindowsBlenderFoundationPaths) {
-            const dirs = await getDirectories(typicalPath).catch((err: NodeJS.ErrnoException) => []);
-            path_env = path_env?.concat(dirs.map(dir => path.join(typicalPath, dir)))
+            const dirs: string[] = await getDirectories(typicalPath).catch((err: NodeJS.ErrnoException) => []);
+            path_env = path_env?.concat(dirs.map((dir: string) => path.join(typicalPath, dir)))
         }
     }
+    const exe = process.platform === "win32" ? "blender.exe" : "blender"
     for (const p of path_env) {
         const executable = path.join(p, exe)
         const stats = await stat(executable).catch((err: NodeJS.ErrnoException) => undefined);
@@ -177,19 +152,23 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     let config = getConfig();
     let allBlenderPaths = <BlenderPathData[]>config.get('executables');
     let defaultPaths: BlenderPathData[] = await getBlenderInEnvPath();
-    let deduplicatedDefaultPaths = defaultPaths.filter(defaultPath => !allBlenderPaths.some(userDefinedBlednerPath => userDefinedBlednerPath.path === defaultPath.path))
+    let deduplicatedDefaultPaths = defaultPaths.filter(defaultPath => !allBlenderPaths.some(userDefinedBlednerPath => path.relative(userDefinedBlednerPath.path, defaultPath.path) === ''))
     let usableBlenderPaths = allBlenderPaths.filter(type.predicate).concat(deduplicatedDefaultPaths);
 
-    let items = [];
+    let items: PickItem[] = [];
     for (let pathData of usableBlenderPaths) {
         let useCustomName = pathData.name !== '' && pathData.name !== undefined;
         items.push({
             data: async () => pathData,
-            label: useCustomName ? pathData.name : pathData.path
+            label: useCustomName ? pathData.name : pathData.path,
         });
     }
 
-    items.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) });
+    for (let item_iter of items) {
+        item_iter.description = await stat((await item_iter.data()).path).then(_stats => undefined).catch((err: NodeJS.ErrnoException) => "File does not exist")
+    }
+
+    items.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) })
 
     let item = await letUserPickItem(items);
     let pathData: BlenderPathData = await item.data();
