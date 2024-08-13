@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+- Automatically add Blender executables to quick pick window. Search PATH and typical installation folders ([#179](https://github.com/JacquesLucke/blender_vscode/pull/179))
+- If Blender executable does not exist indicate it in quick pick window ([#179](https://github.com/JacquesLucke/blender_vscode/pull/179))
+
 ## [0.0.21] - 2024-07-16
 
 ### Added
