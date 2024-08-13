@@ -13,8 +13,6 @@ import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderWorkspaceFolder } from './blender_folder';
 
 
-// const readFileAsync = util.promisify(fs.readFile)
-// const writeFileAsync = util.promisify(fs.writeFile)
 const readdir = util.promisify(fs.readdir)
 const stat = util.promisify(fs.stat)
 
@@ -105,7 +103,6 @@ interface BlenderType {
     setSettings: (item: BlenderPathData) => void;
 }
 
-// those paths will be listed 1 level deep
 const typicalWindowsBlenderFoundationPaths: string[] = [
     path.join(process.env.ProgramFiles ? process.env.ProgramFiles : "C:\\Program Files", "Blender Foundation"),
     path.join(process.env["ProgramFiles(x86)"] ? process.env["ProgramFiles(x86)"] : "C:\\Program Files (x86)", "Blender Foundation"),
@@ -160,7 +157,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
         let useCustomName = pathData.name !== '' && pathData.name !== undefined;
         items.push({
             data: async () => pathData,
-            label: useCustomName ? pathData.name : pathData.path,
+            label: useCustomName ? pathData.name : pathData.path
         });
     }
 
