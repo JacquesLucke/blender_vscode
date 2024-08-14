@@ -5,16 +5,21 @@ from typing import Optional, Union
 
 
 def resolve_link(path: Union[str, os.PathLike]) -> Optional[str]:
-    """Return target if is symlink or junction else return None"""
+    """Return target if is symlink or junction else return None. Might throw exception."""
     try:
         return os.readlink(str(path))
+    except FileNotFoundError as e:
+        # FileNotFoundError: [WinError 2] The system cannot find the file specified
+        # FileNotFoundError: [WinError 3] The system cannot find the path specified
+        return None
     except OSError as e:
         # OSError: [WinError 4390] The file or directory is not a reparse point
-        if e.winerror == 4390:
-            return None
-        # FileNotFoundError: [WinError 2] The system cannot find the file specified
-        if e.winerror == 2:
-            return None
+        # OSError: [WinError 649] The create operation failed because the name contained at least one mount point which resolves to a volume to which the specified device object is not attached
+        if sys.platform == "win32":
+            if e.winerror == 649:
+                return _resolve_link_windows_cmd(path)
+            if e.winerror == 4390:
+                return None
         else:
             raise e
     except ValueError as e:
@@ -27,6 +32,7 @@ def resolve_link(path: Union[str, os.PathLike]) -> Optional[str]:
 
 
 def _resolve_link_windows_cmd(path: Union[str, os.PathLike]) -> Optional[str]:
+    """Use windows commands to get information about junction - use as last resort"""
     IO_REPARSE_TAG_MOUNT_POINT = "0xa0000003"
     JUNCTION_INDICATOR = f"Reparse Tag Value : {IO_REPARSE_TAG_MOUNT_POINT}"
     try:

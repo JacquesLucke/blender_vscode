@@ -22,13 +22,10 @@ def optimize_defaults():
 
 
 def _add_warning_label(layout: bpy.types.UILayout, path: Union[str, os.PathLike], message: str):
-    layout.label(text=message)
-    if path:
-        try:
-            layout.operator("file.external_operation", text="Open in explorer", icon="FILEBROWSER").filepath = str(path)
-        except AttributeError:
-            pass
-        layout.operator("dev.copy_text", text="Copy addon path", icon="COPYDOWN").text = str(path)
+    layout.label(text=message, icon="ERROR")
+    if path and bpy.app.version >= (3, 6, 0):  # most likely https://projects.blender.org/blender/blender/pulls/104531
+        layout.operator("file.external_operation", text="Open in explorer", icon="FILEBROWSER").filepath = str(path)
+    layout.operator("dev.copy_text", text="Copy addon path", icon="COPYDOWN").text = str(path)
 
 
 def _path_from_addon(module: str):
@@ -91,15 +88,22 @@ def disable_extension_remove():
         active_repo_index = extensions.active_repo
         repo = extensions.repos[active_repo_index]
         repo_dir = repo.custom_directory if repo.use_custom_directory else repo.directory
-        if any(resolve_link(os.path.join(repo_dir, file)) for file in os.listdir()):
-            _add_warning_label(
-                layout=self.layout,
-                path=repo_dir,
-                message="This repo contains links to addons. Uninstalling might cause data loss. Remove it manually",
-            )
-            return
-        else:
+        if not os.path.isdir(repo_dir):
             return old_draw(self, context)
+        print(repo_dir)
+        print([os.path.join(repo_dir, file) for file in os.listdir(repo_dir)])
+        for file in os.listdir(repo_dir):
+            full_path = os.path.join(repo_dir, file)
+            t = resolve_link(full_path)
+            print(full_path, t)
+            if t:
+                _add_warning_label(
+                    layout=self.layout,
+                    path=repo_dir,
+                    message="This repo contains links to addons. Uninstalling might cause data loss. Remove it manually",
+                )
+                return
+        return old_draw(self, context)
 
     bpy.types.USERPREF_MT_extensions_active_repo_remove.draw = conditional_repo_remove_draw
 
