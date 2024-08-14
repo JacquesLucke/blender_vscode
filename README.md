@@ -9,6 +9,8 @@ The extension is [installed](https://code.visualstudio.com/docs/editor/extension
 
 ## Addon Tools
 
+Blender extensions used for development are managed in repository [`blender.addon.extensionsRepository`](vscode://settings/blender.addon.extensionsRepository) (defaults to `vscode_development`, instead of `user_defaults`).
+
 ### How do I create a new addon?
 
 Execute the **Blender: New Addon** operator and use the setup wizard.

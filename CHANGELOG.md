@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Added
-- 
+- Add setting to specify to which repository install addons from VS code ([#180](https://github.com/JacquesLucke/blender_vscode/pull/180)). Default value "vscode_development"
 
 ## [0.0.21] - 2024-07-16
 
