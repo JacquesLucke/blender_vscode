@@ -11,6 +11,7 @@ import { letUserPickItem, PickItem } from './select_utils';
 import { getConfig, cancel, runTask } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderWorkspaceFolder } from './blender_folder';
+import { getBlenderInEnvPathWindows } from './blender_executable_windows';
 
 
 const readdir = util.promisify(fs.readdir)
@@ -103,35 +104,15 @@ interface BlenderType {
     setSettings: (item: BlenderPathData) => void;
 }
 
-const typicalWindowsBlenderFoundationPaths: string[] = [
-    path.join(process.env.ProgramFiles ? process.env.ProgramFiles : "C:\\Program Files", "Blender Foundation"),
-    path.join(process.env["ProgramFiles(x86)"] ? process.env["ProgramFiles(x86)"] : "C:\\Program Files (x86)", "Blender Foundation"),
-]
-
-async function getDirectories(path_: string): Promise<string[]> {
-    let filesAndDirectories = await readdir(path_);
-
-    let directories: string[] = [];
-    await Promise.all(
-        filesAndDirectories.map(async name => {
-            const stats = await stat(path.join(path_, name));
-            if (stats.isDirectory()) directories.push(name);
-        })
-    );
-    return directories;
-}
-
-async function getBlenderInEnvPath(): Promise<BlenderPathData[]> {
-    let path_env = process.env.PATH?.split(";");
-    if (path_env === undefined) {
-        return [];
-    }
+async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
     let blenders: BlenderPathData[] = [];
     if (process.platform === "win32") {
-        for (const typicalPath of typicalWindowsBlenderFoundationPaths) {
-            const dirs: string[] = await getDirectories(typicalPath).catch((err: NodeJS.ErrnoException) => []);
-            path_env = path_env?.concat(dirs.map((dir: string) => path.join(typicalPath, dir)))
-        }
+        const windowsBlenders = await getBlenderInEnvPathWindows();
+        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "", isDebug: false })))
+    }
+    let path_env = process.env.PATH?.split(";");
+    if (path_env === undefined) {
+        return blenders;
     }
     const exe = process.platform === "win32" ? "blender.exe" : "blender"
     for (const p of path_env) {
@@ -148,9 +129,9 @@ async function getBlenderInEnvPath(): Promise<BlenderPathData[]> {
 async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
     let config = getConfig();
     let allBlenderPaths = <BlenderPathData[]>config.get('executables');
-    let defaultPaths: BlenderPathData[] = await getBlenderInEnvPath();
-    let deduplicatedDefaultPaths = defaultPaths.filter(defaultPath => !allBlenderPaths.some(userDefinedBlednerPath => path.relative(userDefinedBlednerPath.path, defaultPath.path) === ''))
-    let usableBlenderPaths = allBlenderPaths.filter(type.predicate).concat(deduplicatedDefaultPaths);
+    let blendersInSystem: BlenderPathData[] = await searchBlenderInSystem();
+    let deduplicatedPaths = blendersInSystem.filter(defaultPath => !allBlenderPaths.some(userDefinedBlednerPath => path.relative(userDefinedBlednerPath.path, defaultPath.path) === ''))
+    let usableBlenderPaths = allBlenderPaths.filter(type.predicate).concat(deduplicatedPaths);
 
     let items: PickItem[] = [];
     for (let pathData of usableBlenderPaths) {
