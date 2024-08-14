@@ -40,7 +40,7 @@ Debugging should work now.
 If the selected Blender executable does not use its own Python version, no packages will be installed by default.
 This is to make sure that the extension does not interfere with another package manager.
 You can either install the modules listed in the error message manually, or allow the extension to install the modules itself.
-To do that, the `blender.allowModifyExternalPython` [setting](https://code.visualstudio.com/docs/getstarted/settings) has to be checked in VS Code.
+To do that, the [`blender.allowModifyExternalPython`](vscode://settings/blender.allowModifyExternalPython) [setting](https://code.visualstudio.com/docs/getstarted/settings) has to be checked in VS Code.
 
 ### How can I reload my addon in Blender?
 
@@ -49,7 +49,7 @@ For that to work, Blender has to be started using the extension.
 Your addon does not need to support reloading itself.
 It only has to have correct `register` and `unregister` methods.
 
-To reload the addon every time a file is saved, activate the `blender.addon.reloadOnSave` setting in VS Code.
+To reload the addon every time a file is saved, activate the [`blender.addon.reloadOnSave`](vscode://settings/blender.addon.reloadOnSave) setting in VS Code.
 
 ## Script Tools
 
@@ -88,7 +88,7 @@ The preferred way to insert this comment is to execute the `Blender: Set Script 
 
 - Make sure you use the newest version of VS Code.
 - Use the latest Blender version from https://builder.blender.org/.
-- If your Blender does not use its own Python version, enable `blender.allowModifyExternalPython` or install the packages in the error message manually (currently `debugpy`, `flask` and `requests` are required).
+- If your Blender does not use its own Python version, enable [`blender.allowModifyExternalPython`](vscode://settings/blender.allowModifyExternalPython) or install the packages in the error message manually (currently `debugpy`, `flask` and `requests` are required).
 
 ## Status
 
