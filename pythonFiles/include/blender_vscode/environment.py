@@ -1,3 +1,5 @@
+import os
+
 import bpy
 import sys
 import addon_utils
@@ -20,3 +22,5 @@ else:
 version = bpy.app.version
 scripts_folder = blender_path.parent / f"{version[0]}.{version[1]}" / "scripts"
 addon_directories = tuple(map(Path, addon_utils.paths()))
+
+KEEP_ADDON_INSTALLED: bool = os.environ.get("VSCODE_KEEP_ADDON_INSTALLED") == "yes"

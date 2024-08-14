@@ -16,14 +16,11 @@ DEBUGPY_PORT = None
 
 
 def setup(address, path_mappings: List[Dict], load_status: List[Dict]):
-    from .load_addons import register_post_action_change_keep_addon_installed
     global EDITOR_ADDRESS, OWN_SERVER_PORT, DEBUGPY_PORT
     EDITOR_ADDRESS = address
 
     OWN_SERVER_PORT = start_own_server()
     DEBUGPY_PORT = start_debug_server()
-
-    register_post_action("keepAddonInstalled", register_post_action_change_keep_addon_installed)
 
     for status in load_status:
         send_dict_as_json(status)

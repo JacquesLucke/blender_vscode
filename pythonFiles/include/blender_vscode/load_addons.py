@@ -9,19 +9,79 @@ import bpy
 
 from . import AddonInfo
 from .communication import send_dict_as_json
-from .environment import addon_directories
+from .environment import addon_directories, KEEP_ADDON_INSTALLED
 from .utils import is_addon_legacy, addon_has_bl_info
-
-KEEP_ADDON_INSTALLED = False
-
-
-def register_post_action_change_keep_addon_installed(data: Dict):
-    global KEEP_ADDON_INSTALLED
-    KEEP_ADDON_INSTALLED = bool(data["value"])
 
 
 def _fake_poll(*args, **kwargs):
     return False
+
+
+def add_warning_label(layout: bpy.types.UILayout, path: str):
+    layout.label(text="You can not remove this repo when using VS Code on windows. If might cause data loss")
+    print(path)
+    if path:
+        try:
+            layout.operator("file.external_operation", text="Open in explorer", icon="FILEBROWSER").filepath = str(path)
+        except AttributeError:
+            pass
+        layout.operator("dev.copy_text", text="Copy addon path", icon="COPYDOWN").text = str(path)
+
+
+def path_from_addon(module):
+    """Copied from bpy.types.PREFERENCES_OT_addon_remove.path_from_addon from Blender 4.2.
+    Implementation in Blender 2.80 does not work correctly
+    """
+    import os
+    import addon_utils
+
+    for mod in addon_utils.modules():
+        if mod.__name__ == module:
+            filepath = mod.__file__
+            if os.path.exists(filepath):
+                if os.path.splitext(os.path.basename(filepath))[0] == "__init__":
+                    return os.path.dirname(filepath), True
+                else:
+                    return filepath, False
+    return None, False
+
+
+def disable_addon_uninstallation():
+    """
+    On windows may lead to data loss as blender is treating junctions as directories.
+
+    Soft link are handled correctly since [blender 2.8](https://developer.blender.org/rBe6ba760ce8fda5cf2e18bf26dddeeabdb4021066)
+    """
+    from pathlib import Path
+
+    bpy.types.PREFERENCES_OT_addon_remove.draw = lambda self, _context: add_warning_label(
+        self.layout, Path(path_from_addon(self.module)[0]).parent
+    )
+    bpy.types.PREFERENCES_OT_addon_remove.execute = lambda _self, _context: {"FINISHED"}
+    bpy.types.PREFERENCES_OT_addon_remove.invoke = lambda self, context, _event: context.window_manager.invoke_popup(
+        self, width=500
+    )
+
+    if bpy.app.version < (4, 2, 0):
+        return
+    bpy.types.USERPREF_MT_extensions_active_repo_remove.poll = _fake_poll
+
+    old_draw = bpy.types.USERPREF_MT_extensions_active_repo_remove.draw
+
+    def limited_remove_repo(self, context):
+        nonlocal old_draw
+        extensions = context.preferences.extensions
+        active_repo_index = extensions.active_repo
+        repo = extensions.repos[active_repo_index]
+        if repo.module == "user_default":
+            add_warning_label(
+                self.layout, path=Path(repo.custom_directory if repo.use_custom_directory else repo.directory).parent
+            )
+            return
+        else:
+            return old_draw(self, context)
+
+    bpy.types.USERPREF_MT_extensions_active_repo_remove.draw = limited_remove_repo
 
 
 def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List[Dict]]:
@@ -37,6 +97,10 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List
     load_status: List[Dict] = []
     # disable bpy.ops.preferences.copy_prev() is not happy with links that are about to be crated
     bpy.types.PREFERENCES_OT_copy_prev.poll = _fake_poll
+
+    if sys.platform == "win32":
+        disable_addon_uninstallation()
+
     for addon_info in addons_to_load:
         try:
             if is_addon_legacy(addon_info.load_dir):
