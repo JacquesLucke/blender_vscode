@@ -18,19 +18,15 @@ server = flask.Flask("Blender Server")
 post_handlers = {}
 
 
-def setupFlaskServer(address: str):
-    global EDITOR_ADDRESS, OWN_SERVER_PORT
+def setup(address: str, path_mappings):
+    global EDITOR_ADDRESS, OWN_SERVER_PORT, DEBUGPY_PORT
     EDITOR_ADDRESS = address
+
     OWN_SERVER_PORT = start_own_server()
-    send_flask_connection_information()
-
-
-def setupDebugpyServer(path_mappings):
-    global DEBUGPY_PORT
-
     DEBUGPY_PORT = start_debug_server()
 
-    send_debugpy_connection_information(path_mappings)
+    send_connection_information(path_mappings)
+
     print("Waiting for debug client.")
     debugpy.wait_for_client()
     print("Debug client attached.")
@@ -81,7 +77,6 @@ def handle_post():
     print("Got POST:", data)
 
     if data["type"] in post_handlers:
-        print("Calling handler: ", post_handlers[data["type"]], "with", data)
         return post_handlers[data["type"]](data)
 
     return "OK"
@@ -94,15 +89,12 @@ def handle_get():
 
     if data["type"] == "ping":
         pass
-    else:
-        raise Exception(data)
     return "OK"
 
 
 def register_post_handler(type: str, handler: Callable):
     assert type not in post_handlers, post_handlers
     post_handlers[type] = handler
-    print("Added POST handler:", type)
 
 
 def register_post_action(type: str, handler: Callable):
@@ -117,19 +109,10 @@ def register_post_action(type: str, handler: Callable):
 ###############################
 
 
-def send_flask_connection_information():
+def send_connection_information(path_mappings):
     send_dict_as_json(
         {
-            "type": "setupFlask",
-            "blenderPort": OWN_SERVER_PORT,
-        }
-    )
-
-
-def send_debugpy_connection_information(path_mappings):
-    send_dict_as_json(
-        {
-            "type": "setupDebugpy",
+            "type": "setup",
             "blenderPort": OWN_SERVER_PORT,
             "debugpyPort": DEBUGPY_PORT,
             "blenderPath": str(blender_path),
@@ -140,14 +123,8 @@ def send_debugpy_connection_information(path_mappings):
 
 
 def send_dict_as_json(data):
-    print("Sending POST:", data)
+    print("Sending:", data)
     requests.post(EDITOR_ADDRESS, json=data)
-
-
-def send_get_setting(name: str):
-    data = {"type": "setting", "name": name}
-    print("Sending GET:", data)
-    requests.get(EDITOR_ADDRESS, json=data)
 
 
 # Utils

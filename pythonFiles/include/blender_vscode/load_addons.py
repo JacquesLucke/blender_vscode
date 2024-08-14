@@ -10,7 +10,7 @@ from . import AddonInfo
 from .communication import send_dict_as_json
 from .environment import addon_directories
 from .utils import is_addon_legacy
-from .vs_code_settings import EXTENSIONS_REPOSITORY
+from .environment import EXTENSIONS_REPOSITORY
 
 
 def setup_addon_links(addons_to_load: List[AddonInfo]):
