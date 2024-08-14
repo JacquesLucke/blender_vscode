@@ -7,7 +7,7 @@ import requests
 import threading
 from functools import partial
 
-from .utils import run_in_main_thread
+from .utils_blender import run_in_main_thread
 from .environment import blender_path, scripts_folder, python_path
 
 EDITOR_ADDRESS = None

@@ -3,7 +3,7 @@ import bpy
 import sys
 import traceback
 from bpy.props import *
-from ..utils import is_addon_legacy, redraw_all, addon_has_bl_info
+from ..utils_blender import is_addon_legacy, redraw_all, addon_has_bl_info
 from ..load_addons import is_in_any_extension_directory, is_in_any_addon_directory
 from ..communication import send_dict_as_json, register_post_action
 
