@@ -88,12 +88,15 @@ class TestSetupAddonLinksDevelopAddon:
 
         mappings = setup_addon_links(addons_to_load=addons_to_load)
 
-        assert mappings == [
-            {
-                "src": os.path.sep.join("/home/user/blenderProject/test-addon".split("/")),
-                "load": os.path.sep.join("/4.2/scripts/addons/test_addon".split("/")),
-            }
-        ]
+        assert mappings == (
+            [
+                {
+                    "src": os.path.sep.join("/home/user/blenderProject/test-addon".split("/")),
+                    "load": os.path.sep.join("/4.2/scripts/addons/test_addon".split("/")),
+                }
+            ],
+            [],
+        )
         is_addon_legacy.assert_called_once()
         is_in_any_extension_directory.assert_not_called()
         make_temporary_link.assert_called_once_with(
@@ -124,12 +127,15 @@ class TestSetupAddonLinksDevelopAddon:
 
         mappings = setup_addon_links(addons_to_load=addons_to_load)
 
-        assert mappings == [
-            {
-                "src": os.path.sep.join("/4.2/scripts/extensions/blender_org/test-addon".split("/")),
-                "load": os.path.sep.join("/4.2/scripts/addons/test_addon".split("/")),
-            }
-        ]
+        assert mappings == (
+            [
+                {
+                    "src": os.path.sep.join("/4.2/scripts/extensions/blender_org/test-addon".split("/")),
+                    "load": os.path.sep.join("/4.2/scripts/addons/test_addon".split("/")),
+                }
+            ],
+            [],
+        )
         is_addon_legacy.assert_called_once()
         make_temporary_link.assert_called_once()
         is_in_any_extension_directory.assert_not_called()
@@ -155,12 +161,15 @@ class TestSetupAddonLinksDevelopAddon:
 
         mappings = setup_addon_links(addons_to_load=addons_to_load)
 
-        assert mappings == [
-            {
-                "src": os.path.sep.join("/4.2/scripts/addons/test_addon".split("/")),
-                "load": os.path.sep.join("/4.2/scripts/addons/test_addon".split("/")),
-            }
-        ]
+        assert mappings == (
+            [
+                {
+                    "src": os.path.sep.join("/4.2/scripts/addons/test_addon".split("/")),
+                    "load": os.path.sep.join("/4.2/scripts/addons/test_addon".split("/")),
+                }
+            ],
+            [],
+        )
         is_in_any_addon_directory.assert_called_once()
         make_temporary_link.assert_not_called()
         is_in_any_extension_directory.assert_not_called()
@@ -199,12 +208,15 @@ class TestSetupAddonLinksDevelopExtension:
 
         mappings = setup_addon_links(addons_to_load=addons_to_load)
 
-        assert mappings == [
-            {
-                "src": os.path.sep.join("/4.2/scripts/addons/test-extension".split("/")),
-                "load": os.path.sep.join("/4.2/scripts/addons/test-extension".split("/")),
-            }
-        ]
+        assert mappings == (
+            [
+                {
+                    "src": os.path.sep.join("/4.2/scripts/addons/test-extension".split("/")),
+                    "load": os.path.sep.join("/4.2/scripts/addons/test-extension".split("/")),
+                }
+            ],
+            [],
+        )
         make_temporary_link.assert_not_called()
 
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=False)
@@ -238,12 +250,15 @@ class TestSetupAddonLinksDevelopExtension:
 
         mappings = setup_addon_links(addons_to_load=addons_to_load)
 
-        assert mappings == [
-            {
-                "src": os.path.sep.join("/4.2/scripts/extensions/blender_org/test-extension".split("/")),
-                "load": os.path.sep.join("/4.2/scripts/extensions/blender_org/test-extension".split("/")),
-            }
-        ]
+        assert mappings == (
+            [
+                {
+                    "src": os.path.sep.join("/4.2/scripts/extensions/blender_org/test-extension".split("/")),
+                    "load": os.path.sep.join("/4.2/scripts/extensions/blender_org/test-extension".split("/")),
+                }
+            ],
+            [],
+        )
         is_in_any_addon_directory.assert_not_called()
         make_temporary_link.assert_not_called()
         is_in_any_extension_directory.assert_called()
@@ -256,7 +271,6 @@ class TestSetupAddonLinksDevelopExtension:
         bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
-        user_resource: MagicMock,
         make_temporary_link: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
@@ -272,12 +286,15 @@ class TestSetupAddonLinksDevelopExtension:
 
         mappings = setup_addon_links(addons_to_load=addons_to_load)
 
-        assert mappings == [
-            {
-                "src": os.path.sep.join("/4.2/scripts/addons/test-extension".split("/")),
-                "load": os.path.sep.join("/4.2/extensions/user_default/test_extension".split("/")),
-            }
-        ]
+        assert mappings == (
+            [
+                {
+                    "src": os.path.sep.join("/4.2/scripts/addons/test-extension".split("/")),
+                    "load": os.path.sep.join("/4.2/extensions/user_default/test_extension".split("/")),
+                }
+            ],
+            [],
+        )
         is_in_any_addon_directory.assert_not_called()
         make_temporary_link.assert_called_once()
         is_in_any_extension_directory.assert_called()
@@ -290,7 +307,6 @@ class TestSetupAddonLinksDevelopExtension:
         bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
-        user_resource: MagicMock,
         make_temporary_link: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
@@ -306,12 +322,15 @@ class TestSetupAddonLinksDevelopExtension:
 
         mappings = setup_addon_links(addons_to_load=addons_to_load)
 
-        assert mappings == [
-            {
-                "src": os.path.sep.join("/home/user/blenderProject/test-extension".split("/")),
-                "load": os.path.sep.join("/4.2/extensions/user_default/test_extension".split("/")),
-            }
-        ]
+        assert mappings == (
+            [
+                {
+                    "src": os.path.sep.join("/home/user/blenderProject/test-extension".split("/")),
+                    "load": os.path.sep.join("/4.2/extensions/user_default/test_extension".split("/")),
+                }
+            ],
+            [],
+        )
         make_temporary_link.assert_called_once()
         is_in_any_extension_directory.assert_called()
 
