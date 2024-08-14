@@ -9,10 +9,17 @@
     - `\4.2\extensions\blender_org` -> directory indicated by `bpy.context.preferences.extensions.repos` (list of directories) 
 - Remove duplicate links to development (VSCode) directory (#172)
 - Remove broken links in addon and extension dir (#172)
+- Disable "Load Previous settings" Blender feature during VS code session. Blender breaks when trying to copy link from previous version.
+- Disable possible data loss on Windows during VS Code session:
+  - Block addon uninstallation is addon is link
+  - Block extensions repository removal if repo contains links to addons
+- Add option to make addon link/junction temporary [`blender.addon.keepAddonInstalled`](vscode://setting/blender.addon.keepAddonInstalled)
+- Automatically apply obvious Blender defaults
 
 ### Changed 
 - Addon_update operator: Check more precisely which module to delete (#175)
 - Formatted all python code with `black -l 120` (#167)
+- Send simple notification if linking addon failed
 
 ### Fixed
 - Find correct python path for blender 2.92 and before (#174). This partly fixes compatibility with blender 2.80.
