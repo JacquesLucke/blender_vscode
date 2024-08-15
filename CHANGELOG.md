@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+- Updated dependencies. Now oldest supported VS Code version is `1.28.0`. ([#137](https://github.com/JacquesLucke/blender_vscode/pull/147))
+
+### Fixed
+- Path to addon indicated by [`blender.addonFolders`](vscode://settings/blender.addonFolders) now works corectly for non `C:` drive on Windows ([#137](https://github.com/JacquesLucke/blender_vscode/pull/147))
+
 ## [0.0.21] - 2024-07-16
 
 ### Added
