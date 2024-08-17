@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- "Blender: Run Script" will no longer open read-only file when hitting debug point (#142)
+
 ## [0.0.21] - 2024-07-16
 
 ### Added

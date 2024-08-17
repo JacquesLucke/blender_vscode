@@ -4,6 +4,8 @@ import * as os from 'os';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { getStoredScriptFolders } from './scripts';
 import { AddonPathMapping } from './communication';
+import { outputChannel } from './extension';
+import { getAnyWorkspaceFolder } from './utils';
 
 type PathMapping = { localRoot: string, remoteRoot: string };
 
@@ -25,19 +27,22 @@ function attachPythonDebugger(port: number, justMyCode: boolean, pathMappings: P
         pathMappings: pathMappings,
         justMyCode: justMyCode
     };
+
+    outputChannel.appendLine("Python debug configuration: " + JSON.stringify(configuration, undefined, 2));
+
     vscode.debug.startDebugging(undefined, configuration);
 }
 
 async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
     let mappings = [];
 
+    // first, add the mapping to the addon as it is the most specific one.
     mappings.push(...addonPathMappings.map(item => ({
         localRoot: item.src,
         remoteRoot: item.load
     })));
 
-    mappings.push(await getBlenderScriptsPathMapping(scriptsFolder));
-
+    // add optional scripts folders
     for (let folder of getStoredScriptFolders()) {
         mappings.push({
             localRoot: folder.path,
@@ -45,6 +50,17 @@ async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: A
         });
     }
 
+    // add blender scripts last, otherwise it seem to take all the scope and not let the proper mapping of other files
+    mappings.push(await getBlenderScriptsPathMapping(scriptsFolder));
+
+    // add the workspace folder as last resort for mapping loose scripts inside it
+    let wsFolder = getAnyWorkspaceFolder();
+    mappings.push({
+        localRoot: wsFolder.uri.fsPath,
+        remoteRoot: wsFolder.uri.fsPath
+    });
+
+    // change drive letter for some systems
     fixMappings(mappings);
     return mappings;
 }

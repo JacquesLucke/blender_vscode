@@ -13,7 +13,17 @@ import {
     COMMAND_openScriptsFolder
 } from './scripts';
 
+export let outputChannel: vscode.OutputChannel;
+
+
+/* Registration
+ *********************************************/
+
 export function activate(context: vscode.ExtensionContext) {
+    outputChannel = vscode.window.createOutputChannel("Blender debugpy");
+    outputChannel.appendLine("Addon staring.");
+    outputChannel.show(true);
+
     let commands: [string, () => Promise<void>][] = [
         ['blender.start', COMMAND_start],
         ['blender.stop', COMMAND_stop],
