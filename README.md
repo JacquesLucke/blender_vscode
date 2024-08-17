@@ -46,11 +46,6 @@ For that it is important that you have an internet connection.
 Once Blender is started, you can use the Addon in Blender.
 Debugging should work now.
 
-If the selected Blender executable does not use its own Python version, no packages will be installed by default.
-This is to make sure that the extension does not interfere with another package manager.
-You can either install the modules listed in the error message manually, or allow the extension to install the modules itself.
-To do that, the [`blender.allowModifyExternalPython`](vscode://settings/blender.allowModifyExternalPython) [setting](https://code.visualstudio.com/docs/getstarted/settings) has to be checked in VS Code.
-
 ### Extension support
 
 > With the introduction of Extensions in Blender 4.2, the old way of creating add-ons is considered deprecated.
