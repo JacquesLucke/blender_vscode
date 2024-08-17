@@ -37,11 +37,6 @@ For that it is important that you have an internet connection.
 Once Blender is started, you can use the Addon in Blender.
 Debugging should work now.
 
-If the selected Blender executable does not use its own Python version, no packages will be installed by default.
-This is to make sure that the extension does not interfere with another package manager.
-You can either install the modules listed in the error message manually, or allow the extension to install the modules itself.
-To do that, the `blender.allowModifyExternalPython` [setting](https://code.visualstudio.com/docs/getstarted/settings) has to be checked in VS Code.
-
 ### How can I reload my addon in Blender?
 
 Execute the `Blender: Reload Addons` command.
@@ -87,8 +82,10 @@ The preferred way to insert this comment is to execute the `Blender: Set Script 
 ## Troubleshooting
 
 - Make sure you use the newest version of VS Code.
-- Use the latest Blender version from https://builder.blender.org/.
-- If your Blender does not use its own Python version, enable `blender.allowModifyExternalPython` or install the packages in the error message manually (currently `debugpy`, `flask` and `requests` are required).
+- Use the latest Blender version from https://www.blender.org/download/.
+- Check [CHANGELOG](./CHANGELOG.md) for breaking changes.
+- Search Issues for similar problems.
+- Look in VS Code output window.
 
 ## Status
 

@@ -6,6 +6,19 @@
 - Automatically add Blender executables to quick pick window. Search PATH and typical installation folders ([#179](https://github.com/JacquesLucke/blender_vscode/pull/179))
 - If Blender executable does not exist indicate it in quick pick window ([#179](https://github.com/JacquesLucke/blender_vscode/pull/179))
 
+### Changed
+- Fix most of the user reported permission denied errors by changing python packages directory ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177)):
+  - Instead of installing to system python interpreter (`.\blender-4.2.0-windows-x64\4.2\python\Lib\site-packages`)
+  - Install to local blender modules `%appdata%\Blender Foundation\Blender\4.2\scripts\modules` (path indicated by `bpy.utils.user_resource("SCRIPTS", path="modules")`).
+  - Existing installations will work fine, it is not a breaking change
+
+### Deprecated
+- setting `blender.allowModifyExternalPython` is now deprecated ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177))
+
+### Fixed
+- Pinned requests to version 2.29 to maintain compatibility with blender 2.80 ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177))
+- "Blender: Run Script" will no longer open read-only file when hitting debug point ([#142](https://github.com/JacquesLucke/blender_vscode/pull/142))
+
 ## [0.0.21] - 2024-07-16
 
 ### Added
