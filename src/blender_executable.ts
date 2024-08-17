@@ -118,12 +118,18 @@ async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
     if (path_env === undefined) {
         return blenders;
     }
+    const linuxINodes = new Set<number>();
     const exe = process.platform === "win32" ? "blender.exe" : "blender"
     for (const p of path_env) {
         const executable = path.join(p, exe)
         const stats = await stat(executable).catch((err: NodeJS.ErrnoException) => undefined);
         if (stats === undefined) continue;
         if (stats.isFile()) {
+            if (process.platform != "win32" && linuxINodes.has(stats.ino)) {
+                continue // hard link deduplication
+            } else {
+                linuxINodes.add(stats.ino)
+            }
             blenders.push({ path: executable, name: "", isDebug: false })
         }
     }
