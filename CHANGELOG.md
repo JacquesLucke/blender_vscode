@@ -5,8 +5,8 @@
 ### Added
 - Support bl_order in auto_load.py (#118)
 - Allow user to develop addon even it is placed in directories like (#172)
-    - `\4.2\scripts\addons` -> default dir for addons
-    - `\4.2\extensions\blender_org` -> directory indicated by `bpy.context.preferences.extensions.repos` (list of directories) 
+  - `\4.2\scripts\addons` -> default dir for addons
+  - `\4.2\extensions\blender_org` -> directory indicated by `bpy.context.preferences.extensions.repos` (list of directories) 
 - Remove duplicate links to development (VSCode) directory (#172)
 - Remove broken links in addon and extension dir (#172)
 
@@ -14,9 +14,9 @@
 - Addon_update operator: Check more precisely which module to delete (#175)
 - Formatted all python code with `black -l 120` (#167)
 - Fix most of the user reported permission denied errors by changing python packages directory ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177)):
-    - Instead of installing to system python interpreter (`.\blender-4.2.0-windows-x64\4.2\python\Lib\site-packages` )
-    - Install to local blender modules `%appdata%\Blender Foundation\Blender\4.2\scripts\modules` (path indicated by `bpy.utils.user_resource("SCRIPTS", path="modules")`).
-    - Existing installations will work fine, it is not a breaking change
+  - Instead of installing to system python interpreter (`.\blender-4.2.0-windows-x64\4.2\python\Lib\site-packages` )
+  - Install to local blender modules `%appdata%\Blender Foundation\Blender\4.2\scripts\modules` (path indicated by `bpy.utils.user_resource("SCRIPTS", path="modules")`).
+  - Existing installations will work fine, it is not a breaking change
 
 ### Deprecated
 - setting `blender.allowModifyExternalPython` is now deprecated ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177))
