@@ -2,7 +2,17 @@
 
 ## Unreleased
 
-### Changed
+### Added
+- Support bl_order in auto_load.py (#118)
+- Allow user to develop addon even it is placed in directories like (#172)
+  - `\4.2\scripts\addons` -> default dir for addons
+  - `\4.2\extensions\blender_org` -> directory indicated by `bpy.context.preferences.extensions.repos` (list of directories) 
+- Remove duplicate links to development (VSCode) directory (#172)
+- Remove broken links in addon and extension dir (#172)
+
+### Changed 
+- Addon_update operator: Check more precisely which module to delete (#175)
+- Formatted all python code with `black -l 120` (#167)
 - Fix most of the user reported permission denied errors by changing python packages directory ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177)):
   - Instead of installing to system python interpreter (`.\blender-4.2.0-windows-x64\4.2\python\Lib\site-packages` )
   - Install to local blender modules `%appdata%\Blender Foundation\Blender\4.2\scripts\modules` (path indicated by `bpy.utils.user_resource("SCRIPTS", path="modules")`).
@@ -13,6 +23,7 @@
 
 ### Fixed
 - Pinned requests to version 2.29 to maintain compatibility with blender 2.80 ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177))
+- Find correct python path for blender 2.92 and before (#174). This partly fixes compatibility with blender 2.80.
 - "Blender: Run Script" will no longer open read-only file when hitting debug point (#142)
 
 ## [0.0.21] - 2024-07-16

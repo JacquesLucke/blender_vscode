@@ -1,15 +1,31 @@
+import ast
 from pathlib import Path
 import bpy
 import queue
 import traceback
 
 
-def is_addon_legacy(addon_dir: Path):
+def is_addon_legacy(addon_dir: Path) -> bool:
     """Return whether an addon uses the legacy bl_info behavior, or the new blender_manifest behavior"""
     if bpy.app.version < (4, 2, 0):
         return True
     if not (addon_dir / "blender_manifest.toml").exists():
         return True
+    return False
+
+
+def addon_has_bl_info(addon_dir: Path) -> bool:
+    """Perform best effort check to find bl_info. Does not perform an import on file to avoid code execution."""
+    with open(addon_dir / "__init__.py") as init_addon_file:
+        node = ast.parse(init_addon_file.read())
+        for element in node.body:
+            if not isinstance(element, ast.Assign):
+                continue
+            for target in element.targets:
+                if not isinstance(target, ast.Name):
+                    continue
+                if target.id == "bl_info":
+                    return True
     return False
 
 
