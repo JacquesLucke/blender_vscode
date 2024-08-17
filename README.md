@@ -57,7 +57,7 @@ To reload the addon every time a file is saved, activate the `blender.addon.relo
 
 ### How can I open blender file automatically when running `Blender: Start`?
 
-Add the path to .blend file to `additionalArguments`:
+Add the path to .blend file to [`blender.additionalArguments`](vscode://settings/blender.additionalArguments):
 
 ```javascript
 "blender.additionalArguments": [
@@ -71,7 +71,7 @@ Add the path to .blend file to `additionalArguments`:
 
 By default, Blender started from VS Code uses your global Blender settings (in windows: `%appdata%\Blender Foundation\Blender\<version>`). 
 
-To prevent any accidental changes to your daily setup, change environment var in VS Code setting:
+To prevent any accidental changes to your daily setup, change environment var in VS Code setting [`blender.environmentVariables`](vscode://settings/blender.environmentVariables):
 
 ```javascript
 "blender.environmentVariables": {
@@ -130,7 +130,7 @@ The preferred way to insert this comment is to execute the `Blender: Set Script 
 
 ### How can I pass command line argument to my script?
 
-Specify your arguments in `blender.additionalArguments` after `--`, which
+Specify your arguments in [`blender.additionalArguments`](vscode://settings/blender.additionalArguments) after `--`, which
  indicates [End option processing, following arguments passed unchanged](https://docs.blender.org/manual/en/latest/advanced/command_line/arguments.html). Access via Python’s `sys.argv`
 
 Be aware about:
