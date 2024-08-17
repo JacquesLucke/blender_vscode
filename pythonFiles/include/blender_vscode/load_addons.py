@@ -10,7 +10,12 @@ import bpy
 from . import AddonInfo
 from .communication import send_dict_as_json
 from .environment import addon_directories, KEEP_ADDON_INSTALLED
-from .modify_blender import disable_copy_settings_from_previous_version, disable_addon_remove, disable_extension_remove, optimize_defaults
+from .modify_blender import (
+    disable_copy_settings_from_previous_version,
+    disable_addon_remove,
+    disable_extension_remove,
+    optimize_defaults,
+)
 from .utils_blender import is_addon_legacy, addon_has_bl_info
 from .utils_files import resolve_link
 
@@ -174,6 +179,11 @@ def load(addons_to_load: List[AddonInfo]):
             # but user is developing it in addon directory. Treat it as addon.
             bpy.ops.preferences.addon_refresh()
             addon_name = addon_info.module_name
+        elif addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
+            # this addon is compatible with legacy addons and extensions
+            # but user is developing it in addon directory. Treat it as addon.
+            bpy.ops.preferences.addon_refresh()
+            addon_name = addon_info.module_name
         else:
             bpy.ops.extensions.repo_refresh_all()
             repo = is_in_any_extension_directory(addon_info.load_dir)
@@ -204,6 +214,7 @@ def make_temporary_link(directory: Union[str, os.PathLike], link_path: Union[str
         if not os.path.exists(link_path):
             return
         try:
+            print(f'INFO: Cleanup: remove link: "{link_path}"')
             os.remove(link_path)
         except PermissionError as ex:
             print(

@@ -46,10 +46,13 @@ For that it is important that you have an internet connection.
 Once Blender is started, you can use the Addon in Blender.
 Debugging should work now.
 
-If the selected Blender executable does not use its own Python version, no packages will be installed by default.
-This is to make sure that the extension does not interfere with another package manager.
-You can either install the modules listed in the error message manually, or allow the extension to install the modules itself.
-To do that, the `blender.allowModifyExternalPython` [setting](https://code.visualstudio.com/docs/getstarted/settings) has to be checked in VS Code.
+### Extension support
+
+> With the introduction of Extensions in Blender 4.2, the old way of creating add-ons is considered deprecated.
+
+[Extensions](https://docs.blender.org/manual/en/4.2/advanced/extensions/getting_started.html) are supported.
+For migration guide visit [Legacy vs Extension Add-ons](https://docs.blender.org/manual/en/4.2/advanced/extensions/addons.html#legacy-vs-extension-add-ons).
+VS code uses the [automatic logic to determine if you are using addon or extension](./EXTENSION-SUPPORT.md)
 
 ### How can I reload my addon in Blender?
 
@@ -58,7 +61,47 @@ For that to work, Blender has to be started using the extension.
 Your addon does not need to support reloading itself.
 It only has to have correct `register` and `unregister` methods.
 
-To reload the addon every time a file is saved, activate the `blender.addon.reloadOnSave` setting in VS Code.
+To reload the addon every time a file is saved, activate the [`blender.addon.reloadOnSave`](vscode://settings/blender.addon.reloadOnSave) setting in VS Code.
+
+### How can I open blender file automatically when running `Blender: Start`?
+
+Add the path to .blend file to [`blender.additionalArguments`](vscode://settings/blender.additionalArguments):
+
+```javascript
+"blender.additionalArguments": [
+    "--factory-startup", // any arguments you want
+    // "--open-last", // Open the most recently opened blend file, or:
+    "./path/to/my-file.blend" // prefered to be last argument, watch out for trailing spaces (which are invisible in VS code UI)
+],
+```
+
+### How can I separate development environment from my daily work?
+
+By default, Blender started from VS Code uses your global Blender settings (in windows: `%appdata%\Blender Foundation\Blender\<version>`). 
+
+To prevent any accidental changes to your daily setup, change environment var in VS Code setting [`blender.environmentVariables`](vscode://settings/blender.environmentVariables):
+
+```javascript
+"blender.environmentVariables": {
+    "BLENDER_USER_RESOURCES": "./blender_vscode_development" // changes folder for addons, extensions, modules, config
+},
+```
+
+See `blender --help` for more environment vars with finer controls: 
+
+```shell
+Environment Variables:
+  $BLENDER_USER_RESOURCES  Replace default directory of all user files.
+                           Other 'BLENDER_USER_*' variables override when set.
+  $BLENDER_USER_CONFIG     Directory for user configuration files.
+  $BLENDER_USER_SCRIPTS    Directory for user scripts.
+  $BLENDER_USER_EXTENSIONS Directory for user extensions.
+  $BLENDER_USER_DATAFILES  Directory for user data files (icons, translations, ..).
+```
+
+### How to use with multiple addons?
+
+Use VS Code feature [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces). Each folder in workspace is treated as addon root.
 
 ### How can I open blender file automatically when running `Blender: Start`?
 
@@ -135,7 +178,7 @@ The preferred way to insert this comment is to execute the `Blender: Set Script 
 
 ### How can I pass command line argument to my script?
 
-Specify your arguments in `blender.additionalArguments` after `--`, which
+Specify your arguments in [`blender.additionalArguments`](vscode://settings/blender.additionalArguments) after `--`, which
  indicates [End option processing, following arguments passed unchanged](https://docs.blender.org/manual/en/latest/advanced/command_line/arguments.html). Access via Python’s `sys.argv`
 
 Be aware about:
@@ -145,13 +188,15 @@ Be aware about:
 
 ## Core Blender development
 
-This addon has some ability to help with Blender source code development (C, Cpp, python) but it is undocumented.
+This addon has some ability to help with [Blender source code development](https://developer.blender.org/docs/handbook/building_blender/) but it is undocumented.
 
 ## Troubleshooting
 
 - Make sure you use the newest version of VS Code.
-- Use the latest Blender version from https://builder.blender.org/.
-- If your Blender does not use its own Python version, enable `blender.allowModifyExternalPython` or install the packages in the error message manually (currently `debugpy`, `flask` and `requests` are required).
+- Use the latest Blender version from https://www.blender.org/download/.
+- Check [CHANGELOG](./CHANGELOG.md) for breaking changes.
+- Search Issues for similar problems.
+- Look in VS Code output window.
 
 ## Status
 
