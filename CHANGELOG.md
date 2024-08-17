@@ -16,6 +16,7 @@
 
 ### Fixed
 - Find correct python path for blender 2.92 and before (#174). This partly fixes compatibility with blender 2.80.
+- "Blender: Run Script" will no longer open read-only file when hitting debug point (#142)
 
 ## [0.0.21] - 2024-07-16
 
