@@ -153,7 +153,7 @@ Be aware about:
 
 ## Core Blender development
 
-This addon has some ability to help with Blender source code development (C, Cpp, python) but it is undocumented.
+This addon has some ability to help with [Blender source code development](https://developer.blender.org/docs/handbook/building_blender/) but it is undocumented.
 
 ## Troubleshooting
 
