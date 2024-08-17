@@ -1,5 +1,5 @@
 import time
-from typing import Callable
+from typing import Callable, Dict
 
 import flask
 import debugpy
@@ -109,7 +109,7 @@ def register_post_action(type: str, handler: Callable):
 ###############################
 
 
-def send_connection_information(path_mappings):
+def send_connection_information(path_mappings: Dict):
     send_dict_as_json(
         {
             "type": "setup",

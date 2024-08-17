@@ -9,6 +9,7 @@ import { letUserPickItem } from './select_utils';
 import { getConfig, cancel, runTask } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderWorkspaceFolder } from './blender_folder';
+import { outputChannel } from './extension';
 
 
 export class BlenderExecutable {
@@ -51,11 +52,14 @@ export class BlenderExecutable {
     }
 
     public async launch() {
+        const blenderArgs = getBlenderLaunchArgs()
         let execution = new vscode.ProcessExecution(
             this.path,
-            getBlenderLaunchArgs(),
+            blenderArgs,
             { env: await getBlenderLaunchEnv() }
         );
+        outputChannel.appendLine(`Starting blender: ${this.path} ${blenderArgs.join(' ')}`)
+        outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2))
 
         await runTask('blender', execution);
     }
@@ -196,7 +200,6 @@ async function getBlenderLaunchEnv() {
         ADDONS_TO_LOAD: JSON.stringify(loadDirsWithNames),
         VSCODE_EXTENSIONS_REPOSITORY: <string>config.get("addon.extensionsRepository"),
         EDITOR_PORT: getServerPort().toString(),
-        ALLOW_MODIFY_EXTERNAL_PYTHON: <boolean>config.get('allowModifyExternalPython') ? 'yes' : 'no',
         ...<object>config.get("environmentVariables", {}),
     };
 }
