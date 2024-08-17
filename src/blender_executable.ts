@@ -15,7 +15,6 @@ import { getBlenderInEnvPathWindows } from './blender_executable_windows';
 import { outputChannel } from './extension';
 
 
-const readdir = util.promisify(fs.readdir)
 const stat = util.promisify(fs.stat)
 
 export class BlenderExecutable {
@@ -114,7 +113,8 @@ async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
         const windowsBlenders = await getBlenderInEnvPathWindows();
         blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "", isDebug: false })))
     }
-    let path_env = process.env.PATH?.split(";");
+    const separator = process.platform === "win32" ? ";" : ":"
+    const path_env = process.env.PATH?.split(separator);
     if (path_env === undefined) {
         return blenders;
     }
