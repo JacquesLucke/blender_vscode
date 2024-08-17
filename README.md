@@ -85,6 +85,7 @@ The preferred way to insert this comment is to execute the `Blender: Set Script 
 - Use the latest Blender version from https://www.blender.org/download/.
 - Check [CHANGELOG](./CHANGELOG.md) for breaking changes.
 - Search Issues for similar problems.
+- Look in VS Code output window.
 
 ## Status
 

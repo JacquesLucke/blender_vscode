@@ -5,12 +5,14 @@ import { RunningBlenders } from './communication';
 import { letUserPickItem } from './select_utils';
 import { getAreaTypeItems } from './data_loader';
 import { getConfig, cancel, addFolderToWorkspace, getRandomString, pathExists, copyFile } from './utils';
+import { outputChannel } from './extension';
 
 export async function COMMAND_runScript(): Promise<void> {
     let editor = vscode.window.activeTextEditor;
     if (editor === undefined) return Promise.reject(new Error('no active script'));
 
-    let document = editor.document;
+    const document = editor.document;
+    outputChannel.appendLine(`Blender: Run Script: ${document.uri.fsPath}`)
     await document.save();
     RunningBlenders.sendToResponsive({ type: 'script', path: document.uri.fsPath });
 }
