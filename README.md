@@ -51,6 +51,14 @@ This is to make sure that the extension does not interfere with another package 
 You can either install the modules listed in the error message manually, or allow the extension to install the modules itself.
 To do that, the [`blender.allowModifyExternalPython`](vscode://settings/blender.allowModifyExternalPython) [setting](https://code.visualstudio.com/docs/getstarted/settings) has to be checked in VS Code.
 
+### Extension support
+
+> With the introduction of Extensions in Blender 4.2, the old way of creating add-ons is considered deprecated.
+
+[Extensions](https://docs.blender.org/manual/en/4.2/advanced/extensions/getting_started.html) are supported.
+For migration guide visit [Legacy vs Extension Add-ons](https://docs.blender.org/manual/en/4.2/advanced/extensions/addons.html#legacy-vs-extension-add-ons).
+VS code uses the [automatic logic to determine if you are using addon or extension](./EXTENSION-SUPPORT.md)
+
 ### How can I reload my addon in Blender?
 
 Execute the `Blender: Reload Addons` command.
