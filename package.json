@@ -134,7 +134,7 @@
             "type": "boolean",
             "scope": "application",
             "default": false,
-            "description": "Allow automatically installing modules in Python distributions outside of Blender."
+            "description": "**Deprecated** Modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`.\n Allow automatically installing modules in Python distributions outside of Blender."
           },
           "blender.addon.reloadOnSave": {
             "type": "boolean",

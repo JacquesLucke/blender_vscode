@@ -1,4 +1,5 @@
 import time
+from typing import Dict
 import flask
 import debugpy
 import random
@@ -91,12 +92,12 @@ def handle_get():
     return "OK"
 
 
-def register_post_handler(type, handler):
+def register_post_handler(type: str, handler):
     assert type not in post_handlers
     post_handlers[type] = handler
 
 
-def register_post_action(type, handler):
+def register_post_action(type: str, handler):
     def request_handler_wrapper(data):
         run_in_main_thread(partial(handler, data))
         return "OK"
@@ -108,7 +109,7 @@ def register_post_action(type, handler):
 ###############################
 
 
-def send_connection_information(path_mappings):
+def send_connection_information(path_mappings: Dict):
     send_dict_as_json(
         {
             "type": "setup",
