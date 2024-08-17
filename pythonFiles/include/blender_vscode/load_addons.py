@@ -113,7 +113,7 @@ def _resolve_link_windows_cmd(path: Path) -> Optional[str]:
 
 
 def _resolve_link(path: Path) -> Optional[str]:
-    """Return target if is symlink or jucntion"""
+    """Return target if is symlink or junction"""
     try:
         return os.readlink(str(path))
     except OSError as e:
@@ -125,7 +125,8 @@ def _resolve_link(path: Path) -> Optional[str]:
             # OSError: [Errno 22] Invalid argument: '/snap/blender/5088/4.2/extensions/system/readme.txt'
             if e.errno == 22:
                 return None
-        raise e
+        print("Warning: can not resolve link target", e)
+        return None
     except ValueError as e:
         # there are major differences in python windows junction support (3.7.0 and 3.7.9 give different errors)
         if sys.platform == "win32":
