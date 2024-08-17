@@ -12,13 +12,14 @@ class AddonInfo:
     module_name: str
 
 
-def startup(editor_address, addons_to_load: List[AddonInfo], allow_modify_external_python):
+def startup(editor_address, addons_to_load: List[AddonInfo]):
     if bpy.app.version < (2, 80, 34):
         handle_fatal_error("Please use a newer version of Blender")
 
     from . import installation
 
-    installation.ensure_packages_are_installed(["debugpy", "flask", "requests"], allow_modify_external_python)
+    # blender 2.80 'ssl' module is compiled with 'OpenSSL 1.1.0h' what breaks with requests >2.29.0
+    installation.ensure_packages_are_installed(["debugpy", "requests<=2.29.0", "flask"])
 
     from . import load_addons
 

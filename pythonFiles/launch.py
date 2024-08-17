@@ -26,7 +26,6 @@ try:
     blender_vscode.startup(
         editor_address=f"http://localhost:{os.environ['EDITOR_PORT']}",
         addons_to_load=addons_to_load,
-        allow_modify_external_python=os.environ["ALLOW_MODIFY_EXTERNAL_PYTHON"] == "yes",
     )
 except Exception as e:
     if type(e) is not SystemExit:
