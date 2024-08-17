@@ -118,10 +118,14 @@ def _resolve_link(path: Path) -> Optional[str]:
         return os.readlink(str(path))
     except OSError as e:
         # OSError: [WinError 4390] The file or directory is not a reparse point
-        if e.winerror == 4390:
-            return None
+        if sys.platform == "win32":
+            if e.winerror == 4390:
+                return None
         else:
-            raise e
+            # OSError: [Errno 22] Invalid argument: '/snap/blender/5088/4.2/extensions/system/readme.txt'
+            if e.errno == 22:
+                return None
+        raise e
     except ValueError as e:
         # there are major differences in python windows junction support (3.7.0 and 3.7.9 give different errors)
         if sys.platform == "win32":
