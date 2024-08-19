@@ -142,10 +142,9 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     }
 
     const config = getConfig();
-    { // deduplicate twice: it preserves proper order in UI
-        const settingsBlenderPaths = (<BlenderPathData[]>config.get('executables')).filter(type.predicate);
-        settingsBlenderPaths.push(...result);
-        const deduplicatedBlenderPaths: BlenderPathData[] = deduplicateSamePaths(settingsBlenderPaths);
+    const settingsBlenderPaths = (<BlenderPathData[]>config.get('executables')).filter(type.predicate);
+    { // deduplicate Blender paths twice: it preserves proper order in UI
+        const deduplicatedBlenderPaths: BlenderPathData[] = deduplicateSamePaths([...settingsBlenderPaths, ...result]);
         if (process.platform !== 'win32') {
             result = await deduplicateSameHardLinks(deduplicatedBlenderPaths, false);
         } else {
@@ -162,14 +161,16 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
         });
     }
 
+    // last option opens interactive window
     quickPickItems.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) })
 
     const pickedItem = await letUserPickItem(quickPickItems);
     const pathData: BlenderPathData = await pickedItem.data();
 
-    if (result.find(data => data.path === pathData.path) === undefined) {
-        result.push(pathData);
-        config.update('executables', result, vscode.ConfigurationTarget.Global);
+    // update VScode settings
+    if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
+        settingsBlenderPaths.push(pathData);
+        config.update('executables', settingsBlenderPaths, vscode.ConfigurationTarget.Global);
     }
 
     return pathData;
@@ -189,7 +190,6 @@ function deduplicateSamePaths(usableBlenderPaths: BlenderPathData[]) {
     return deduplicatedBlenderPaths;
 }
 
-/* Deduplicate paths based on hard links, */
 async function deduplicateSameHardLinks(deduplicatedBlenderPaths: BlenderPathData[], removeMissingFiles = true) {
     let missingItem = -1;
     const deduplicateHardLinks = new Map<number, BlenderPathData>();
