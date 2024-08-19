@@ -1,6 +1,7 @@
 import * as fs from 'fs';
+import * as util from 'util';
 
-import { BlenderPathData, stat } from "./blender_executable";
+import { BlenderPathData } from "./blender_executable";
 
 const stat = util.promisify(fs.stat)
 
