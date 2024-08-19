@@ -98,6 +98,7 @@ export interface BlenderPathData {
     path: string;
     name: string;
     isDebug: boolean;
+    linuxInode?: number;
 }
 
 interface BlenderType {
@@ -108,7 +109,7 @@ interface BlenderType {
 }
 
 async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
-    let blenders: BlenderPathData[] = [];
+    const blenders: BlenderPathData[] = [];
     if (process.platform === "win32") {
         const windowsBlenders = await getBlenderInEnvPathWindows();
         blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "", isDebug: false })))
@@ -118,55 +119,97 @@ async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
     if (path_env === undefined) {
         return blenders;
     }
-    const linuxINodes = new Set<number>();
     const exe = process.platform === "win32" ? "blender.exe" : "blender"
     for (const p of path_env) {
         const executable = path.join(p, exe)
         const stats = await stat(executable).catch((err: NodeJS.ErrnoException) => undefined);
-        if (stats === undefined) continue;
-        if (stats.isFile()) {
-            if (process.platform != "win32" && linuxINodes.has(stats.ino)) {
-                continue // hard link deduplication
-            } else {
-                linuxINodes.add(stats.ino)
-            }
-            blenders.push({ path: executable, name: "", isDebug: false })
-        }
+        if (stats === undefined || !stats?.isFile()) continue;
+        blenders.push({ path: executable, name: "", isDebug: false, linuxInode: stats.ino })
     }
     return blenders;
 }
 
 async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
-    let config = getConfig();
-    let allBlenderPaths = <BlenderPathData[]>config.get('executables');
-    let blendersInSystem: BlenderPathData[] = await searchBlenderInSystem();
-    let deduplicatedPaths = blendersInSystem.filter(defaultPath => !allBlenderPaths.some(userDefinedBlednerPath => path.relative(userDefinedBlednerPath.path, defaultPath.path) === ''))
-    let usableBlenderPaths = allBlenderPaths.filter(type.predicate).concat(deduplicatedPaths);
+    let result: BlenderPathData[] = []
+    {
+        const blenderPathsInSystem: BlenderPathData[] = await searchBlenderInSystem();
+        const deduplicatedBlenderPaths: BlenderPathData[] = deduplicateSamePaths(blenderPathsInSystem);
+        if (process.platform !== 'win32') {
+            result = await deduplicateSameHardLinks(deduplicatedBlenderPaths, true);
+        } else {
+            result = deduplicatedBlenderPaths;
+        }
+    }
 
-    let items: PickItem[] = [];
-    for (let pathData of usableBlenderPaths) {
-        let useCustomName = pathData.name !== '' && pathData.name !== undefined;
-        items.push({
-            data: async () => pathData,
-            label: useCustomName ? pathData.name : pathData.path
+    const config = getConfig();
+    { // deduplicate twice: it preserves proper order in UI
+        const settingsBlenderPaths = (<BlenderPathData[]>config.get('executables')).filter(type.predicate);
+        settingsBlenderPaths.push(...result);
+        const deduplicatedBlenderPaths: BlenderPathData[] = deduplicateSamePaths(settingsBlenderPaths);
+        if (process.platform !== 'win32') {
+            result = await deduplicateSameHardLinks(deduplicatedBlenderPaths, false);
+        } else {
+            result = deduplicatedBlenderPaths;
+        }
+    }
+
+    const quickPickItems: PickItem[] = [];
+    for (const blenderPath of result) {
+        quickPickItems.push({
+            data: async () => blenderPath,
+            label: blenderPath.name || blenderPath.path,
+            description: await stat(blenderPath.path).then(_stats => undefined).catch((err: NodeJS.ErrnoException) => "File does not exist")
         });
     }
 
-    for (let item_iter of items) {
-        item_iter.description = await stat((await item_iter.data()).path).then(_stats => undefined).catch((err: NodeJS.ErrnoException) => "File does not exist")
-    }
+    quickPickItems.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) })
 
-    items.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) })
+    const pickedItem = await letUserPickItem(quickPickItems);
+    const pathData: BlenderPathData = await pickedItem.data();
 
-    let item = await letUserPickItem(items);
-    let pathData: BlenderPathData = await item.data();
-
-    if (allBlenderPaths.find(data => data.path === pathData.path) === undefined) {
-        allBlenderPaths.push(pathData);
-        config.update('executables', allBlenderPaths, vscode.ConfigurationTarget.Global);
+    if (result.find(data => data.path === pathData.path) === undefined) {
+        result.push(pathData);
+        config.update('executables', result, vscode.ConfigurationTarget.Global);
     }
 
     return pathData;
+}
+
+function deduplicateSamePaths(usableBlenderPaths: BlenderPathData[]) {
+    const deduplicatedBlenderPaths: BlenderPathData[] = [];
+    const uniqueBlenderPaths: string[] = [];
+    const isTheSamePath = (path_one: string, path_two: string) => path.relative(path_one, path_two) === '';
+    for (const item of usableBlenderPaths) {
+        if (uniqueBlenderPaths.some(path => isTheSamePath(item.path, path))) {
+            continue;
+        }
+        uniqueBlenderPaths.push(item.path);
+        deduplicatedBlenderPaths.push(item);
+    }
+    return deduplicatedBlenderPaths;
+}
+
+/* Deduplicate paths based on hard links, */
+async function deduplicateSameHardLinks(deduplicatedBlenderPaths: BlenderPathData[], removeMissingFiles = true) {
+    let missingItem = -1;
+    const deduplicateHardLinks = new Map<number, BlenderPathData>();
+    for (const item of deduplicatedBlenderPaths) {
+        if (item.linuxInode === undefined) {
+            // try to find missing information
+            const stats = await stat(item.path).catch((err: NodeJS.ErrnoException) => undefined);
+            if (stats === undefined) {
+                if (removeMissingFiles) {
+                    deduplicateHardLinks.set(missingItem, item);
+                    missingItem -= 1;
+                }
+                continue;
+            }
+            item.linuxInode = stats.ino;
+        }
+        if (deduplicateHardLinks.has(item.linuxInode)) continue;
+        deduplicateHardLinks.set(item.linuxInode, item);
+    }
+    return Array.from(deduplicateHardLinks.values());
 }
 
 async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
