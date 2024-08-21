@@ -13,7 +13,7 @@ from .environment import addon_directories, EXTENSIONS_REPOSITORY
 from .utils import is_addon_legacy, addon_has_bl_info
 
 if bpy.app.version >= (4, 2, 0):
-    _EXTENSIONS_DEFAULT_DIR = Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
+    _EXTENSIONS_DEFAULT_DIR = Path(bpy.utils.user_resource("EXTENSIONS", path=EXTENSIONS_REPOSITORY))
 else:
     _EXTENSIONS_DEFAULT_DIR = None
 _ADDONS_DEFAULT_DIR = Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
@@ -172,6 +172,7 @@ def ensure_extension_repo_exists(extensions_repository: str):
         repo: bpy.types.UserExtensionRepo
         if repo.module == extensions_repository and repo.name == extensions_repository:
             return repo
+    print(f'DEBUG: new extensions repository "{extensions_repository}" created')
     return bpy.context.preferences.extensions.repos.new(name=extensions_repository, module=extensions_repository)
 
 
