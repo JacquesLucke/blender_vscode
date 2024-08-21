@@ -5,14 +5,14 @@
 ### Added
 - Automatically add Blender executables to quick pick window. Search PATH and typical installation folders ([#179](https://github.com/JacquesLucke/blender_vscode/pull/179))
 - If Blender executable does not exist indicate it in quick pick window ([#179](https://github.com/JacquesLucke/blender_vscode/pull/179))
-
-### Changed
 - Support bl_order in auto_load.py (#118)
 - Allow user to develop addon even it is placed in directories like (#172)
   - `\4.2\scripts\addons` -> default dir for addons
   - `\4.2\extensions\blender_org` -> directory indicated by `bpy.context.preferences.extensions.repos` (list of directories) 
 - Remove duplicate links to development (VSCode) directory (#172)
 - Remove broken links in addon and extension dir (#172)
+
+### Changed 
 - Addon_update operator: Check more precisely which module to delete (#175)
 - Formatted all python code with `black -l 120` (#167)
 - Fix most of the user reported permission denied errors by changing python packages directory ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177)):
@@ -25,8 +25,8 @@
 
 ### Fixed
 - Pinned requests to version 2.29 to maintain compatibility with blender 2.80 ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177))
-- "Blender: Run Script" will no longer open read-only file when hitting debug point ([#142](https://github.com/JacquesLucke/blender_vscode/pull/142))
 - Find correct python path for blender 2.92 and before (#174). This partly fixes compatibility with blender 2.80.
+- "Blender: Run Script" will no longer open read-only file when hitting debug point (#142)
 
 ## [0.0.21] - 2024-07-16
 
