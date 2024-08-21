@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Added
-- Add setting to specify to which repository install addons from VS code ([#180](https://github.com/JacquesLucke/blender_vscode/pull/180)). Default value "vscode_development"
+- Add setting to specify to which repository install addons from VS code. Default value is `vscode_development` ([#180](https://github.com/JacquesLucke/blender_vscode/pull/180))
 - Support bl_order in auto_load.py (#118)
 - Allow user to develop addon even it is placed in directories like (#172)
   - `\4.2\scripts\addons` -> default dir for addons
