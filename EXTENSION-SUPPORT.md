@@ -39,7 +39,7 @@ My addon supports addons and extensions (has both `bl_info` defined in `__init__
 
 # Uninstall addon and cleanup
 
-Uninstalling addons:
+## How to uninstall addon?
 
 - Manually remove links from locations:
   - Extensions (Blender 4.2 onwards): `bpy.utils.user_resource("EXTENSIONS", path="vscode_development")`
@@ -49,7 +49,8 @@ Uninstalling addons:
     - On windows uninstalling addon with Blender Preferences will result in data loss. It does not matter if your addon is linked or you are developing in directory that Blender recognizes by default (see above table).
     - On linux/mac from blender [2.80](https://projects.blender.org/blender/blender/commit/e6ba760ce8fda5cf2e18bf26dddeeabdb4021066) uninstalling **linked** addon with Blender Preferences is handled correctly. If you are developing in that Blender recognizes by default (see above table) data loss will occur.
 
-Cleanup:
+## How to completely cleanup all changes?
+
 - Remove installed dependencies in path: `bpy.utils.user_resource("SCRIPTS", path="addons")`
   - Older version install dependencies to global Blender packages folder and they are impossible to remove easily `<blender-install-path>/4.2/python/Lib/site-packages`
 - Remove extension repository called `vscode_development`: `Blender -> Preferences -> Get Extensions -> Repositories (dropdown, top right)`
