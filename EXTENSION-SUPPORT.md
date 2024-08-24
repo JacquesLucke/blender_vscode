@@ -27,7 +27,17 @@ There is no setting to override this behaviour. Find out your default paths:
 
 Note: `EXTENSIONS_DEFAULT_LOCATION` is defined by [`blender.addon.extensionsRepository`](vscode://settings/blender.addon.extensionsRepository) 
 
-## Uninstall addon and cleanup
+## Examples
+
+I am using Blender 3.0 to develop my addon in `/home/user/blender-projects/test_extension/`.
+My addon supports addons and extensions (has both `bl_info` defined in `__init__.py` and `blender_manifest.toml` file.)
+- Result: my addon is interpreted to be addon (because Blender 3 does not support extension). My addon is linked to ADDON_DEFAULT_LOCATION
+
+I am using Blender 4.2 to develop my addon in `/home/user/blender-projects/test_extension/`.
+My addon supports addons and extensions (has both `bl_info` defined in `__init__.py` and `blender_manifest.toml` file.)
+- Result: my addon is interpreted to be extension. My addon is linked to EXTENSIONS_DEFAULT_LOCATION
+
+# Uninstall addon and cleanup
 
 Uninstalling addons:
 
@@ -42,12 +52,3 @@ Cleanup:
   - Older version install dependencies to global Blender packages folder and they are impossible to remove easily `<blender-install-path>/4.2/python/Lib/site-packages`
 - Remove extension repository: `Blender -> Preferences -> Get Extensions -> Repositories (dropdown, top right)` called `vscode_development`
 
-## Examples
-
-I am using Blender 3.0 to develop my addon in `/home/user/blender-projects/test_extension/`.
-My addon supports addons and extensions (has both `bl_info` defined in `__init__.py` and `blender_manifest.toml` file.)
-  - Result: my addon is interpreted to be addon (because Blender 3 does not support extension). My addon is linked to ADDON_DEFAULT_LOCATION
- 
-I am using Blender 4.2 to develop my addon in `/home/user/blender-projects/test_extension/`.
-My addon supports addons and extensions (has both `bl_info` defined in `__init__.py` and `blender_manifest.toml` file.)
-  - Result: my addon is interpreted to be extension. My addon is linked to EXTENSIONS_DEFAULT_LOCATION
