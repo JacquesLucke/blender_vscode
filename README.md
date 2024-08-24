@@ -15,7 +15,7 @@ You can develop your addon anywhere, VS Code will create a **permanent soft link
   - VS code installs to local `vscode_development` extensions repository `Blender -> Preferences -> Get Extensions -> Repositories (dropdown, top right)`, see [`blender.addon.extensionsRepository`](vscode://settings/blender.addon.extensionsRepository) 
 
 > [!WARNING]
-> In some cases uninstalling addon using Blender Preferences [might lead to data loss](./EXTENSION-SUPPORT.md#uninstall-addon-and-cleanup)
+> In some cases uninstalling addon using Blender Preferences UI interface [might lead to data loss](./EXTENSION-SUPPORT.md#uninstall-addon-and-cleanup)
 
 ### How do I create a new addon?
 
