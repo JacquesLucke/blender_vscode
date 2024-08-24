@@ -134,7 +134,9 @@
             "type": "boolean",
             "scope": "application",
             "default": false,
-            "description": "**Deprecated** Modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`.\n Allow automatically installing modules in Python distributions outside of Blender."
+            "description": "Deprecated: automatically installing modules in Python distributions outside of Blender.",
+            "markdownDeprecationMessage": "**Deprecated**: modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`.",
+            "deprecationMessage": "Deprecated: modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`."
           },
           "blender.addon.reloadOnSave": {
             "type": "boolean",
@@ -184,6 +186,19 @@
               "my_addon_name"
             ],
             "description": "Name or the symlink that is created in Blenders addon folder."
+          }, 
+          "blender.addon.extensionsRepository": {
+            "type": "string",
+            "scope": "resource",
+            "default": "vscode_development",
+            "examples": [
+              "vscode_development",
+              "user_default",
+              "blender_org"
+            ],
+            "description": "Blender extensions only: repository to use when developing addon. \nBlender -> Preferences -> Get Extensions -> Repositories (dropdown, top right)",
+            "pattern": "^[\\w_]+$",
+            "patternErrorMessage": "Must be valid name of Python module (allowed: lower/upper case, underscore)"
           },
           "blender.core.buildDebugCommand": {
             "type": "string",

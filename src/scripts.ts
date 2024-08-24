@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { templateFilesDir } from './paths';
 import { RunningBlenders } from './communication';
-import { letUserPickItem } from './select_utils';
+import { letUserPickItem, PickItem } from './select_utils';
 import { getAreaTypeItems } from './data_loader';
 import { getConfig, cancel, addFolderToWorkspace, getRandomString, pathExists, copyFile } from './utils';
 import { outputChannel } from './extension';
@@ -83,7 +83,7 @@ async function createNewScriptAtPath(filePath: string) {
     await copyFile(defaultScriptPath, filePath);
 }
 
-interface ScriptFolderData {
+export interface ScriptFolderData {
     path: string;
     name: string;
 }
@@ -91,7 +91,7 @@ interface ScriptFolderData {
 async function getFolderForScripts() {
     let scriptFolders = getStoredScriptFolders();
 
-    let items = [];
+    let items: PickItem[] = [];
     for (let folderData of scriptFolders) {
         let useCustomName = folderData.name !== '';
         items.push({

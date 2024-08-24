@@ -1,6 +1,5 @@
 import sys
 from dataclasses import dataclass
-from typing import List
 from pathlib import Path
 from typing import List
 
