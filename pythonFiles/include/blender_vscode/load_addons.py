@@ -170,7 +170,7 @@ def does_extension_link_exist(development_directory: Path) -> Optional[Path]:
 def ensure_extension_repo_exists(extensions_repository: str):
     for repo in bpy.context.preferences.extensions.repos:
         repo: bpy.types.UserExtensionRepo
-        if repo.module == extensions_repository and repo.name == extensions_repository:
+        if repo.module == extensions_repository:
             return repo
     print(f'DEBUG: new extensions repository "{extensions_repository}" created')
     return bpy.context.preferences.extensions.repos.new(name=extensions_repository, module=extensions_repository)
