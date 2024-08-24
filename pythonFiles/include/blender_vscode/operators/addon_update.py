@@ -1,11 +1,15 @@
-from pathlib import Path
-import bpy
 import sys
 import traceback
+from pathlib import Path
+
+import bpy
 from bpy.props import *
-from ..utils import is_addon_legacy, redraw_all, addon_has_bl_info
-from ..load_addons import is_in_any_extension_directory, is_in_any_addon_directory
+
+from ..environment import EXTENSIONS_REPOSITORY
+from ..utils import addon_has_bl_info
+from ..load_addons import is_in_any_addon_directory
 from ..communication import send_dict_as_json, register_post_action
+from ..utils import is_addon_legacy, redraw_all
 
 
 class UpdateAddonOperator(bpy.types.Operator):
@@ -49,10 +53,7 @@ def reload_addon_action(data):
             # but user is developing it in addon directory. Treat it as addon.
             module_names.append(name)
         else:
-            repo = is_in_any_extension_directory(Path(dir))
-            module = getattr(repo, "module", "user_default")
-            addon_name = ".".join(("bl_ext", module, name))
-            module_names.append(addon_name)
+            module_names.append("bl_ext." + EXTENSIONS_REPOSITORY + "." + name)
 
     for name in module_names:
         bpy.ops.dev.update_addon(module_name=name)

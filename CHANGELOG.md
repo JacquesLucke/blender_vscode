@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add setting to specify to which repository install addons from VS code. Default value is `vscode_development` ([#180](https://github.com/JacquesLucke/blender_vscode/pull/180))
 - Automatically add Blender executables to quick pick window. Search PATH and typical installation folders ([#179](https://github.com/JacquesLucke/blender_vscode/pull/179))
 - If Blender executable does not exist indicate it in quick pick window ([#179](https://github.com/JacquesLucke/blender_vscode/pull/179))
 - Support bl_order in auto_load.py (#118)
