@@ -27,7 +27,7 @@ const typicalWindowsBlenderFoundationPaths: string[] = [
 ]
 
 
-export async function getBlenderInEnvPathWindows(): Promise<string[]> {
+export async function getBlenderWindows(): Promise<string[]> {
     let blenders: string[] = [];
     let dirs_to_check: string[] = []
     for (const typicalPath of typicalWindowsBlenderFoundationPaths) {

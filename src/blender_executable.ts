@@ -12,7 +12,7 @@ import { getConfig, cancel, runTask } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { outputChannel } from './extension';
-import { getBlenderInEnvPathWindows } from './blender_executable_windows';
+import { getBlenderWindows } from './blender_executable_windows';
 import { deduplicateSameHardLinks } from './blender_executable_linux';
 
 
@@ -112,7 +112,7 @@ interface BlenderType {
 async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
     const blenders: BlenderPathData[] = [];
     if (process.platform === "win32") {
-        const windowsBlenders = await getBlenderInEnvPathWindows();
+        const windowsBlenders = await getBlenderWindows();
         blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "", isDebug: false })))
     }
     const separator = process.platform === "win32" ? ";" : ":"
