@@ -41,13 +41,16 @@ My addon supports addons and extensions (has both `bl_info` defined in `__init__
 
 ## How to uninstall addon?
 
-- Manually remove links from locations:
-  - Extensions (Blender 4.2 onwards): `bpy.utils.user_resource("EXTENSIONS", path="vscode_development")`
-  - Addons: `bpy.utils.user_resource("SCRIPTS", path="addons")`
-  - For older installations manually remove links from: `bpy.utils.user_resource("EXTENSIONS", path="user_default")`
-- Do not use Blender UI to uninstall addons:
-    - On windows uninstalling addon with Blender Preferences will result in data loss. It does not matter if your addon is linked or you are developing in directory that Blender recognizes by default (see above table).
-    - On linux/mac from blender [2.80](https://projects.blender.org/blender/blender/commit/e6ba760ce8fda5cf2e18bf26dddeeabdb4021066) uninstalling **linked** addon with Blender Preferences is handled correctly. If you are developing in that Blender recognizes by default (see above table) data loss will occur.
+Manually remove links from locations:
+
+- Extensions (Blender 4.2 onwards): `bpy.utils.user_resource("EXTENSIONS", path="vscode_development")`
+- Addons: `bpy.utils.user_resource("SCRIPTS", path="addons")`
+- For older installations manually remove links from: `bpy.utils.user_resource("EXTENSIONS", path="user_default")`
+
+> [!WARNING] 
+> Do not use Blender UI to uninstall addons:
+> - On windows uninstalling addon with Blender Preferences will result in data loss. It does not matter if your addon is linked or you are developing in directory that Blender recognizes by default (see above table).
+> - On linux/mac from blender [2.80](https://projects.blender.org/blender/blender/commit/e6ba760ce8fda5cf2e18bf26dddeeabdb4021066) uninstalling **linked** addon with Blender Preferences is handled correctly. If you are developing in that Blender recognizes by default (see above table) data loss will occur.
 
 ## How to completely cleanup all changes?
 
