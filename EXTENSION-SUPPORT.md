@@ -1,4 +1,4 @@
-# Extension support
+# Addon/Extension support
 
 > With the introduction of Extensions in Blender 4.2, the old way of creating add-ons is considered deprecated.
 
@@ -21,9 +21,26 @@ There is no setting to override this behaviour. Find out your default paths:
 '/home/user/.config/blender/4.2/scripts/addons'
 >>> ANY_REPO_LOCATION = [repo.custom_directory if repo.use_custom_directory else repo.directory for repo in bpy.context.preferences.extensions.repos if repo.enabled]
 ['/home/user/.config/blender/4.2/extensions/blender_org', '/home/user/.config/blender/4.2/extensions/user_default', '/snap/blender/5088/4.2/extensions/system']
->>> EXTENSIONS_DEFAULT_LOCATION = bpy.utils.user_resource("EXTENSIONS", path="user_default")
-'/home/user/.config/blender/4.2/extensions/user_default' 
+>>> EXTENSIONS_DEFAULT_LOCATION = bpy.utils.user_resource("EXTENSIONS", path="vscode_development")
+'/home/user/.config/blender/4.2/extensions/vscode_development' 
 ```
+
+Note: `EXTENSIONS_DEFAULT_LOCATION` is defined by [`blender.addon.extensionsRepository`](vscode://settings/blender.addon.extensionsRepository) 
+
+## Uninstall addon and cleanup
+
+Uninstalling addons:
+
+- Manually remove links from locations: `bpy.utils.user_resource("EXTENSIONS", path="vscode_development")` and `bpy.utils.user_resource("SCRIPTS", path="addons")`
+- For older installations manually remove links from: `bpy.utils.user_resource("EXTENSIONS", path="user_default")`
+- Do not use Blender UI to uninstall addons:
+    - On windows uninstalling addon with Blender Preferences will result in data loss. It does not matter if your addon is linked or you are developing in directory that Blender recognizes by default (see above table).
+    - On linux/mac from blender [2.80](https://projects.blender.org/blender/blender/commit/e6ba760ce8fda5cf2e18bf26dddeeabdb4021066) uninstalling **linked** addon with Blender Preferences is handled correctly. If you are developing in that Blender recognizes by default (see above table) data loss will occur.
+
+Cleanup:
+- Remove installed dependencies in path: `bpy.utils.user_resource("SCRIPTS", path="addons")`
+  - Older version install dependencies to global Blender packages folder and they are impossible to remove easily `<blender-install-path>/4.2/python/Lib/site-packages`
+- Remove extension repository: `Blender -> Preferences -> Get Extensions -> Repositories (dropdown, top right)` called `vscode_development`
 
 ## Examples
 
