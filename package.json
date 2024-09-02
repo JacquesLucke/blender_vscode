@@ -274,7 +274,7 @@
     "@types/request": "^2.48.1",
     "@types/vscode": "^1.28.0",
     "tslint": "^5.8.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.5.2"
   },
   "dependencies": {
     "request": "^2.87.0"
