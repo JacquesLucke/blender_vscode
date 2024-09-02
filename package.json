@@ -24,7 +24,9 @@
     "onCommand:blender.runScript",
     "onCommand:blender.setScriptContext",
     "onCommand:blender.openScriptsFolder",
-    "onCommand:blender.newOperator"
+    "onCommand:blender.newOperator",
+    "onCommand:blender.openWithBlender",
+    "onCommand:blender.openFiles"
   ],
   "main": "./out/extension",
   "repository": {
@@ -99,6 +101,16 @@
       {
         "command": "blender.newOperator",
         "title": "New Operator",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.openWithBlender",
+        "title": "Open With Blender",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.openFiles",
+        "title": "Open File(s)",
         "category": "Blender"
       }
     ],
@@ -262,6 +274,21 @@
         }
       }
     ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "blender.openWithBlender",
+          "when": "false"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "blender.openWithBlender",
+          "group": "navigation",
+          "when": "resourceScheme == file && resourceExtname == .blend"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "blend",

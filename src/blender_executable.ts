@@ -45,20 +45,34 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
-    public static async LaunchAny() {
-        await (await this.GetAny()).launch();
+    public static async LaunchAny(blend_filepaths?: string[]) {
+        let executable = await this.GetAny();
+        if (blend_filepaths === undefined) {
+            await executable.launch();
+            return;
+        }
+        for (let blend_filepath of blend_filepaths) {
+            await executable.launch(blend_filepath);
+        }
     }
 
-    public static async LaunchDebug(folder: BlenderWorkspaceFolder) {
-        await (await this.GetDebug()).launchDebug(folder);
+    public static async LaunchDebug(folder: BlenderWorkspaceFolder, blend_filepaths?: string[]) {
+        let executable = await this.GetAny();
+        if (blend_filepaths === undefined) {
+            await executable.launchDebug(folder);
+            return;
+        }
+        for (let blend_filepath of blend_filepaths) {
+            await executable.launchDebug(folder, blend_filepath);
+        }
     }
 
     get path() {
         return this.data.path;
     }
 
-    public async launch() {
-        const blenderArgs = getBlenderLaunchArgs()
+    public async launch(blend_filepath?: string) {
+        const blenderArgs = getBlenderLaunchArgs(blend_filepath);
         let execution = new vscode.ProcessExecution(
             this.path,
             blenderArgs,
@@ -70,13 +84,13 @@ export class BlenderExecutable {
         await runTask('blender', execution);
     }
 
-    public async launchDebug(folder: BlenderWorkspaceFolder) {
+    public async launchDebug(folder: BlenderWorkspaceFolder, blend_filepath?: string) {
         let configuration = {
             name: 'Debug Blender',
             type: 'cppdbg',
             request: 'launch',
             program: this.data.path,
-            args: ['--debug'].concat(getBlenderLaunchArgs()),
+            args: ['--debug'].concat(getBlenderLaunchArgs(blend_filepath)),
             env: await getBlenderLaunchEnv(),
             stopAtEntry: false,
             MIMode: 'gdb',
@@ -259,9 +273,16 @@ async function testIfPathIsBlender(filepath: string) {
     });
 }
 
-function getBlenderLaunchArgs() {
+function getBlenderLaunchArgs(blend_filepath?: string) {
     let config = getConfig();
-    return ['--python', launchPath].concat(<string[]>config.get("additionalArguments", []));
+    let args = ['--python', launchPath].concat(<string[]>config.get("additionalArguments", []));
+    if (blend_filepath !== undefined) {
+        if (!fs.existsSync(blend_filepath)) {
+            new Error(`File does not exist: '${blend_filepath}'`);
+        }
+        args.push(blend_filepath);
+    }
+    return args;
 }
 
 async function getBlenderLaunchEnv() {
