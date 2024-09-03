@@ -36,9 +36,13 @@ export class BlenderInstance {
         request.post(this.address, { json: data });
     }
 
+    get(data: object) {
+        return request.get(this.address, { json: data });
+    }
+
     async ping(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            let req = request.get(this.address, { json: { type: 'ping' } });
+            const req = request.get(this.address, { json: { type: 'ping' } });
             req.on('end', () => resolve());
             req.on('error', err => { this.connectionErrors.push(err); reject(err); });
         });
@@ -95,9 +99,20 @@ export class BlenderInstances {
     sendToResponsive(data: object, timeout: number = RESPONSIVE_LIMIT_MS) {
         for (const instance of this.instances) {
             instance.isResponsive(timeout).then(responsive => {
-                if (responsive) instance.post(data);
+                if (responsive)
+                    instance.post(data);
             }).catch();
         }
+    }
+
+    async getFromResponsive(params: object, timeout: number = RESPONSIVE_LIMIT_MS) {
+        for (const instance of this.instances) {
+            const isResponsive = await instance.isResponsive(timeout)
+            if (!isResponsive)
+                continue
+            return instance.get(params);
+        }
+        return undefined;
     }
 
     sendToAll(data: object) {

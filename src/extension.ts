@@ -12,6 +12,7 @@ import {
     COMMAND_runScript, COMMAND_newScript, COMMAND_setScriptContext,
     COMMAND_openScriptsFolder
 } from './scripts';
+import { completionProvider } from './blender_completion_provider';
 
 export let outputChannel: vscode.OutputChannel;
 
@@ -48,17 +49,18 @@ export function activate(context: vscode.ExtensionContext) {
     ];
 
     for (let [identifier, func] of commands) {
-        let command = vscode.commands.registerCommand(identifier, handleErrors(func));
+        const command = vscode.commands.registerCommand(identifier, handleErrors(func));
         disposables.push(command);
     }
 
     for (let [identifier, func] of textEditorCommands) {
-        let command = vscode.commands.registerTextEditorCommand(identifier, handleErrors(func));
+        const command = vscode.commands.registerTextEditorCommand(identifier, handleErrors(func));
         disposables.push(command);
     }
 
     context.subscriptions.push(...disposables);
 
+	context.subscriptions.push(completionProvider());
     startServer();
 }
 

@@ -1,14 +1,19 @@
+import logging
+import random
+import threading
 import time
+from functools import partial
 from typing import Callable, Dict
 
-import flask
 import debugpy
-import random
+import flask
 import requests
-import threading
-from functools import partial
-from .utils import run_in_main_thread
+
 from .environment import blender_path, scripts_folder, python_path
+from .utils import run_in_main_thread
+
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 
 EDITOR_ADDRESS = None
 OWN_SERVER_PORT = None
@@ -27,9 +32,9 @@ def setup(address: str, path_mappings):
 
     send_connection_information(path_mappings)
 
-    print("Waiting for debug client.")
+    LOG.info("Waiting for debug client.")
     debugpy.wait_for_client()
-    print("Debug client attached.")
+    LOG.info("Debug client attached.")
 
 
 def start_own_server():
@@ -74,10 +79,12 @@ def start_debug_server():
 @server.route("/", methods=["POST"])
 def handle_post():
     data = flask.request.get_json()
-    print("Got POST:", data)
+    # LOG.debug(f"Got POST: {data}")
 
     if data["type"] in post_handlers:
         return post_handlers[data["type"]](data)
+    else:
+        LOG.warning(f"Unhandled POST: {data}")
 
     return "OK"
 
@@ -85,10 +92,16 @@ def handle_post():
 @server.route("/", methods=["GET"])
 def handle_get():
     data = flask.request.get_json()
-    print("Got GET:", data)
+    # LOG.debug("Got GET:", data)
 
     if data["type"] == "ping":
         pass
+    elif data["type"] == "complete":
+        from .blender_complete import complete
+
+        return {"items": complete(data)}
+    else:
+        LOG.warning(f"Unhandled GET: {data}")
     return "OK"
 
 
@@ -123,7 +136,7 @@ def send_connection_information(path_mappings: Dict):
 
 
 def send_dict_as_json(data):
-    print("Sending:", data)
+    # LOG.debug(f"Sending: {pformat(data)}")
     requests.post(EDITOR_ADDRESS, json=data)
 
 

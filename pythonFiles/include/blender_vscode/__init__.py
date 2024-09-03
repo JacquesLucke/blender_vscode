@@ -1,3 +1,13 @@
+import logging
+
+# todo remove: this applies colors to all loggers, not only this addon. But I like colors...
+logging.addLevelName(logging.DEBUG, "\033[1;37m%s\033[1;0m" % logging.getLevelName(logging.DEBUG))
+logging.addLevelName(logging.INFO, "\033[1;32m%s\033[1;0m" % logging.getLevelName(logging.INFO))
+logging.addLevelName(logging.WARNING, "\033[1;31m%s\033[1;0m" % logging.getLevelName(logging.WARNING))
+logging.addLevelName(logging.ERROR, "\033[1;41m%s\033[1;0m" % logging.getLevelName(logging.ERROR))
+logging.basicConfig(format="%(levelname)s:%(name)s: %(message)s", level=logging.DEBUG)
+logging.getLogger().setLevel(logging.DEBUG)
+
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,7 +29,7 @@ def startup(editor_address, addons_to_load: List[AddonInfo]):
     from . import installation
 
     # blender 2.80 'ssl' module is compiled with 'OpenSSL 1.1.0h' what breaks with requests >2.29.0
-    installation.ensure_packages_are_installed(["debugpy", "requests<=2.29.0", "flask"])
+    installation.ensure_packages_are_installed(["debugpy", "requests<=2.29.0", "flask", "jedi"])
 
     from . import load_addons
 

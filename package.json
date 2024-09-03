@@ -12,6 +12,8 @@
     "Other"
   ],
   "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:plaintext",
     "onCommand:blender.start",
     "onCommand:blender.stop",
     "onCommand:blender.build",
@@ -186,7 +188,7 @@
               "my_addon_name"
             ],
             "description": "Name or the symlink that is created in Blenders addon folder."
-          }, 
+          },
           "blender.addon.extensionsRepository": {
             "type": "string",
             "scope": "resource",

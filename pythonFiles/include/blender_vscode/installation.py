@@ -1,3 +1,4 @@
+import logging
 import sys
 import subprocess
 
@@ -9,6 +10,7 @@ from . import handle_fatal_error
 from .environment import python_path
 
 _CWD_FOR_SUBPROCESSES = python_path.parent
+LOG= logging.getLogger(__name__)
 
 
 def ensure_packages_are_installed(package_names):
@@ -40,7 +42,7 @@ def ensure_package_is_installed(name: str):
 def install_package(name: str):
     target = get_package_install_directory()
     command = [str(python_path), "-m", "pip", "install", name, "--target", target]
-    print("Execute: ", " ".join(command))
+    LOG.info("Execute: ", " ".join(command))
     subprocess.run(command, cwd=_CWD_FOR_SUBPROCESSES)
 
     if not module_can_be_imported(name):
@@ -51,7 +53,7 @@ def install_pip():
     # try ensurepip before get-pip.py
     if module_can_be_imported("ensurepip"):
         command = [str(python_path), "-m", "ensurepip", "--upgrade"]
-        print("Execute: ", " ".join(command))
+        LOG.info("Execute: ", " ".join(command))
         subprocess.run(command, cwd=_CWD_FOR_SUBPROCESSES)
         return
     # pip can not necessarily be imported into Blender after this
