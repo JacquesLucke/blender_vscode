@@ -13,8 +13,8 @@
 - Remove duplicate links to development (VSCode) directory (#172)
 - Remove broken links in addon and extension dir (#172)
 
-### Changed 
-- Updated dependencies. Now oldest supported VS Code version is `1.28.0`. ([#137](https://github.com/JacquesLucke/blender_vscode/pull/147))
+### Changed
+- Updated dependencies. Now oldest supported VS Code version is `1.28.0` - version from September 2018. ([#147](https://github.com/JacquesLucke/blender_vscode/pull/147))
 - Addon_update operator: Check more precisely which module to delete (#175)
 - Formatted all python code with `black -l 120` (#167)
 - Fix most of the user reported permission denied errors by changing python packages directory ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177)):
@@ -26,7 +26,7 @@
 - setting `blender.allowModifyExternalPython` is now deprecated ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177))
 
 ### Fixed
-- Path to addon indicated by [`blender.addonFolders`](vscode://settings/blender.addonFolders) now works correctly for non-system drive (usually `C:`) on Windows ([#137](https://github.com/JacquesLucke/blender_vscode/pull/147))
+- Path to addon indicated by [`blender.addonFolders`](vscode://settings/blender.addonFolders) now works correctly for non-system drive (usually `C:`) on Windows ([#147](https://github.com/JacquesLucke/blender_vscode/pull/147))
 - Pinned requests to version 2.29 to maintain compatibility with blender 2.80 ([#177](https://github.com/JacquesLucke/blender_vscode/pull/177))
 - Find correct python path for blender 2.92 and before (#174). This partly fixes compatibility with blender 2.80.
 - "Blender: Run Script" will no longer open read-only file when hitting debug point (#142)
