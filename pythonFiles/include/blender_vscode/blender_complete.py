@@ -26,7 +26,8 @@ class CompletionContext(TypedDict):
     text: str
 
 
-BLENDER_INTERNAL_MODULES = [
+# auto import must be set, it is needed for completing `import bpy; bpy.app.<tab>`. Not sure why.
+jedi.settings.auto_import_modules = BLENDER_INTERNAL_MODULES = [
     # "bpy",
     "_bpy",
     # static _inittab bpy_internal_modules from `source/blender/python/intern/bpy_interface.cc`
@@ -50,7 +51,7 @@ BLENDER_INTERNAL_MODULES = [
     "idprop",
     "_bpy_hydra",
 ]
-jedi.settings.auto_import_modules = BLENDER_INTERNAL_MODULES # dont know why this is needed for completing `import bpy; bpy.app.<tab>`
+
 
 def import_blender_embedded_modules() -> List[Dict[str, ModuleType]]:
     # todo optimize
@@ -88,27 +89,18 @@ def complete(context: CompletionContext):
     # todo make sure project uses blender (embedded) interpreter
     embedded_modules = import_blender_embedded_modules()
     project = jedi.Project(
-        # path=Path.cwd(),
-                            path=r"E:\BlenderProjects\bledner.exe\blender-4.2.0-windows-x64\blender-4.2.0-windows-x64\4.2\scripts\modules",
-                            load_unsafe_extensions=True,
-                        #    added_sys_path=[
-                        #     #    r"E:\BlenderProjects\bledner.exe\blender-4.2.0-windows-x64\blender-4.2.0-windows-x64\4.2\scripts\addons_core",
-                        #     r"E:\BlenderProjects\bledner.exe\blender-4.2.0-windows-x64\blender-4.2.0-windows-x64\4.2\scripts\modules"
-                        #    ]
-                           )
-    i = BlenderInterpreter(code=context["text"], namespaces=[embedded_modules], 
-                        #    project=project
-                           )
-    # LOG.debug(i._code_lines)
+        path=Path.cwd(),
+        load_unsafe_extensions=True,
+    )
+    i = BlenderInterpreter(
+        code=context["text"],
+        namespaces=[embedded_modules],
+        project=project,
+    )
     line, column = int(context["position"]["line"]), int(context["position"]["character"])
-    # LOG.debug(i._code_lines[line])
     completions: List[jedi.api.Completion] = i.complete(line + 1, column, fuzzy=True)
     if completions:
         LOG.debug(f"Found completions: [{completions[0]}...] ({len(completions)})")
     else:
         LOG.debug(f"Found completions: {completions}")
-    # for c in completions:
-    #     c.get_completion_prefix_length()
-    #     LOG.debug(str(c))
-        # LOG.debug(str(c._like_name))
     return list(map(lambda c: c.name, completions))
