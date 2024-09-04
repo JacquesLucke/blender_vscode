@@ -16,13 +16,15 @@ You can develop your addon anywhere, VS Code will create a **permanent soft link
 
 > [!WARNING]
 > Windows only: uninstalling addon using Blender Preferences UI interface [might lead to data loss](./EXTENSION-SUPPORT.md#uninstall-addon-and-cleanup).
+> 
+> To prevent that from happening disable setting [`blender.addon.keepAddonInstalled`](vscode://setting/blender.addon.keepAddonInstalled).
+> It will make you addon available only during VS Code debug session.
 
 > [!WARNING]
 > Windows only: after importing settings from previous Blender version you might experience permission denied error.
-> Remove offending directories manually indicated in log.
+> Remove offending directories manually.
 >
 > To prevent that from happening disable setting [`blender.addon.keepAddonInstalled`](vscode://setting/blender.addon.keepAddonInstalled).
-> It will make you addon available only during VS Code debug session.
 
 ### How do I create a new addon?
 
