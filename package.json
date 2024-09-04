@@ -180,7 +180,7 @@
           "blender.addon.keepAddonInstalled": {
             "type": "boolean",
             "scope": "resource",
-            "default": false,
+            "default": true,
             "description": "When false: keep the addon/extension installed only when running \"Blender: Start\" command (recommended).\nEnable to make link persistant (legacy behaviour). May cause broken links and problems with upgrading blender."
           },
           "blender.addon.moduleName": {
