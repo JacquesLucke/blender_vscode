@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.22] - 2024-09-04
+
 ### Added
 - Add setting to specify to which repository install addons from VS code. Default value is `vscode_development` ([#180](https://github.com/JacquesLucke/blender_vscode/pull/180))
 - Automatically add Blender executables to quick pick window. Search PATH and typical installation folders ([#179](https://github.com/JacquesLucke/blender_vscode/pull/179))
@@ -9,7 +11,7 @@
 - Support bl_order in auto_load.py (#118)
 - Allow user to develop addon even it is placed in directories like (#172)
   - `\4.2\scripts\addons` -> default dir for addons
-  - `\4.2\extensions\blender_org` -> directory indicated by `bpy.context.preferences.extensions.repos` (list of directories) 
+  - `\4.2\extensions\blender_org` -> directory indicated by `bpy.context.preferences.extensions.repos` (list of directories)
 - Remove duplicate links to development (VSCode) directory (#172)
 - Remove broken links in addon and extension dir (#172)
 

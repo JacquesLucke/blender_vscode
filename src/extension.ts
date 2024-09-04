@@ -22,7 +22,7 @@ export let outputChannel: vscode.OutputChannel;
 
 export function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel("Blender debugpy");
-    outputChannel.appendLine("Addon staring.");
+    outputChannel.appendLine("Addon starting.");
     outputChannel.show(true);
 
     let commands: [string, () => Promise<void>][] = [
