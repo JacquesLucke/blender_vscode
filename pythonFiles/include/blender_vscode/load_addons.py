@@ -36,9 +36,9 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List
         ensure_extension_repo_exists(EXTENSIONS_REPOSITORY)
         remove_broken_extension_links()
 
-    disable_copy_settings_from_previous_version()
-
     if sys.platform == "win32":
+        # todo disable copy settings only when there is a junction in blender config folder
+        disable_copy_settings_from_previous_version()
         disable_addon_remove()
 
     path_mappings: List[Dict] = []

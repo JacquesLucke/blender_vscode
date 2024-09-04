@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Union
 
 import bpy
@@ -41,8 +42,6 @@ def disable_addon_remove():
 
     Soft link are handled correctly since [blender 2.8](https://developer.blender.org/rBe6ba760ce8fda5cf2e18bf26dddeeabdb4021066)
     """
-    from pathlib import Path
-
     old_draw = bpy.types.PREFERENCES_OT_addon_remove.draw
 
     def conditional_addon_remove_draw(self: "bpy.types.PREFERENCES_OT_addon_remove", context: "bpy.types.Context"):
@@ -65,5 +64,9 @@ def disable_addon_remove():
 
 
 def disable_copy_settings_from_previous_version():
-    # disable bpy.ops.preferences.copy_prev() is not happy with links that are about to be crated
+    """
+    Disables operator: bpy.ops.preferences.copy_prev()
+
+    This operator copies windows junctions as normal directories which need to be removed manually by user.
+    """
     bpy.types.PREFERENCES_OT_copy_prev.poll = _fake_poll
