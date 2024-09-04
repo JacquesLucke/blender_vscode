@@ -48,7 +48,7 @@ Manually remove links from locations:
 - For older installations manually remove links from: `bpy.utils.user_resource("EXTENSIONS", path="user_default")`
 
 > [!WARNING] 
-> Do not use Blender UI to uninstall addons:
+> Do not use Blender UI to uninstall addons on Windows (or old Blender versions on Linux):
 > - On windows uninstalling addon with Blender Preferences will result in data loss. It does not matter if your addon is linked or you are developing in directory that Blender recognizes by default (see above table).
 > - On linux/mac from blender [2.80](https://projects.blender.org/blender/blender/commit/e6ba760ce8fda5cf2e18bf26dddeeabdb4021066) uninstalling **linked** addon with Blender Preferences is handled correctly. If you are developing in that Blender recognizes by default (see above table) data loss will occur.
 
