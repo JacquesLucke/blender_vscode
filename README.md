@@ -103,46 +103,6 @@ Environment Variables:
 
 Use VS Code feature [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces). Each folder in workspace is treated as addon root.
 
-### How can I open blender file automatically when running `Blender: Start`?
-
-Add the path to .blend file to `additionalArguments`:
-
-```javascript
-"blender.additionalArguments": [
-    "--factory-startup", // any arguments you want
-    // "--open-last", // Open the most recently opened blend file, or:
-    "./path/to/my-file.blend" // prefered to be last argument, watch out for trailing spaces (which are invisible in VS code UI)
-],
-```
-
-### How can I separate development environment from my daily work?
-
-By default, Blender started from VS Code uses your global Blender settings (in windows: `%appdata%\Blender Foundation\Blender\<version>`). 
-
-To prevent any accidental changes to your daily setup, change environment var in VS Code setting:
-
-```javascript
-"blender.environmentVariables": {
-    "BLENDER_USER_RESOURCES": "./blender_vscode_development" // changes folder for addons, extensions, modules, config
-},
-```
-
-See `blender --help` for more environment vars with finer controls: 
-
-```shell
-Environment Variables:
-  $BLENDER_USER_RESOURCES  Replace default directory of all user files.
-                           Other 'BLENDER_USER_*' variables override when set.
-  $BLENDER_USER_CONFIG     Directory for user configuration files.
-  $BLENDER_USER_SCRIPTS    Directory for user scripts.
-  $BLENDER_USER_EXTENSIONS Directory for user extensions.
-  $BLENDER_USER_DATAFILES  Directory for user data files (icons, translations, ..).
-```
-
-### How to use with multiple addons?
-
-Use VS Code feature [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces). Each folder in workspace is treated as addon root.
-
 ## Script Tools
 
 When I say "script" I mean a piece of Python code that runs in Blender but is not an addon.

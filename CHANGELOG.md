@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+- Disable "Load Previous settings" Blender feature during VS code session. Blender breaks when trying to copy link from previous version.
+- Disable possible data loss on Windows during VS Code session:
+  - Block addon uninstallation is addon is link
+  - Block extensions repository removal if repo contains links to addons
+- Add option to make addon link/junction temporary [`blender.addon.keepAddonInstalled`](vscode://setting/blender.addon.keepAddonInstalled)
+- Automatically apply obvious Blender defaults
+
 ## [0.0.22] - 2024-09-04
 
 ### Added
@@ -14,12 +22,6 @@
   - `\4.2\extensions\blender_org` -> directory indicated by `bpy.context.preferences.extensions.repos` (list of directories)
 - Remove duplicate links to development (VSCode) directory (#172)
 - Remove broken links in addon and extension dir (#172)
-- Disable "Load Previous settings" Blender feature during VS code session. Blender breaks when trying to copy link from previous version.
-- Disable possible data loss on Windows during VS Code session:
-    - Block addon uninstallation is addon is link
-    - Block extensions repository removal if repo contains links to addons
-- Add option to make addon link/junction temporary [`blender.addon.keepAddonInstalled`](vscode://setting/blender.addon.keepAddonInstalled)
-- Automatically apply obvious Blender defaults
 
 ### Changed
 - Updated dependencies. Now oldest supported VS Code version is `1.28.0` - version from September 2018. ([#147](https://github.com/JacquesLucke/blender_vscode/pull/147))
