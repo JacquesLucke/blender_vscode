@@ -10,17 +10,6 @@ def _fake_poll(*args, **kwargs):
     return False
 
 
-def optimize_defaults():
-    """Non controversial, developer friendly defaults"""
-    view = bpy.context.preferences.view
-    print("INFO: Disabled splash screen")
-    view.show_splash = False
-    print("INFO: Enabled developer UI")
-    view.show_developer_ui = True
-    print("INFO: Enabled python tooltips")
-    view.show_tooltips_python = True
-
-
 def _add_warning_label(layout: bpy.types.UILayout, path: Union[str, os.PathLike], message: str):
     layout.label(text=message, icon="ERROR")
     if path and bpy.app.version >= (3, 6, 0):  # most likely https://projects.blender.org/blender/blender/pulls/104531

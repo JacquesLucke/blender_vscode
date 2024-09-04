@@ -14,7 +14,6 @@ from .modify_blender import (
     disable_copy_settings_from_previous_version,
     disable_addon_remove,
     disable_extension_remove,
-    optimize_defaults,
 )
 from .utils_blender import is_addon_legacy, addon_has_bl_info
 from .utils_files import resolve_link
@@ -33,7 +32,6 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List
     if str(_ADDONS_DEFAULT_DIR) not in sys.path:
         sys.path.append(str(_ADDONS_DEFAULT_DIR))
 
-    optimize_defaults()
     remove_broken_addon_links()
     if bpy.app.version >= (4, 2, 0):
         ensure_extension_repo_exists(EXTENSIONS_REPOSITORY)
