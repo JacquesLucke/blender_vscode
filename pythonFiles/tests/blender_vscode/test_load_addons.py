@@ -63,7 +63,7 @@ def bpy_utils_user_resource(resource_type, path=None):
 @patch("blender_vscode.load_addons.sys", path=[])
 @patch("blender_vscode.load_addons.os.makedirs")
 @patch("blender_vscode.load_addons.is_addon_legacy", return_value=True)
-@patch("blender_vscode.load_addons.make_temporary_link")
+@patch("blender_vscode.load_addons.create_link")
 @patch("blender_vscode.load_addons.bpy.context", **{"preferences.extensions.repos": []})
 @patch("blender_vscode.load_addons.os.listdir", return_value=[])
 class TestSetupAddonLinksDevelopAddon:
@@ -75,7 +75,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
         bpy_context: MagicMock,
-        make_temporary_link: MagicMock,
+        create_link: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
         sys_mock: MagicMock,
@@ -99,7 +99,7 @@ class TestSetupAddonLinksDevelopAddon:
         )
         is_addon_legacy.assert_called_once()
         is_in_any_extension_directory.assert_not_called()
-        make_temporary_link.assert_called_once_with(
+        create_link.assert_called_once_with(
             Path("/home/user/blenderProject/test-addon"),
             Path("/4.2/scripts/addons/test_addon"),
         )
@@ -112,7 +112,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
         bpy_context: MagicMock,
-        make_temporary_link: MagicMock,
+        create_link: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
         sys_mock: MagicMock,
@@ -137,7 +137,7 @@ class TestSetupAddonLinksDevelopAddon:
             [],
         )
         is_addon_legacy.assert_called_once()
-        make_temporary_link.assert_called_once()
+        create_link.assert_called_once()
         is_in_any_extension_directory.assert_not_called()
 
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=True)
@@ -148,7 +148,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
         bpy_context: MagicMock,
-        make_temporary_link: MagicMock,
+        create_link: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
         sys_mock: MagicMock,
@@ -171,14 +171,14 @@ class TestSetupAddonLinksDevelopAddon:
             [],
         )
         is_in_any_addon_directory.assert_called_once()
-        make_temporary_link.assert_not_called()
+        create_link.assert_not_called()
         is_in_any_extension_directory.assert_not_called()
 
 
 @patch("blender_vscode.load_addons.sys", path=[])
 @patch("blender_vscode.load_addons.os.makedirs")
 @patch("blender_vscode.load_addons.is_addon_legacy", return_value=False)
-@patch("blender_vscode.load_addons.make_temporary_link")
+@patch("blender_vscode.load_addons.create_link")
 @patch("blender_vscode.load_addons.is_in_any_extension_directory", return_value=None)
 @patch("blender_vscode.load_addons.addon_has_bl_info", return_value=False)
 @patch("blender_vscode.load_addons.bpy.context", **{"preferences.extensions.repos": []})
@@ -192,7 +192,7 @@ class TestSetupAddonLinksDevelopExtension:
         bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
-        make_temporary_link: MagicMock,
+        create_link: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
         sys_mock: MagicMock,
@@ -217,7 +217,7 @@ class TestSetupAddonLinksDevelopExtension:
             ],
             [],
         )
-        make_temporary_link.assert_not_called()
+        create_link.assert_not_called()
 
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=False)
     def test_setup_addon_links_develop_extension_in_extension_dir(
@@ -227,7 +227,7 @@ class TestSetupAddonLinksDevelopExtension:
         bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
-        make_temporary_link: MagicMock,
+        create_link: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
         sys_mock: MagicMock,
@@ -260,7 +260,7 @@ class TestSetupAddonLinksDevelopExtension:
             [],
         )
         is_in_any_addon_directory.assert_not_called()
-        make_temporary_link.assert_not_called()
+        create_link.assert_not_called()
         is_in_any_extension_directory.assert_called()
 
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=True)
@@ -271,7 +271,7 @@ class TestSetupAddonLinksDevelopExtension:
         bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
-        make_temporary_link: MagicMock,
+        create_link: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
         sys_mock: MagicMock,
@@ -296,7 +296,7 @@ class TestSetupAddonLinksDevelopExtension:
             [],
         )
         is_in_any_addon_directory.assert_not_called()
-        make_temporary_link.assert_called_once()
+        create_link.assert_called_once()
         is_in_any_extension_directory.assert_called()
 
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=False)
@@ -307,7 +307,7 @@ class TestSetupAddonLinksDevelopExtension:
         bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
-        make_temporary_link: MagicMock,
+        create_link: MagicMock,
         is_addon_legacy: MagicMock,
         makedirs: MagicMock,
         sys_mock: MagicMock,
@@ -331,7 +331,7 @@ class TestSetupAddonLinksDevelopExtension:
             ],
             [],
         )
-        make_temporary_link.assert_called_once()
+        create_link.assert_called_once()
         is_in_any_extension_directory.assert_called()
 
 

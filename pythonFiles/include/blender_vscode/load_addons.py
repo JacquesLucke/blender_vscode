@@ -75,7 +75,7 @@ def _link_addon_or_extension(addon_info: AddonInfo) -> Path:
         else:  # addon is in external dir or is in extensions dir
             _remove_duplicate_addon_links(addon_info)
             load_path = _ADDONS_DEFAULT_DIR / addon_info.module_name
-            make_temporary_link(addon_info.load_dir, load_path)
+            create_link(addon_info.load_dir, load_path)
     else:
         if addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
             # this addon is compatible with legacy addons and extensions
@@ -89,7 +89,7 @@ def _link_addon_or_extension(addon_info: AddonInfo) -> Path:
             _remove_duplicate_extension_links(addon_info)
             os.makedirs(_EXTENSIONS_DEFAULT_DIR, exist_ok=True)
             load_path = _EXTENSIONS_DEFAULT_DIR / addon_info.module_name
-            make_temporary_link(addon_info.load_dir, load_path)
+            create_link(addon_info.load_dir, load_path)
     return load_path
 
 
@@ -203,7 +203,7 @@ def load(addons_to_load: List[AddonInfo]):
             send_dict_as_json({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
 
 
-def make_temporary_link(directory: Union[str, os.PathLike], link_path: Union[str, os.PathLike]):
+def create_link(directory: Union[str, os.PathLike], link_path: Union[str, os.PathLike]):
     if os.path.exists(link_path):
         os.remove(link_path)
 
