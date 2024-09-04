@@ -3,7 +3,7 @@ import os.path
 import sys
 from pathlib import Path
 from typing import Dict
-from unittest.mock import MagicMock, patch, Mock, PropertyMock
+from unittest.mock import MagicMock, patch, Mock
 
 import pytest
 
@@ -66,6 +66,9 @@ def bpy_utils_user_resource(resource_type, path=None):
 @patch("blender_vscode.load_addons.create_link")
 @patch("blender_vscode.load_addons.bpy.context", **{"preferences.extensions.repos": []})
 @patch("blender_vscode.load_addons.os.listdir", return_value=[])
+@patch(
+    "blender_vscode.load_addons.ensure_extension_repo_exists", return_value=None
+)  # not precise but the return value is not used anyways
 class TestSetupAddonLinksDevelopAddon:
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=False)
     @patch("blender_vscode.load_addons.is_in_any_extension_directory", return_value=False)
@@ -74,6 +77,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_extension_directory: MagicMock,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
+        ensure_extension_repo_exists,
         bpy_context: MagicMock,
         create_link: MagicMock,
         is_addon_legacy: MagicMock,
@@ -111,6 +115,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_extension_directory: MagicMock,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
+        ensure_extension_repo_exists,
         bpy_context: MagicMock,
         create_link: MagicMock,
         is_addon_legacy: MagicMock,
@@ -147,6 +152,7 @@ class TestSetupAddonLinksDevelopAddon:
         is_in_any_extension_directory: MagicMock,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
+        ensure_extension_repo_exists,
         bpy_context: MagicMock,
         create_link: MagicMock,
         is_addon_legacy: MagicMock,
@@ -183,12 +189,16 @@ class TestSetupAddonLinksDevelopAddon:
 @patch("blender_vscode.load_addons.addon_has_bl_info", return_value=False)
 @patch("blender_vscode.load_addons.bpy.context", **{"preferences.extensions.repos": []})
 @patch("blender_vscode.load_addons.os.listdir", return_value=[])
+@patch(
+    "blender_vscode.load_addons.ensure_extension_repo_exists", return_value=None
+)  # not precise but the return value is not used anyways
 class TestSetupAddonLinksDevelopExtension:
     @patch("blender_vscode.load_addons.is_in_any_addon_directory", return_value=True)
     def test_setup_addon_links_develop_extension_in_addon_dir_is_treated_as_addon(
         self,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
+        ensure_extension_repo_exists,
         bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
@@ -224,6 +234,7 @@ class TestSetupAddonLinksDevelopExtension:
         self,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
+        ensure_extension_repo_exists,
         bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
@@ -268,6 +279,7 @@ class TestSetupAddonLinksDevelopExtension:
         self,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
+        ensure_extension_repo_exists,
         bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
@@ -304,6 +316,7 @@ class TestSetupAddonLinksDevelopExtension:
         self,
         is_in_any_addon_directory: MagicMock,
         listdir: MagicMock,
+        ensure_extension_repo_exists,
         bpy_context: MagicMock,
         addon_has_bl_info: MagicMock,
         is_in_any_extension_directory: MagicMock,
@@ -423,7 +436,7 @@ class TestLoad:
 
             load(addons_to_load=addons_to_load)
 
-            addon_enable.assert_called_once_with(module="bl_ext.blender_org.testaddon2")
+            addon_enable.assert_called_once_with(module="bl_ext.user_default.testaddon2")
             is_addon_legacy.assert_called_once()
             repo_refresh_all.assert_called_once()
             addon_refresh.assert_not_called()
