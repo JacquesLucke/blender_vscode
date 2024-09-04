@@ -13,7 +13,6 @@ from .environment import addon_directories, KEEP_ADDON_INSTALLED, EXTENSIONS_REP
 from .modify_blender import (
     disable_copy_settings_from_previous_version,
     disable_addon_remove,
-    disable_extension_remove,
 )
 from .utils_blender import is_addon_legacy, addon_has_bl_info
 from .utils_files import resolve_link
@@ -41,8 +40,6 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List
 
     if sys.platform == "win32":
         disable_addon_remove()
-        if bpy.app.version >= (4, 2, 0):
-            disable_extension_remove()
 
     path_mappings: List[Dict] = []
     load_status: List[Dict] = []

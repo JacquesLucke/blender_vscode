@@ -64,39 +64,6 @@ def disable_addon_remove():
     )
 
 
-def disable_extension_remove():
-    bpy.types.USERPREF_MT_extensions_active_repo_remove.poll = _fake_poll
-
-    old_draw = bpy.types.USERPREF_MT_extensions_active_repo_remove.draw
-
-    def conditional_repo_remove_draw(
-        self: "bpy.types.USERPREF_MT_extensions_active_repo_remove", context: "bpy.types.Context"
-    ):
-        nonlocal old_draw
-        extensions = context.preferences.extensions
-        active_repo_index = extensions.active_repo
-        repo = extensions.repos[active_repo_index]
-        repo_dir = repo.custom_directory if repo.use_custom_directory else repo.directory
-        if not os.path.isdir(repo_dir):
-            return old_draw(self, context)
-        print(repo_dir)
-        print([os.path.join(repo_dir, file) for file in os.listdir(repo_dir)])
-        for file in os.listdir(repo_dir):
-            full_path = os.path.join(repo_dir, file)
-            t = resolve_link(full_path)
-            print(full_path, t)
-            if t:
-                _add_warning_label(
-                    layout=self.layout,
-                    path=repo_dir,
-                    message="This repo contains links to addons. Uninstalling might cause data loss. Remove it manually",
-                )
-                return
-        return old_draw(self, context)
-
-    bpy.types.USERPREF_MT_extensions_active_repo_remove.draw = conditional_repo_remove_draw
-
-
 def disable_copy_settings_from_previous_version():
     # disable bpy.ops.preferences.copy_prev() is not happy with links that are about to be crated
     bpy.types.PREFERENCES_OT_copy_prev.poll = _fake_poll
