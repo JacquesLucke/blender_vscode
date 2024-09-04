@@ -2,7 +2,7 @@
   "name": "blender-development",
   "displayName": "Blender Development",
   "description": "Tools to simplify Blender development.",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "publisher": "JacquesLucke",
   "license": "MIT",
   "engines": {
@@ -134,7 +134,9 @@
             "type": "boolean",
             "scope": "application",
             "default": false,
-            "description": "**Deprecated** Modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`.\n Allow automatically installing modules in Python distributions outside of Blender."
+            "description": "Deprecated: automatically installing modules in Python distributions outside of Blender.",
+            "markdownDeprecationMessage": "**Deprecated**: modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`.",
+            "deprecationMessage": "Deprecated: modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`."
           },
           "blender.addon.reloadOnSave": {
             "type": "boolean",
@@ -190,6 +192,19 @@
               "my_addon_name"
             ],
             "description": "Name or the symlink that is created in Blenders addon folder."
+          },
+          "blender.addon.extensionsRepository": {
+            "type": "string",
+            "scope": "resource",
+            "default": "vscode_development",
+            "examples": [
+              "vscode_development",
+              "user_default",
+              "blender_org"
+            ],
+            "description": "Blender extensions only: repository to use when developing addon. \nBlender -> Preferences -> Get Extensions -> Repositories (dropdown, top right)",
+            "pattern": "^[\\w_]+$",
+            "patternErrorMessage": "Must be valid name of Python module (allowed: lower/upper case, underscore)"
           },
           "blender.core.buildDebugCommand": {
             "type": "string",
@@ -257,16 +272,15 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install"
+    "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.42",
     "@types/node": "^8.10.25",
     "@types/request": "^2.48.1",
+    "@types/vscode": "^1.28.0",
     "tslint": "^5.8.0",
-    "typescript": "^3.5.1",
-    "vscode": "^1.1.21"
+    "typescript": "^5.5.2"
   },
   "dependencies": {
     "request": "^2.87.0"

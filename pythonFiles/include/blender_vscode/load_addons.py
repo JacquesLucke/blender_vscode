@@ -9,7 +9,7 @@ import bpy
 
 from . import AddonInfo
 from .communication import send_dict_as_json
-from .environment import addon_directories, KEEP_ADDON_INSTALLED
+from .environment import addon_directories, KEEP_ADDON_INSTALLED, EXTENSIONS_REPOSITORY
 from .modify_blender import (
     disable_copy_settings_from_previous_version,
     disable_addon_remove,
@@ -20,7 +20,7 @@ from .utils_blender import is_addon_legacy, addon_has_bl_info
 from .utils_files import resolve_link
 
 if bpy.app.version >= (4, 2, 0):
-    _EXTENSIONS_DEFAULT_DIR = Path(bpy.utils.user_resource("EXTENSIONS", path="user_default"))
+    _EXTENSIONS_DEFAULT_DIR = Path(bpy.utils.user_resource("EXTENSIONS", path=EXTENSIONS_REPOSITORY))
 else:
     _EXTENSIONS_DEFAULT_DIR = None
 _ADDONS_DEFAULT_DIR = Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
@@ -36,6 +36,7 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List
     optimize_defaults()
     remove_broken_addon_links()
     if bpy.app.version >= (4, 2, 0):
+        ensure_extension_repo_exists(EXTENSIONS_REPOSITORY)
         remove_broken_extension_links()
 
     disable_copy_settings_from_previous_version()
@@ -142,6 +143,15 @@ def does_extension_link_exist(development_directory: Path) -> Optional[Path]:
     return None
 
 
+def ensure_extension_repo_exists(extensions_repository: str):
+    for repo in bpy.context.preferences.extensions.repos:
+        repo: bpy.types.UserExtensionRepo
+        if repo.module == extensions_repository:
+            return repo
+    print(f'DEBUG: new extensions repository "{extensions_repository}" created')
+    return bpy.context.preferences.extensions.repos.new(name=extensions_repository, module=extensions_repository)
+
+
 def remove_broken_addon_links():
     for file in os.listdir(_ADDONS_DEFAULT_DIR):
         addon_dir = _ADDONS_DEFAULT_DIR / file
@@ -186,9 +196,8 @@ def load(addons_to_load: List[AddonInfo]):
             addon_name = addon_info.module_name
         else:
             bpy.ops.extensions.repo_refresh_all()
-            repo = is_in_any_extension_directory(addon_info.load_dir)
-            module = getattr(repo, "module", "user_default")
-            addon_name = ".".join(("bl_ext", module, addon_info.module_name))
+            addon_name = "bl_ext." + EXTENSIONS_REPOSITORY + "." + addon_info.module_name
+
         try:
             bpy.ops.preferences.addon_enable(module=addon_name)
         except Exception:

@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List
+from typing import Callable, Dict, List
 import flask
 import debugpy
 import random
@@ -13,6 +13,9 @@ from .environment import blender_path, scripts_folder, python_path
 EDITOR_ADDRESS = None
 OWN_SERVER_PORT = None
 DEBUGPY_PORT = None
+
+server = flask.Flask("Blender Server")
+post_handlers = {}
 
 
 def setup(address, path_mappings: List[Dict], load_status: List[Dict]):
@@ -72,9 +75,6 @@ def start_debug_server():
 # Server
 #########################################
 
-server = flask.Flask("Blender Server")
-post_handlers = {}
-
 
 @server.route("/", methods=["POST"])
 def handle_post():
@@ -89,7 +89,6 @@ def handle_post():
 
 @server.route("/", methods=["GET"])
 def handle_get():
-    flask.request
     data = flask.request.get_json()
     print("Got GET:", data)
 
@@ -98,12 +97,12 @@ def handle_get():
     return "OK"
 
 
-def register_post_handler(type: str, handler):
-    assert type not in post_handlers
+def register_post_handler(type: str, handler: Callable):
+    assert type not in post_handlers, post_handlers
     post_handlers[type] = handler
 
 
-def register_post_action(type: str, handler):
+def register_post_action(type: str, handler: Callable):
     def request_handler_wrapper(data):
         run_in_main_thread(partial(handler, data))
         return "OK"
