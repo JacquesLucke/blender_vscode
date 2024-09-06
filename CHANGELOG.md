@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.23] - 2024-09-06
+
 ### Added
 
 - Make `.blend` files use the Blender icon (#187)
