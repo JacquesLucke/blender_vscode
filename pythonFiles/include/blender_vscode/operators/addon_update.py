@@ -3,6 +3,7 @@ from pathlib import Path
 
 import bpy
 from bpy.props import *
+import sys
 
 from ..communication import send_dict_as_json, register_post_action
 from ..environment import EXTENSIONS_REPOSITORY
