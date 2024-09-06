@@ -1,13 +1,13 @@
 import time
-from typing import Callable, Dict
-
+from typing import Callable, Dict, List
 import flask
 import debugpy
 import random
 import requests
 import threading
 from functools import partial
-from .utils import run_in_main_thread
+
+from .utils_blender import run_in_main_thread
 from .environment import blender_path, scripts_folder, python_path
 
 EDITOR_ADDRESS = None
@@ -18,13 +18,18 @@ server = flask.Flask("Blender Server")
 post_handlers = {}
 
 
-def setup(address: str, path_mappings):
+def setup(address, path_mappings: List[Dict], load_status: List[Dict]):
     global EDITOR_ADDRESS, OWN_SERVER_PORT, DEBUGPY_PORT
     EDITOR_ADDRESS = address
 
     OWN_SERVER_PORT = start_own_server()
     DEBUGPY_PORT = start_debug_server()
 
+    for status in load_status:
+        send_dict_as_json(status)
+
+    if not path_mappings:
+        return
     send_connection_information(path_mappings)
 
     print("Waiting for debug client.")

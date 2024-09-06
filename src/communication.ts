@@ -124,7 +124,7 @@ export function getServerPort(): number {
     return server.address().port;
 }
 
-function SERVER_handleRequest(request: any, response: any) {
+function SERVER_handleRequest(request: http.IncomingMessage, response: http.ServerResponse) {
     if (request.method === 'POST') {
         let body = '';
         request.on('data', (chunk: any) => body += chunk.toString());

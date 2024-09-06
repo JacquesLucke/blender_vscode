@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+- Disable "Load Previous settings" Blender feature during VS code session. Blender breaks when trying to copy link from previous version (#184)
+- Windows only: disable addon uninstallation if addon is link because if will cause data loss on Windows (#184):
+- Add option to make addon link/junction temporary [`blender.addon.keepAddonInstalled`](vscode://setting/blender.addon.keepAddonInstalled). If false addon will be available only during debug session (#184)
+- Send notification if linking addon failed (#184)
+
 ## [0.0.22] - 2024-09-04
 
 ### Added

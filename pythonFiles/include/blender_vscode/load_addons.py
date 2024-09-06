@@ -1,16 +1,21 @@
+import atexit
 import os
-import subprocess
 import sys
 import traceback
 from pathlib import Path
-from typing import List, Union, Optional, Dict
+from typing import List, Tuple, Union, Optional, Dict
 
 import bpy
 
 from . import AddonInfo
 from .communication import send_dict_as_json
-from .environment import addon_directories, EXTENSIONS_REPOSITORY
-from .utils import is_addon_legacy, addon_has_bl_info
+from .environment import addon_directories, KEEP_ADDON_INSTALLED, EXTENSIONS_REPOSITORY
+from .modify_blender import (
+    disable_copy_settings_from_previous_version,
+    disable_addon_remove,
+)
+from .utils_blender import is_addon_legacy, addon_has_bl_info
+from .utils_files import resolve_link
 
 if bpy.app.version >= (4, 2, 0):
     _EXTENSIONS_DEFAULT_DIR = Path(bpy.utils.user_resource("EXTENSIONS", path=EXTENSIONS_REPOSITORY))
@@ -19,9 +24,7 @@ else:
 _ADDONS_DEFAULT_DIR = Path(bpy.utils.user_resource("SCRIPTS", path="addons"))
 
 
-def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
-    path_mappings: List[Dict] = []
-
+def setup_addon_links(addons_to_load: List[AddonInfo]) -> Tuple[List[Dict], List[Dict]]:
     # always make sure addons are in path, important when running fresh blender install
     # do it always to avoid very confusing logic in the loop below
     os.makedirs(_ADDONS_DEFAULT_DIR, exist_ok=True)
@@ -33,6 +36,13 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
         ensure_extension_repo_exists(EXTENSIONS_REPOSITORY)
         remove_broken_extension_links()
 
+    if sys.platform == "win32":
+        # todo disable copy settings only when there is a junction in blender config folder
+        disable_copy_settings_from_previous_version()
+        disable_addon_remove()
+
+    path_mappings: List[Dict] = []
+    load_status: List[Dict] = []
     for addon_info in addons_to_load:
         try:
             load_path = _link_addon_or_extension(addon_info)
@@ -44,11 +54,14 @@ Path "{e.filename}" can not be removed. **Please remove it manually!** Most like
     - Windows only: You upgraded Blender version and imported old setting. Now links became real directories.
     - Path is a real directory with the same name as addon (removing might cause data loss!)"""
             )
-            raise e
+            load_status.append({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
+        except Exception:
+            traceback.print_exc()
+            load_status.append({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
         else:
             path_mappings.append({"src": str(addon_info.load_dir), "load": str(load_path)})
 
-    return path_mappings
+    return path_mappings, load_status
 
 
 def _link_addon_or_extension(addon_info: AddonInfo) -> Path:
@@ -59,7 +72,7 @@ def _link_addon_or_extension(addon_info: AddonInfo) -> Path:
         else:  # addon is in external dir or is in extensions dir
             _remove_duplicate_addon_links(addon_info)
             load_path = _ADDONS_DEFAULT_DIR / addon_info.module_name
-            create_link_in_user_addon_directory(addon_info.load_dir, load_path)
+            create_link(addon_info.load_dir, load_path)
     else:
         if addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
             # this addon is compatible with legacy addons and extensions
@@ -73,7 +86,7 @@ def _link_addon_or_extension(addon_info: AddonInfo) -> Path:
             _remove_duplicate_extension_links(addon_info)
             os.makedirs(_EXTENSIONS_DEFAULT_DIR, exist_ok=True)
             load_path = _EXTENSIONS_DEFAULT_DIR / addon_info.module_name
-            create_link_in_user_addon_directory(addon_info.load_dir, load_path)
+            create_link(addon_info.load_dir, load_path)
     return load_path
 
 
@@ -95,53 +108,11 @@ def _remove_duplicate_extension_links(addon_info: AddonInfo):
         existing_extension_with_the_same_target = does_extension_link_exist(addon_info.load_dir)
 
 
-def _resolve_link_windows_cmd(path: Path) -> Optional[str]:
-    IO_REPARSE_TAG_MOUNT_POINT = "0xa0000003"
-    JUNCTION_INDICATOR = f"Reparse Tag Value : {IO_REPARSE_TAG_MOUNT_POINT}"
-    try:
-        output = subprocess.check_output(["fsutil", "reparsepoint", "query", str(path)])
-    except subprocess.CalledProcessError:
-        return None
-    output_lines = output.decode().split(os.linesep)
-    if not output_lines[0].startswith(JUNCTION_INDICATOR):
-        return None
-    TARGET_PATH_INDICATOR = "Print Name:            "
-    for line in output_lines:
-        if line.startswith(TARGET_PATH_INDICATOR):
-            possible_target = line[len(TARGET_PATH_INDICATOR) :]
-            if os.path.exists(possible_target):
-                return possible_target
-
-
-def _resolve_link(path: Path) -> Optional[str]:
-    """Return target if is symlink or junction"""
-    try:
-        return os.readlink(str(path))
-    except OSError as e:
-        # OSError: [WinError 4390] The file or directory is not a reparse point
-        if sys.platform == "win32":
-            if e.winerror == 4390:
-                return None
-        else:
-            # OSError: [Errno 22] Invalid argument: '/snap/blender/5088/4.2/extensions/system/readme.txt'
-            if e.errno == 22:
-                return None
-        print("Warning: can not resolve link target", e)
-        return None
-    except ValueError as e:
-        # there are major differences in python windows junction support (3.7.0 and 3.7.9 give different errors)
-        if sys.platform == "win32":
-            return _resolve_link_windows_cmd(path)
-        else:
-            print("Warning: can not resolve link target", e)
-            return None
-
-
 def does_addon_link_exist(development_directory: Path) -> Optional[Path]:
     """Search default addon path and return first path that links to `development_directory`"""
     for file in os.listdir(_ADDONS_DEFAULT_DIR):
         existing_addon_dir = Path(_ADDONS_DEFAULT_DIR, file)
-        target = _resolve_link(existing_addon_dir)
+        target = resolve_link(existing_addon_dir)
         if target:
             windows_being_windows = target.lstrip(r"\\?")
             if Path(windows_being_windows) == Path(development_directory):
@@ -150,7 +121,7 @@ def does_addon_link_exist(development_directory: Path) -> Optional[Path]:
 
 
 def does_extension_link_exist(development_directory: Path) -> Optional[Path]:
-    """Search all available extension paths and return path that links to `development_directory"""
+    """Search all available extension paths and return path that links to `development_directory`"""
     for repo in bpy.context.preferences.extensions.repos:
         if not repo.enabled:
             continue
@@ -159,7 +130,7 @@ def does_extension_link_exist(development_directory: Path) -> Optional[Path]:
             continue  # repo dir might not exist
         for file in os.listdir(repo_dir):
             existing_extension_dir = Path(repo_dir, file)
-            target = _resolve_link(existing_extension_dir)
+            target = resolve_link(existing_extension_dir)
             if target:
                 windows_being_windows = target.lstrip(r"\\?")
                 if Path(windows_being_windows) == Path(development_directory):
@@ -181,7 +152,7 @@ def remove_broken_addon_links():
         addon_dir = _ADDONS_DEFAULT_DIR / file
         if not addon_dir.is_dir():
             continue
-        target = _resolve_link(addon_dir)
+        target = resolve_link(addon_dir)
         if target and not os.path.exists(target):
             print("INFO: Removing invalid link:", addon_dir, "->", target)
             os.remove(addon_dir)
@@ -197,7 +168,7 @@ def remove_broken_extension_links():
             continue
         for file in os.listdir(repo_dir):
             existing_extension_dir = repo_dir / file
-            target = _resolve_link(existing_extension_dir)
+            target = resolve_link(existing_extension_dir)
             if target and not os.path.exists(target):
                 print("INFO: Removing invalid link:", existing_extension_dir, "->", target)
                 os.remove(existing_extension_dir)
@@ -206,6 +177,11 @@ def remove_broken_extension_links():
 def load(addons_to_load: List[AddonInfo]):
     for addon_info in addons_to_load:
         if is_addon_legacy(Path(addon_info.load_dir)):
+            bpy.ops.preferences.addon_refresh()
+            addon_name = addon_info.module_name
+        elif addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
+            # this addon is compatible with legacy addons and extensions
+            # but user is developing it in addon directory. Treat it as addon.
             bpy.ops.preferences.addon_refresh()
             addon_name = addon_info.module_name
         elif addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
@@ -224,7 +200,7 @@ def load(addons_to_load: List[AddonInfo]):
             send_dict_as_json({"type": "enableFailure", "addonPath": str(addon_info.load_dir)})
 
 
-def create_link_in_user_addon_directory(directory: Union[str, os.PathLike], link_path: Union[str, os.PathLike]):
+def create_link(directory: Union[str, os.PathLike], link_path: Union[str, os.PathLike]):
     if os.path.exists(link_path):
         os.remove(link_path)
 
@@ -234,6 +210,23 @@ def create_link_in_user_addon_directory(directory: Union[str, os.PathLike], link
         _winapi.CreateJunction(str(directory), str(link_path))
     else:
         os.symlink(str(directory), str(link_path), target_is_directory=True)
+
+    if KEEP_ADDON_INSTALLED:
+        return
+
+    def cleanup():
+        if not os.path.exists(link_path):
+            return
+        try:
+            print(f'INFO: Cleanup: remove link: "{link_path}"')
+            os.remove(link_path)
+        except PermissionError as ex:
+            print(
+                f'ERROR: Could not remove path "{link_path}" due to insufficient permission. Please remove it manually.'
+            )
+            raise ex
+
+    atexit.register(cleanup)
 
 
 def is_in_any_addon_directory(module_path: Path) -> bool:

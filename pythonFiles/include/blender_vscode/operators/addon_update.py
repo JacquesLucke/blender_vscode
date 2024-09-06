@@ -1,15 +1,14 @@
-import sys
 import traceback
 from pathlib import Path
 
 import bpy
 from bpy.props import *
+import sys
 
-from ..environment import EXTENSIONS_REPOSITORY
-from ..utils import addon_has_bl_info
-from ..load_addons import is_in_any_addon_directory
 from ..communication import send_dict_as_json, register_post_action
-from ..utils import is_addon_legacy, redraw_all
+from ..environment import EXTENSIONS_REPOSITORY
+from ..load_addons import is_in_any_addon_directory
+from ..utils_blender import is_addon_legacy, redraw_all, addon_has_bl_info
 
 
 class UpdateAddonOperator(bpy.types.Operator):

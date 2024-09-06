@@ -23,11 +23,11 @@ def startup(editor_address, addons_to_load: List[AddonInfo]):
 
     from . import load_addons
 
-    path_mappings = load_addons.setup_addon_links(addons_to_load)
+    path_mappings, load_status = load_addons.setup_addon_links(addons_to_load)
 
     from . import communication
 
-    communication.setup(editor_address, path_mappings)
+    communication.setup(editor_address, path_mappings, load_status)
 
     from . import operators, ui
 

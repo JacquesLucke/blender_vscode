@@ -2,7 +2,7 @@ import re
 import bpy
 import runpy
 from bpy.props import *
-from ..utils import redraw_all
+from ..utils_blender import redraw_all
 from ..communication import register_post_action
 
 

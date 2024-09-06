@@ -177,6 +177,12 @@
             ],
             "description": "Directory that contains the source code of the addon (used for path mapping for the debugger)."
           },
+          "blender.addon.keepAddonInstalled": {
+            "type": "boolean",
+            "scope": "resource",
+            "default": true,
+            "description": "When false: keep the addon/extension installed only when running \"Blender: Start\" command (recommended).\nEnable to make link persistant (legacy behaviour). May cause broken links and problems with upgrading blender."
+          },
           "blender.addon.moduleName": {
             "type": "string",
             "scope": "resource",
