@@ -261,13 +261,42 @@
             "type": "array",
             "scope": "resource",
             "title": "Startup Additional Arguments",
-            "description": "Additional arguments used for Blender start-up. List of strings.",
+            "description": "Additional arguments used for starting Blender via the 'Start' command. List of strings.",
             "items": {
               "type": "string"
             },
             "examples": [
               [
                 "--factory-startup"
+              ]
+            ]
+          },
+          "blender.preFileArguments": {
+            "type": "array",
+            "scope": "resource",
+            "title": "Pre File Arguments",
+            "description": "Arguments passed before opening a file with 'Open With Blender' and 'Open File(s)' commands. List of strings. Populates 'preFileArgs' in 'blender [preFileArgs ...] [file] [postFileArgs ...]'",
+            "items": {
+              "type": "string"
+            },
+            "examples": [
+              [
+                "--window-fullscreen"
+              ]
+            ]
+          },
+          "blender.postFileArguments": {
+            "type": "array",
+            "scope": "resource",
+            "title": "Post File Arguments",
+            "description": "Arguments passed after opening a file with 'Open With Blender' and 'Open File(s)' commands. List of strings. Populates 'postFileArgs' in 'blender [preFileArgs ...] [file] [postFileArgs ...]'",
+            "items": {
+              "type": "string"
+            },
+            "examples": [
+              [
+                "--render-output",
+                "/tmp"
               ]
             ]
           }

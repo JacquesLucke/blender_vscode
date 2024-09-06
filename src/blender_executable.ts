@@ -275,13 +275,26 @@ async function testIfPathIsBlender(filepath: string) {
 
 function getBlenderLaunchArgs(blend_filepath?: string) {
     let config = getConfig();
-    let args = ['--python', launchPath].concat(<string[]>config.get("additionalArguments", []));
+    let additional_args = [];
     if (blend_filepath !== undefined) {
         if (!fs.existsSync(blend_filepath)) {
             new Error(`File does not exist: '${blend_filepath}'`);
         }
-        args.push(blend_filepath);
+        let pre_args = <string[]>config.get("preFileArguments", []);
+        let post_args = <string[]>config.get("postFileArguments", []);
+        for (let arg of pre_args) {
+            // Don't allow any arguments after "--" to be added in the pre-args
+            if (arg === "--" || arg.startsWith("-- ")) {
+                break;
+            }
+            additional_args.push(arg);
+        }
+        additional_args.push(blend_filepath);
+        additional_args = additional_args.concat(post_args);
+    } else {
+        additional_args = <string[]>config.get("additionalArguments", []);
     }
+    let args = ['--python', launchPath].concat(additional_args);
     return args;
 }
 
