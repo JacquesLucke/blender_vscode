@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Linux and MacOS: fixed `blender.executables` not showing when calling `Blender: Start` (introduced in #179)
+
 ## [0.0.22] - 2024-09-04
 
 ### Added
