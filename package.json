@@ -12,8 +12,6 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:python",
-    "onLanguage:plaintext",
     "onCommand:blender.start",
     "onCommand:blender.stop",
     "onCommand:blender.build",
