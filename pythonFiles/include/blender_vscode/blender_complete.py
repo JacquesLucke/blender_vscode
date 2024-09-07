@@ -1,5 +1,4 @@
 import importlib
-import logging
 from pathlib import Path
 from types import ModuleType
 from typing import Literal, TypedDict, List, Dict
@@ -8,7 +7,10 @@ import jedi
 import jedi.api
 from jedi.api.environment import InterpreterEnvironment
 
-LOG = logging.getLogger(__name__)
+from . import log
+
+LOG = log.getLogger()
+
 jedi.settings.fast_parser = False  # Obligatory! Otherwise Jedi fails to find Blender modules.
 jedi.settings.allow_unsafe_interpreter_executions = True
 jedi.api.set_debug_function(speed=False)

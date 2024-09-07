@@ -260,6 +260,20 @@
                 "--factory-startup"
               ]
             ]
+          },
+          "blender.addon.logLevel": {
+            "type": "string",
+            "scope": "resource",
+            "description": "Log level for blender_vscode extension inside Blender. Debug is most verbose.",
+            "default": "info",
+            "enum": ["debug", "info", "warning", "error", "critical"]
+          },
+          "blender.addon.logLevelGlobal": {
+            "type": "string",
+            "scope": "resource",
+            "description": "Log level for 3rd party modules in blender_vscode extension. Debug is most verbose.",
+            "default": "warning",
+            "enum": ["debug", "info", "warning", "error", "critical"]
           }
         }
       }

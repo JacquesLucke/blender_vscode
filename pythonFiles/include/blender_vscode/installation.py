@@ -1,4 +1,3 @@
-import logging
 import sys
 import subprocess
 
@@ -7,10 +6,11 @@ import bpy
 from pathlib import Path
 
 from . import handle_fatal_error
+from . import log
 from .environment import python_path
 
+LOG = log.getLogger()
 _CWD_FOR_SUBPROCESSES = python_path.parent
-LOG= logging.getLogger(__name__)
 
 
 def ensure_packages_are_installed(package_names):

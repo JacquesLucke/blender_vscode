@@ -1,4 +1,3 @@
-import logging
 import random
 import threading
 import time
@@ -11,16 +10,17 @@ import requests
 
 from .environment import blender_path, scripts_folder, python_path
 from .utils import run_in_main_thread
+from . import log
 
-LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
+LOG = log.getLogger()
 
 EDITOR_ADDRESS = None
 OWN_SERVER_PORT = None
 DEBUGPY_PORT = None
 
-server = flask.Flask("Blender Server")
-post_handlers = {}
+SERVER = flask.Flask("Blender Server")
+log.configure_flask_log(SERVER)
+POST_HANDLERS = {}
 
 
 def setup(address: str, path_mappings):
@@ -44,7 +44,7 @@ def start_own_server():
         while True:
             try:
                 port[0] = get_random_port()
-                server.run(debug=True, port=port[0], use_reloader=False)
+                SERVER.run(debug=True, port=port[0], use_reloader=False)
             except OSError:
                 pass
 
@@ -76,23 +76,23 @@ def start_debug_server():
 #########################################
 
 
-@server.route("/", methods=["POST"])
+@SERVER.route("/", methods=["POST"])
 def handle_post():
     data = flask.request.get_json()
-    # LOG.debug(f"Got POST: {data}")
+    LOG.debug(f"Got POST: {data}")
 
-    if data["type"] in post_handlers:
-        return post_handlers[data["type"]](data)
+    if data["type"] in POST_HANDLERS:
+        return POST_HANDLERS[data["type"]](data)
     else:
         LOG.warning(f"Unhandled POST: {data}")
 
     return "OK"
 
 
-@server.route("/", methods=["GET"])
+@SERVER.route("/", methods=["GET"])
 def handle_get():
     data = flask.request.get_json()
-    # LOG.debug("Got GET:", data)
+    LOG.debug(f"Got GET: {str(data)}")
 
     if data["type"] == "ping":
         pass
@@ -106,8 +106,8 @@ def handle_get():
 
 
 def register_post_handler(type: str, handler: Callable):
-    assert type not in post_handlers, post_handlers
-    post_handlers[type] = handler
+    assert type not in POST_HANDLERS, POST_HANDLERS
+    POST_HANDLERS[type] = handler
 
 
 def register_post_action(type: str, handler: Callable):
@@ -136,7 +136,7 @@ def send_connection_information(path_mappings: Dict):
 
 
 def send_dict_as_json(data):
-    # LOG.debug(f"Sending: {pformat(data)}")
+    LOG.debug(f"Sending: {data}")
     requests.post(EDITOR_ADDRESS, json=data)
 
 

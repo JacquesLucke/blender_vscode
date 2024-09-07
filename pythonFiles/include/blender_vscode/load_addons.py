@@ -1,4 +1,3 @@
-import logging
 import os
 import subprocess
 import sys
@@ -8,12 +7,12 @@ from typing import List, Union, Optional, Dict
 
 import bpy
 
-from . import AddonInfo
+from . import AddonInfo, log
 from .communication import send_dict_as_json
 from .environment import addon_directories, EXTENSIONS_REPOSITORY
 from .utils import is_addon_legacy, addon_has_bl_info
 
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger()
 
 if bpy.app.version >= (4, 2, 0):
     _EXTENSIONS_DEFAULT_DIR = Path(bpy.utils.user_resource("EXTENSIONS", path=EXTENSIONS_REPOSITORY))

@@ -1,9 +1,13 @@
+import logging
 import re
 import bpy
 import runpy
 from bpy.props import *
 from ..utils import redraw_all
 from ..communication import register_post_action
+from .. import log
+
+LOG = log.getLogger()
 
 
 class RunScriptOperator(bpy.types.Operator):
@@ -14,6 +18,8 @@ class RunScriptOperator(bpy.types.Operator):
 
     def execute(self, context):
         ctx = prepare_script_context(self.filepath)
+        LOG.info(f'Run script: "{self.filepath}"')
+        LOG.debug(f"Run script context override: {ctx}")
         runpy.run_path(self.filepath, init_globals={"CTX": ctx})
         redraw_all()
         return {"FINISHED"}
