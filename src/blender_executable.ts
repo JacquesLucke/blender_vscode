@@ -152,7 +152,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
         const deduplicatedBlenderPaths: BlenderPathData[] = deduplicateSamePaths(result, settingsBlenderPaths);
         if (process.platform !== 'win32') {
             try {
-                result = await deduplicateSameHardLinks(deduplicatedBlenderPaths, false, settingsBlenderPaths);
+                result = [...settingsBlenderPaths, ...await deduplicateSameHardLinks(deduplicatedBlenderPaths, false, settingsBlenderPaths)]
             } catch { // weird cases as network attached storage or FAT32 file system are not tested
                 result = [...settingsBlenderPaths, ...deduplicatedBlenderPaths];
             }

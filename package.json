@@ -2,7 +2,7 @@
   "name": "blender-development",
   "displayName": "Blender Development",
   "description": "Tools to simplify Blender development.",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "publisher": "JacquesLucke",
   "license": "MIT",
   "engines": {
@@ -276,6 +276,18 @@
             "enum": ["debug", "info", "warning", "error", "critical"]
           }
         }
+      }
+    ],
+    "languages": [
+      {
+        "id": "blend",
+        "extensions": [".blend"],
+        "aliases": ["Blend File", "blend"],
+        "icon": {
+          "light": "./icons/blender_icon.ico",
+          "dark": "./icons/blender_icon.ico"
+        },
+        "filenames": ["blender", "blender.exe", "blender-launcher", "blender-launcher.exe"]
       }
     ]
   },
