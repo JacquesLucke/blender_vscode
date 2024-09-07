@@ -5,6 +5,10 @@ from typing import List
 
 import bpy
 
+from . import log
+
+LOG = log.getLogger()
+
 
 @dataclass
 class AddonInfo:

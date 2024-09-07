@@ -7,10 +7,12 @@ from typing import List, Union, Optional, Dict
 
 import bpy
 
-from . import AddonInfo
+from . import AddonInfo, log
 from .communication import send_dict_as_json
 from .environment import addon_directories, EXTENSIONS_REPOSITORY
 from .utils import is_addon_legacy, addon_has_bl_info
+
+LOG = log.getLogger()
 
 if bpy.app.version >= (4, 2, 0):
     _EXTENSIONS_DEFAULT_DIR = Path(bpy.utils.user_resource("EXTENSIONS", path=EXTENSIONS_REPOSITORY))
@@ -37,7 +39,7 @@ def setup_addon_links(addons_to_load: List[AddonInfo]) -> List[Dict]:
         try:
             load_path = _link_addon_or_extension(addon_info)
         except PermissionError as e:
-            print(
+            LOG.error(
                 f"""ERROR: {e} 
 Path "{e.filename}" can not be removed. **Please remove it manually!** Most likely causes:
     - Path requires admin permissions to remove
@@ -81,7 +83,7 @@ def _remove_duplicate_addon_links(addon_info: AddonInfo):
     existing_addon_with_the_same_target = does_addon_link_exist(addon_info.load_dir)
     while existing_addon_with_the_same_target:
         if existing_addon_with_the_same_target:
-            print("INFO: Removing old link:", existing_addon_with_the_same_target)
+            LOG.info(f"Removing old link: {existing_addon_with_the_same_target}")
             os.remove(existing_addon_with_the_same_target)
         existing_addon_with_the_same_target = does_addon_link_exist(addon_info.load_dir)
 
@@ -90,7 +92,7 @@ def _remove_duplicate_extension_links(addon_info: AddonInfo):
     existing_extension_with_the_same_target = does_extension_link_exist(addon_info.load_dir)
     while existing_extension_with_the_same_target:
         if existing_extension_with_the_same_target:
-            print("INFO: Removing old link:", existing_extension_with_the_same_target)
+            LOG.info(f"Removing old link: {existing_extension_with_the_same_target}")
             os.remove(existing_extension_with_the_same_target)
         existing_extension_with_the_same_target = does_extension_link_exist(addon_info.load_dir)
 
@@ -126,14 +128,14 @@ def _resolve_link(path: Path) -> Optional[str]:
             # OSError: [Errno 22] Invalid argument: '/snap/blender/5088/4.2/extensions/system/readme.txt'
             if e.errno == 22:
                 return None
-        print("Warning: can not resolve link target", e)
+        LOG.warning("can not resolve link target", e)
         return None
     except ValueError as e:
         # there are major differences in python windows junction support (3.7.0 and 3.7.9 give different errors)
         if sys.platform == "win32":
             return _resolve_link_windows_cmd(path)
         else:
-            print("Warning: can not resolve link target", e)
+            LOG.warning("can not resolve link target", e)
             return None
 
 
@@ -172,7 +174,7 @@ def ensure_extension_repo_exists(extensions_repository: str):
         repo: bpy.types.UserExtensionRepo
         if repo.module == extensions_repository:
             return repo
-    print(f'DEBUG: new extensions repository "{extensions_repository}" created')
+    LOG.debug(f'New extensions repository "{extensions_repository}" created')
     return bpy.context.preferences.extensions.repos.new(name=extensions_repository, module=extensions_repository)
 
 
@@ -183,7 +185,7 @@ def remove_broken_addon_links():
             continue
         target = _resolve_link(addon_dir)
         if target and not os.path.exists(target):
-            print("INFO: Removing invalid link:", addon_dir, "->", target)
+            LOG.info(f"Removing invalid link: {addon_dir} -> {target}")
             os.remove(addon_dir)
 
 
@@ -199,7 +201,7 @@ def remove_broken_extension_links():
             existing_extension_dir = repo_dir / file
             target = _resolve_link(existing_extension_dir)
             if target and not os.path.exists(target):
-                print("INFO: Removing invalid link:", existing_extension_dir, "->", target)
+                LOG.info(f"Removing invalid link: {existing_extension_dir} -> {target}")
                 os.remove(existing_extension_dir)
 
 

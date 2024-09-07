@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- You can now configure VS code internal log level using [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) and [`blender.addon.logLevelGlobal`](vscode://settings/blender.addon.logLevelGlobal) (#198)
+  - to mute logs set log level to critical
+  - to enable more logs set log level to debug
+  - changing log level required blender restart
+  - logs now have colors
+
 ## [0.0.23] - 2024-09-06
 
 ### Added

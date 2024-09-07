@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import json
@@ -14,7 +15,8 @@ if TYPE_CHECKING:
 else:
     import blender_vscode
 
-print("ADDONS_TO_LOAD", json.loads(os.environ["ADDONS_TO_LOAD"]))
+LOG = blender_vscode.log.getLogger()
+LOG.info(f"ADDONS_TO_LOAD {json.loads(os.environ['ADDONS_TO_LOAD'])}")
 
 try:
     addons_to_load = []
