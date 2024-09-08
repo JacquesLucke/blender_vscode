@@ -103,6 +103,20 @@ Environment Variables:
 
 Use VS Code feature [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces). Each folder in workspace is treated as addon root.
 
+### How to start Blender with shortcut?
+
+You can assign a shortcut to `Blender: Start` by editing `keybindings.json`:
+```json
+{
+    "key": "ctrl+h",
+    "command": "blender.start",
+    "args": {
+        "path": "/path/to/blender.exe"
+        // "additionalArguments": [], // overrides VS Code settings blender.additionalArguments
+    }
+}
+```
+
 ## Script Tools
 
 When I say "script" I mean a piece of Python code that runs in Blender but is not an addon.
@@ -130,16 +144,13 @@ The new script file already contains a little bit of code to make it easier to g
 First you have to start a Blender instance by executing the `Blender: Start` command.
 To execute the script in all Blender instances that have been started this way, execute the `Blender: Run Script` command.
 
-You can assign a shortcut to `Blender: Start` by editing `keybindings.json`:
+You can assign a shortcut to `Blender: Run Script` by editing `keybindings.json`:
 ```json
-{
-    "key": "ctrl+h",
-    "command": "blender.start",
-    "args": {
-        "path": "/path/to/blender.exe"
-        // "additionalArguments": [], // overrides VS Code settings blender.additionalArguments
-    }
-}
+  {
+    "key": "ctrl+shift+enter",
+    "command": "blender.runScript",
+    "when": "editorLangId == 'python'"
+  }
 ```
 
 ### How can I change the context the script runs in?
