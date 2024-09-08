@@ -17,7 +17,7 @@
 ```
 - Improvements for `Blender: Run Script`:
   - When **no** Blender instances are running, run `Blender: Start` and then immediately run `Blender: Run Script`
-  - When Blender instances are running, do nothing (old behavior)
+  - When Blender instances are running, just run the script on all available instances (old behavior)
   - Specify default `Blender: Start` configuration in settings using `isBlenderRunScriptDefault` in [`blender.executables`](vscode://settings/blender.executables)
   - Run `Blender: Run Script` using single button by adding snippet to `keybindings.json`. 
 ```json
