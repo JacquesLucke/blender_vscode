@@ -12,6 +12,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onDebug",
     "onCommand:blender.start",
     "onCommand:blender.stop",
     "onCommand:blender.build",
