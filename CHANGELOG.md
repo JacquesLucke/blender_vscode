@@ -15,6 +15,22 @@
     }
 }
 ```
+- Improvements for `Blender: Run Script`:
+  - When **no** Blender instances are running, run `Blender: Start` and then immediately run `Blender: Run Script`
+  - When Blender instances are running, do nothing (old behavior)
+  - Specify default `Blender: Start` configuration in settings using `isBlenderRunScriptDefault` in [`blender.executables`](vscode://settings/blender.executables)
+  - Run `Blender: Run Script` using single button by adding snippet to `keybindings.json`. 
+```json
+  {
+    "key": "ctrl+shift+enter",
+    "command": "blender.runScript",
+    "when": "editorLangId == 'python'"
+  }
+```
+
+### Fixed
+
+- `linuxInode` should no longer be saved in settings [`blender.executables`](vscode://settings/blender.executables)
 
 ## [0.0.23] - 2024-09-06
 

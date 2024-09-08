@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { templateFilesDir } from './paths';
-import { RunningBlenders } from './communication';
+import { BlenderInstance, RunningBlenders } from './communication';
 import { letUserPickItem, PickItem } from './select_utils';
 import { getAreaTypeItems } from './data_loader';
 import { getConfig, cancel, addFolderToWorkspace, getRandomString, pathExists, copyFile } from './utils';
-import { outputChannel } from './extension';
+import { COMMAND_start, outputChannel } from './extension';
+import { BlenderPathData } from './blender_executable';
 
 export async function COMMAND_runScript(): Promise<void> {
     let editor = vscode.window.activeTextEditor;
@@ -14,8 +15,19 @@ export async function COMMAND_runScript(): Promise<void> {
     const document = editor.document;
     outputChannel.appendLine(`Blender: Run Script: ${document.uri.fsPath}`)
     await document.save();
-    RunningBlenders.sendToResponsive({ type: 'script', path: document.uri.fsPath });
+    const activeInstances = await RunningBlenders.getResponsive();
+    if (activeInstances.length !== 0) {
+        RunningBlenders.sendToResponsive({ type: 'script', path: document.uri.fsPath })
+        return
+    }
+    const config = getConfig();
+    const defaultSettings = (<BlenderPathData[]>config.get('executables')).filter(item => item.isBlenderRunScriptDefault === true);
+    RunningBlenders.onRegisterCallOnce((instance: BlenderInstance) => RunningBlenders.sendToResponsive({ type: 'script', path: document.uri.fsPath }))
+    const blenderTask = await COMMAND_start(defaultSettings.length === 0 ? undefined : defaultSettings[0])
+    if (blenderTask === undefined)
+        throw new Error("Starting blender failed")
 }
+
 
 export async function COMMAND_newScript(): Promise<void> {
     let [folderPath, filePath] = await getPathForNewScript();

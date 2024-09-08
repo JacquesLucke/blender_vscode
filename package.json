@@ -126,6 +126,11 @@
                   "type": "boolean",
                   "description": "Is this executable a debug build.",
                   "default": false
+                },
+                "isBlenderRunScriptDefault": {
+                  "type": "boolean",
+                  "description": "Use this settings to automatically start instance when calling `Blender: Run Script` if no blender instances are running. If multiple items have this setting set to true, only first one is used.",
+                  "default": false
                 }
               }
             }

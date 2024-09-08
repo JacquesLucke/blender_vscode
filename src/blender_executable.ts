@@ -47,23 +47,23 @@ export class BlenderExecutable {
 
     public static async LaunchAnyInteractive() {
         const blenderArgs = getBlenderLaunchArgsFromConfig()
-        await (await this.GetAnyInteractive()).launch(blenderArgs);
+        return await (await this.GetAnyInteractive()).launch(blenderArgs);
     }
 
     public static async LaunchAny(path: string, additionalArguments?: string[]) {
         let blenderArgs;
-        if (additionalArguments === undefined){
+        if (additionalArguments === undefined) {
             blenderArgs = getBlenderLaunchArgsFromConfig()
         } else {
             blenderArgs = ['--python', launchPath].concat(additionalArguments);
-        }        
+        }
         const data: BlenderPathData = { path: path, name: '', isDebug: false }
         const blender = new BlenderExecutable(data);
-        await blender.launch(blenderArgs);
+        return await blender.launch(blenderArgs);
     }
 
     public static async LaunchDebugInteractive(folder: BlenderWorkspaceFolder) {
-        await (await this.GetDebugInteractive()).launchDebug(folder);
+        return await (await this.GetDebugInteractive()).launchDebug(folder);
     }
 
     get path() {
@@ -79,7 +79,7 @@ export class BlenderExecutable {
         outputChannel.appendLine(`Starting blender: ${this.path} ${blenderArgs.join(' ')}`)
         outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2))
 
-        await runTask('blender', execution);
+        return await runTask('blender', execution);
     }
 
     public async launchDebug(folder: BlenderWorkspaceFolder) {
@@ -107,11 +107,12 @@ export class BlenderExecutable {
     }
 }
 
-export interface BlenderPathData {
+export type BlenderPathData = {
     path: string;
     name: string;
     isDebug: boolean;
     linuxInode?: number;
+    isBlenderRunScriptDefault?: boolean;
 }
 
 interface BlenderType {
@@ -191,6 +192,12 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         settingsBlenderPaths.push(pathData);
+        if (process.platform !== 'win32') {
+            for (const settingExe of settingsBlenderPaths) {
+                // Do not save linuxInode is settings
+                settingExe.linuxInode = undefined;
+            }
+        }
         config.update('executables', settingsBlenderPaths, vscode.ConfigurationTarget.Global);
     }
 

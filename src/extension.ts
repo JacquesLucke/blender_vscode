@@ -83,23 +83,23 @@ type StartCommandArguments = {
     path?: string;
 }
 
-async function COMMAND_start(args?: StartCommandArguments) {
+export async function COMMAND_start(args?: StartCommandArguments) {
     // args are used in keybidings
     console.log(args)
     let blenderFolder = await BlenderWorkspaceFolder.Get();
     if (blenderFolder === null) {
         if (args === undefined) {
-            await BlenderExecutable.LaunchAnyInteractive();
+            return await BlenderExecutable.LaunchAnyInteractive();
         } else {
             if (args.path === undefined)
                 throw new Error("args.path is not defined")
             if (args.additionalArguments !== undefined && !Array.isArray(args.additionalArguments))
                 throw new Error("args.additionalArguments must be list")
-            await BlenderExecutable.LaunchAny(args.path, args.additionalArguments);             
+            return await BlenderExecutable.LaunchAny(args.path, args.additionalArguments)
         }
     }
     else {
-        await BlenderExecutable.LaunchDebugInteractive(blenderFolder);
+        return await BlenderExecutable.LaunchDebugInteractive(blenderFolder);
     }
 }
 

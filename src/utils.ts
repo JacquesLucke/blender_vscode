@@ -56,7 +56,7 @@ export function handleErrors(func: () => Promise<void>) {
     };
 }
 
-export function handleErrorsWithArgs(func: (args: any) => Promise<void>) {
+export function handleErrorsWithArgs(func: (args: any) => Promise<void | vscode.TaskExecution>) {
     return async (args: any) => {
         try {
             await func(args);
