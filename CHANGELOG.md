@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Added
+
+- Run `Blender: Start` using single button by adding snippet to `keybindings.json`. Other Commands (like `Blender: Build and Start`) are not supported.
+```json
+{
+    "key": "ctrl+h",
+    "command": "blender.start",
+    "args": {
+        "path": "/path/to/blender.exe"
+        // "additionalArguments": [], // overrides VS Code settings blender.additionalArguments
+    }
+}
+```
+
 ## [0.0.23] - 2024-09-06
 
 ### Added

@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { handleErrors } from './utils';
+import { handleErrors, handleErrorsWithArgs } from './utils';
 import { COMMAND_newAddon } from './new_addon';
 import { COMMAND_newOperator } from './new_operator';
 import { AddonWorkspaceFolder } from './addon_folder';
@@ -25,7 +25,6 @@ export function activate(context: vscode.ExtensionContext) {
     outputChannel.show(true);
 
     let commands: [string, () => Promise<void>][] = [
-        ['blender.start', COMMAND_start],
         ['blender.stop', COMMAND_stop],
         ['blender.build', COMMAND_build],
         ['blender.buildAndStart', COMMAND_buildAndStart],
@@ -46,6 +45,9 @@ export function activate(context: vscode.ExtensionContext) {
     let disposables = [
         vscode.workspace.onDidSaveTextDocument(HANDLER_updateOnSave),
     ];
+
+    const startCom = vscode.commands.registerCommand('blender.start', handleErrorsWithArgs(COMMAND_start));
+    disposables.push(startCom);
 
     for (let [identifier, func] of commands) {
         let command = vscode.commands.registerCommand(identifier, handleErrors(func));
@@ -72,16 +74,32 @@ export function deactivate() {
 
 async function COMMAND_buildAndStart() {
     await COMMAND_build();
-    await COMMAND_start();
+    await COMMAND_start(undefined);
 }
 
-async function COMMAND_start() {
+
+type StartCommandArguments = {
+    additionalArguments?: string[];
+    path?: string;
+}
+
+async function COMMAND_start(args?: StartCommandArguments) {
+    // args are used in keybidings
+    console.log(args)
     let blenderFolder = await BlenderWorkspaceFolder.Get();
     if (blenderFolder === null) {
-        await BlenderExecutable.LaunchAny();
+        if (args === undefined) {
+            await BlenderExecutable.LaunchAnyInteractive();
+        } else {
+            if (args.path === undefined)
+                throw new Error("args.path is not defined")
+            if (args.additionalArguments !== undefined && !Array.isArray(args.additionalArguments))
+                throw new Error("args.additionalArguments must be list")
+            await BlenderExecutable.LaunchAny(args.path, args.additionalArguments);             
+        }
     }
     else {
-        await BlenderExecutable.LaunchDebug(blenderFolder);
+        await BlenderExecutable.LaunchDebugInteractive(blenderFolder);
     }
 }
 
@@ -99,7 +117,7 @@ async function COMMAND_build() {
 }
 
 async function COMMAND_startWithoutCDebugger() {
-    await BlenderExecutable.LaunchAny();
+    await BlenderExecutable.LaunchAnyInteractive();
 }
 
 async function COMMAND_buildPythonApiDocs() {
@@ -131,7 +149,7 @@ async function reloadAddons(addons: AddonWorkspaceFolder[]) {
     let names = await Promise.all(addons.map(a => a.getModuleName()));
     // Send source dirs so that the python script can determine if each addon is an extension or not.
     let dirs = await Promise.all(addons.map(a => a.getSourceDirectory()));
-    instances.forEach(instance => instance.post({ type: 'reload', names: names, dirs: dirs}));
+    instances.forEach(instance => instance.post({ type: 'reload', names: names, dirs: dirs }));
 }
 
 async function rebuildAddons(addons: AddonWorkspaceFolder[]) {

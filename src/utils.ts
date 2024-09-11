@@ -56,6 +56,21 @@ export function handleErrors(func: () => Promise<void>) {
     };
 }
 
+export function handleErrorsWithArgs(func: (args: any) => Promise<void>) {
+    return async (args: any) => {
+        try {
+            await func(args);
+        }
+        catch (err: any) {
+            if (err instanceof Error) {
+                if (err.message !== CANCEL) {
+                    vscode.window.showErrorMessage(err.message);
+                }
+            }
+        }
+    };
+}
+
 export function getRandomString(length: number = 10) {
     return crypto.randomBytes(length).toString('hex').substring(0, length);
 }
