@@ -18,8 +18,14 @@ def startup(editor_address, addons_to_load: List[AddonInfo]):
 
     from . import installation
 
-    # blender 2.80 'ssl' module is compiled with 'OpenSSL 1.1.0h' what breaks with requests >2.29.0
-    installation.ensure_packages_are_installed(["debugpy", "requests<=2.29.0", "werkzeug<=3.0.3", "flask<=3.0.3"])
+    installation.ensure_packages_are_installed(
+        [
+            "debugpy",
+            "requests<=2.29.0",  # blender 2.80 'ssl' module is compiled with 'OpenSSL 1.1.0h' what breaks with requests >2.29.0
+            "werkzeug<=3.0.3",
+            "flask<=3.0.3",  # keep flask version pinned until werkzeug and underlying multiprocessing issue is fixed: https://github.com/JacquesLucke/blender_vscode/issues/191
+        ]
+    )
 
     from . import load_addons
 

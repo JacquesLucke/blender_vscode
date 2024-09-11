@@ -1,55 +1,93 @@
+import importlib.metadata
+import shutil
 import sys
 import subprocess
-
+import textwrap
 import bpy
 
 from pathlib import Path
+from typing import List, Optional, Tuple
 
-from . import handle_fatal_error
 from .environment import python_path
+from semver import Version
 
 _CWD_FOR_SUBPROCESSES = python_path.parent
 
 
-def ensure_packages_are_installed(package_names):
-    if packages_are_installed(package_names):
-        return
+def assert_packages_are_installed(package_names: List[str]):
+    from . import handle_fatal_error
 
-    install_packages(package_names)
+    for package in package_names:
+        if not is_module_installed(package):
+            handle_fatal_error(
+                textwrap.dedent(
+                    f"""\
+            Package can not be imported: {package}
+            If you are experiencing PermissionError please scroll up to the line `Execute:` and execute the command manually.
+            Also close all Blender instances.
+            For old system wide Blender installations you might to reinstall Blender."""
+                )
+            )
 
 
-def packages_are_installed(package_names):
-    return all(module_can_be_imported(name) for name in package_names)
-
-
-def install_packages(package_names):
-    if not module_can_be_imported("pip"):
+def ensure_packages_are_installed(package_names: List[str]):
+    if not is_module_installed("pip"):
         install_pip()
 
+    if not any(is_module_installed(name) for name in package_names):
+        print(f"INFO: installing dependencies: {package_names}")
+        install_packages(package_names)
+        return
+
+    # Perform precise checks if any dependency changes are needed.
+    # Manual checks prevent from unnecessary updates which on <0.21 installations may require admin rights
+    # Moreover upgrading when using --target is not possible.
+    requires_reinstall = False
     for name in package_names:
-        ensure_package_is_installed(name)
+        _name, requested_version = _split_package_version(name)
+        if requested_version is None:
+            continue
+        requested_version = Version.parse(requested_version)
+        real_version = Version.parse(package_version(name))
+        assert isinstance(requested_version, Version), requested_version
+        assert isinstance(real_version, Version), real_version
+        if "==" in name and not (real_version == requested_version):
+            requires_reinstall = f"{name}, got {real_version}"
+            break
+        elif "<=" in name and not (real_version <= requested_version):
+            requires_reinstall = f"{name}, got {real_version}"
+            break
+        elif "<=" not in name and "<" in name and not (real_version < requested_version):
+            requires_reinstall = f"{name}, got {real_version}"
+            break
+        elif ">=" not in name and ">" in name and not (real_version > requested_version):
+            requires_reinstall = f"{name}, got {real_version}"
+            break
 
-    assert packages_are_installed(package_names)
+    if requires_reinstall:
+        print(f"INFO: dependencies reuqire update because of {requires_reinstall}, reinstalling...")
+        print(f'INFO: removing "{bpy.utils.user_resource("SCRIPTS", path="modules")}"')
+        shutil.rmtree(bpy.utils.user_resource("SCRIPTS", path="modules"))
+        install_packages(package_names)
+
+    assert_packages_are_installed(package_names)
 
 
-def ensure_package_is_installed(name: str):
-    if not module_can_be_imported(name):
-        install_package(name)
-
-
-def install_package(name: str):
+def install_packages(names: List[str]):
     target = get_package_install_directory()
-    command = [str(python_path), "-m", "pip", "install", name, "--target", target]
-    print("Execute: ", " ".join(command))
+    command = [str(python_path), "-m", "pip", "install", "--disable-pip-version-check", "--target", target, *names]
+
+    print("Execute: ", " ".join(_escape_space(c) for c in command))
     subprocess.run(command, cwd=_CWD_FOR_SUBPROCESSES)
 
-    if not module_can_be_imported(name):
-        handle_fatal_error(f"could not install {name}")
+
+def _escape_space(name):
+    return f'"{name}"' if " " in name else name
 
 
 def install_pip():
     # try ensurepip before get-pip.py
-    if module_can_be_imported("ensurepip"):
+    if is_module_installed("ensurepip"):
         command = [str(python_path), "-m", "ensurepip", "--upgrade"]
         print("Execute: ", " ".join(command))
         subprocess.run(command, cwd=_CWD_FOR_SUBPROCESSES)
@@ -69,14 +107,30 @@ def get_package_install_directory() -> str:
     return modules_path
 
 
-def module_can_be_imported(name: str):
+def _split_package_version(name: str) -> Tuple[str, Optional[str]]:
+    name_and_maybe_version = name.replace(">", "=").replace("<", "=").replace("==", "=").split("=")
+    if len(name_and_maybe_version) == 0:
+        return name, None
+    elif len(name_and_maybe_version) == 1:
+        return name_and_maybe_version[0], None
+    else:
+        return name_and_maybe_version[0], name_and_maybe_version[1]
+
+
+def _strip_package_version(name: str) -> str:
+    return _split_package_version(name)[0]
+
+
+def package_version(package: str) -> Optional[str]:
+    name = _strip_package_version(package)
     try:
-        __import__(_strip_pip_version(name))
-        return True
-    except ModuleNotFoundError:
-        return False
+        return importlib.metadata.version(_strip_package_version(name))
+    except AttributeError:  # python <3.8
+        import pkg_resources
+
+        return pkg_resources.get_distribution(name).version
+    except importlib.metadata.PackageNotFoundError:
+        return None
 
 
-def _strip_pip_version(name: str) -> str:
-    name_strip_comparison_sign = name.replace(">", "=").replace("<", "=")
-    return name_strip_comparison_sign.split("=")[0]
+is_module_installed = package_version
