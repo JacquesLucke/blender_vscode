@@ -57,7 +57,7 @@ export class BlenderWorkspaceFolder {
             args.push(part);
         }
 
-        let blender = await BlenderExecutable.GetAny();
+        let blender = await BlenderExecutable.GetAnyInteractive();
         await blender.launchWithCustomArgs('build api docs', args);
 
         let execution = new vscode.ProcessExecution('sphinx-build', [

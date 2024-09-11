@@ -14,7 +14,7 @@ export async function attachPythonDebuggerToBlender(
     addonPathMappings: AddonPathMapping[]) {
 
     let mappings = await getPythonPathMappings(scriptsFolder, addonPathMappings);
-    attachPythonDebugger(port, justMyCode, mappings);
+    return attachPythonDebugger(port, justMyCode, mappings);
 }
 
 function attachPythonDebugger(port: number, justMyCode: boolean, pathMappings: PathMapping[] = []) {
@@ -30,7 +30,7 @@ function attachPythonDebugger(port: number, justMyCode: boolean, pathMappings: P
 
     outputChannel.appendLine("Python debug configuration: " + JSON.stringify(configuration, undefined, 2));
 
-    vscode.debug.startDebugging(undefined, configuration);
+    return vscode.debug.startDebugging(undefined, configuration);
 }
 
 async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {

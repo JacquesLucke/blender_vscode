@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+### Added
+
+- Run `Blender: Start` using single button by adding snippet to `keybindings.json`. Other Commands (like `Blender: Build and Start`) are not supported.
+```json
+{
+    "key": "ctrl+h",
+    "command": "blender.start",
+    "args": {
+        "path": "/path/to/blender.exe"
+        // "additionalArguments": [], // overrides VS Code settings blender.additionalArguments
+    }
+}
+```
+- Improvements for `Blender: Run Script`:
+  - When **no** Blender instances are running, run `Blender: Start` and then immediately run `Blender: Run Script`
+  - When Blender instances are running, just run the script on all available instances (old behavior)
+  - Specify default `Blender: Start` configuration in settings using `isBlenderRunScriptDefault` in [`blender.executables`](vscode://settings/blender.executables)
+  - Run `Blender: Run Script` using single button by adding snippet to `keybindings.json`. 
+```json
+  {
+    "key": "ctrl+shift+enter",
+    "command": "blender.runScript",
+    "when": "editorLangId == 'python'"
+  }
+```
+
+### Fixed
+
+- `linuxInode` should no longer be saved in settings [`blender.executables`](vscode://settings/blender.executables)
+
 ## [0.0.23] - 2024-09-06
 
 ### Added

@@ -32,8 +32,8 @@ export class BlenderInstance {
         this.connectionErrors = [];
     }
 
-    post(data: object): void {
-        request.post(this.address, { json: data });
+    post(data: object) {
+        return request.post(this.address, { json: data });
     }
 
     async ping(): Promise<void> {
@@ -52,7 +52,7 @@ export class BlenderInstance {
     }
 
     attachDebugger() {
-        attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings);
+        return attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings);
     }
 
     get address() {
@@ -62,13 +62,22 @@ export class BlenderInstance {
 
 export class BlenderInstances {
     private instances: BlenderInstance[];
+    protected onRegisterCallbacks: ((instance: BlenderInstance) => void)[];
 
     constructor() {
         this.instances = [];
+        this.onRegisterCallbacks = [];
     }
 
     register(instance: BlenderInstance) {
         this.instances.push(instance);
+        for (const onRegisterCallback of this.onRegisterCallbacks) {
+            onRegisterCallback(instance)
+        }
+    }
+
+    onRegisterCallOnce(callback: (instance: BlenderInstance) => void) {
+        this.onRegisterCallbacks.push(callback);
     }
 
     async getResponsive(timeout: number = RESPONSIVE_LIMIT_MS): Promise<BlenderInstance[]> {
@@ -92,12 +101,18 @@ export class BlenderInstances {
         });
     }
 
-    sendToResponsive(data: object, timeout: number = RESPONSIVE_LIMIT_MS) {
+    async sendToResponsive(data: object, timeout: number = RESPONSIVE_LIMIT_MS) {
+        console.log(this.instances)
+        let sentTo: request.Request[] = []
         for (const instance of this.instances) {
-            instance.isResponsive(timeout).then(responsive => {
-                if (responsive) instance.post(data);
-            }).catch();
+            const isResponsive = await instance.isResponsive(timeout)
+            if (!isResponsive)
+                continue
+            try {
+                sentTo.push(instance.post(data))
+            } catch { }
         }
+        return sentTo;
     }
 
     sendToAll(data: object) {
@@ -136,8 +151,7 @@ function SERVER_handleRequest(request: any, response: any) {
                     let config = getConfig();
                     let justMyCode: boolean = <boolean>config.get('addon.justMyCode')
                     let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
-                    instance.attachDebugger();
-                    RunningBlenders.register(instance);
+                    instance.attachDebugger().then(() => RunningBlenders.register(instance))
                     response.end('OK');
                     break;
                 }

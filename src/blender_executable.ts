@@ -25,7 +25,7 @@ export class BlenderExecutable {
         this.data = data;
     }
 
-    public static async GetAny() {
+    public static async GetAnyInteractive() {
         let data = await getFilteredBlenderPath({
             label: 'Blender Executable',
             selectNewLabel: 'Choose a new Blender executable...',
@@ -35,7 +35,7 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
-    public static async GetDebug() {
+    public static async GetDebugInteractive() {
         let data = await getFilteredBlenderPath({
             label: 'Debug Build',
             selectNewLabel: 'Choose a new debug build...',
@@ -45,20 +45,32 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
-    public static async LaunchAny() {
-        await (await this.GetAny()).launch();
+    public static async LaunchAnyInteractive() {
+        const blenderArgs = getBlenderLaunchArgsFromConfig()
+        return await (await this.GetAnyInteractive()).launch(blenderArgs);
     }
 
-    public static async LaunchDebug(folder: BlenderWorkspaceFolder) {
-        await (await this.GetDebug()).launchDebug(folder);
+    public static async LaunchAny(path: string, additionalArguments?: string[]) {
+        let blenderArgs;
+        if (additionalArguments === undefined) {
+            blenderArgs = getBlenderLaunchArgsFromConfig()
+        } else {
+            blenderArgs = ['--python', launchPath].concat(additionalArguments);
+        }
+        const data: BlenderPathData = { path: path, name: '', isDebug: false }
+        const blender = new BlenderExecutable(data);
+        return await blender.launch(blenderArgs);
+    }
+
+    public static async LaunchDebugInteractive(folder: BlenderWorkspaceFolder) {
+        return await (await this.GetDebugInteractive()).launchDebug(folder);
     }
 
     get path() {
         return this.data.path;
     }
 
-    public async launch() {
-        const blenderArgs = getBlenderLaunchArgs()
+    public async launch(blenderArgs: string[]) {
         let execution = new vscode.ProcessExecution(
             this.path,
             blenderArgs,
@@ -67,7 +79,7 @@ export class BlenderExecutable {
         outputChannel.appendLine(`Starting blender: ${this.path} ${blenderArgs.join(' ')}`)
         outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2))
 
-        await runTask('blender', execution);
+        return await runTask('blender', execution);
     }
 
     public async launchDebug(folder: BlenderWorkspaceFolder) {
@@ -76,7 +88,7 @@ export class BlenderExecutable {
             type: 'cppdbg',
             request: 'launch',
             program: this.data.path,
-            args: ['--debug'].concat(getBlenderLaunchArgs()),
+            args: ['--debug'].concat(getBlenderLaunchArgsFromConfig()),
             env: await getBlenderLaunchEnv(),
             stopAtEntry: false,
             MIMode: 'gdb',
@@ -95,11 +107,12 @@ export class BlenderExecutable {
     }
 }
 
-export interface BlenderPathData {
+export type BlenderPathData = {
     path: string;
     name: string;
     isDebug: boolean;
     linuxInode?: number;
+    isBlenderRunScriptDefault?: boolean;
 }
 
 interface BlenderType {
@@ -179,6 +192,12 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         settingsBlenderPaths.push(pathData);
+        if (process.platform !== 'win32') {
+            for (const settingExe of settingsBlenderPaths) {
+                // Do not save linuxInode is settings
+                settingExe.linuxInode = undefined;
+            }
+        }
         config.update('executables', settingsBlenderPaths, vscode.ConfigurationTarget.Global);
     }
 
@@ -259,7 +278,7 @@ async function testIfPathIsBlender(filepath: string) {
     });
 }
 
-function getBlenderLaunchArgs() {
+function getBlenderLaunchArgsFromConfig() {
     let config = getConfig();
     return ['--python', launchPath].concat(<string[]>config.get("additionalArguments", []));
 }
