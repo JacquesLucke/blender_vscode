@@ -71,13 +71,14 @@ export class BlenderExecutable {
     }
 
     public async launchDebug(folder: BlenderWorkspaceFolder) {
+        const env = await getBlenderLaunchEnv();
         let configuration = {
             name: 'Debug Blender',
             type: 'cppdbg',
             request: 'launch',
             program: this.data.path,
             args: ['--debug'].concat(getBlenderLaunchArgs()),
-            env: await getBlenderLaunchEnv(),
+            environment: Object.entries(env).map(([key, value]) => { return {name: key, value}; }),
             stopAtEntry: false,
             MIMode: 'gdb',
             cwd: folder.uri.fsPath,
