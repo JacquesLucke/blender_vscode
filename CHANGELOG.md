@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.24] - 2024-09-12
+
 ### Fixed
 
 - Starting Blender with C and Python debugger.
