@@ -8,24 +8,52 @@ import { getConfig, cancel, addFolderToWorkspace, getRandomString, pathExists, c
 import { COMMAND_start, outputChannel } from './extension';
 import { BlenderPathData } from './blender_executable';
 
-export async function COMMAND_runScript(): Promise<void> {
-    let editor = vscode.window.activeTextEditor;
-    if (editor === undefined) return Promise.reject(new Error('no active script'));
+export function COMMAND_runScript_registerCleanup() {
+    const disposableDebugSessionListener = vscode.debug.onDidTerminateDebugSession(session => {
+        if (session.name !== 'Debug Blender' && !session.name.startsWith('Python at Port '))
+            return
+        RunningBlenders.clearInstances(instance => instance.vscodeIdentifier !== session.configuration.identifier)
+        RunningBlenders.clearOnRegisterCallbacks()
+    });
+    const disposableTaskListener = vscode.tasks.onDidEndTaskProcess((e) => {
+        if (e.execution.task.source !== 'blender')
+            return
+        RunningBlenders.clearInstances(instance => instance.vscodeIdentifier !== e.execution.task.definition.type)
+        RunningBlenders.clearOnRegisterCallbacks()
+    });
+    return [disposableDebugSessionListener, disposableTaskListener]
+}
 
-    const document = editor.document;
-    outputChannel.appendLine(`Blender: Run Script: ${document.uri.fsPath}`)
-    await document.save();
-    const activeInstances = await RunningBlenders.getResponsive();
-    if (activeInstances.length !== 0) {
-        RunningBlenders.sendToResponsive({ type: 'script', path: document.uri.fsPath })
-        return
+type RunScriptCommandArguments = {
+    path?: string;
+}
+
+export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promise<void> {
+    let scriptPath;
+    if (args?.path === undefined) {
+        const editor = vscode.window.activeTextEditor;
+        if (editor === undefined)
+            return Promise.reject(new Error('no active script'));
+        const document = editor.document;
+        await document.save();
+        outputChannel.appendLine(`Blender: Run Script: ${document.uri.fsPath}`)
+        scriptPath = document.uri.fsPath;
+    } else {
+        scriptPath = args.path
     }
-    const config = getConfig();
-    const defaultSettings = (<BlenderPathData[]>config.get('executables')).filter(item => item.isBlenderRunScriptDefault === true);
-    RunningBlenders.onRegisterCallOnce((instance: BlenderInstance) => RunningBlenders.sendToResponsive({ type: 'script', path: document.uri.fsPath }))
-    const blenderTask = await COMMAND_start(defaultSettings.length === 0 ? undefined : defaultSettings[0])
-    if (blenderTask === undefined)
-        throw new Error("Starting blender failed")
+
+    if (RunningBlenders.instances.length === 0) {
+        const config = getConfig();
+        const defaultSettings = (<BlenderPathData[]>config.get('executables')).filter(item => item.isBlenderRunScriptDefault === true);
+        RunningBlenders.onRegister((_instance: BlenderInstance) => RunningBlenders.sendToResponsive({ type: 'script', path: scriptPath }))
+
+        const blenderTask = await COMMAND_start(defaultSettings.length === 0 ? undefined : defaultSettings[0])
+        if (blenderTask === undefined) {
+            throw new Error("Starting blender failed")
+        }
+    } else {
+        RunningBlenders.sendToResponsive({ type: 'script', path: scriptPath })
+    }
 }
 
 

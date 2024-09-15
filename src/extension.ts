@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { handleErrors, handleErrorsWithArgs } from './utils';
+import { handleErrors } from './utils';
 import { COMMAND_newAddon } from './new_addon';
 import { COMMAND_newOperator } from './new_operator';
 import { AddonWorkspaceFolder } from './addon_folder';
@@ -10,7 +10,8 @@ import { BlenderWorkspaceFolder } from './blender_folder';
 import { startServer, stopServer, RunningBlenders } from './communication';
 import {
     COMMAND_runScript, COMMAND_newScript, COMMAND_setScriptContext,
-    COMMAND_openScriptsFolder
+    COMMAND_openScriptsFolder,
+    COMMAND_runScript_registerCleanup
 } from './scripts';
 
 export let outputChannel: vscode.OutputChannel;
@@ -24,7 +25,8 @@ export function activate(context: vscode.ExtensionContext) {
     outputChannel.appendLine("Addon starting.");
     outputChannel.show(true);
 
-    let commands: [string, () => Promise<void>][] = [
+    let commands: [string, (args?: any) => Promise<void | vscode.TaskExecution>][] = [
+        ['blender.start', COMMAND_start],
         ['blender.stop', COMMAND_stop],
         ['blender.build', COMMAND_build],
         ['blender.buildAndStart', COMMAND_buildAndStart],
@@ -46,9 +48,6 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.workspace.onDidSaveTextDocument(HANDLER_updateOnSave),
     ];
 
-    const startCom = vscode.commands.registerCommand('blender.start', handleErrorsWithArgs(COMMAND_start));
-    disposables.push(startCom);
-
     for (let [identifier, func] of commands) {
         let command = vscode.commands.registerCommand(identifier, handleErrors(func));
         disposables.push(command);
@@ -58,6 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
         let command = vscode.commands.registerTextEditorCommand(identifier, handleErrors(func));
         disposables.push(command);
     }
+    disposables.push(...COMMAND_runScript_registerCleanup())
 
     context.subscriptions.push(...disposables);
 
@@ -85,7 +85,6 @@ type StartCommandArguments = {
 
 export async function COMMAND_start(args?: StartCommandArguments) {
     // args are used in keybidings
-    console.log(args)
     let blenderFolder = await BlenderWorkspaceFolder.Get();
     if (blenderFolder === null) {
         if (args === undefined) {

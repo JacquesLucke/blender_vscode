@@ -19,3 +19,4 @@ scripts_folder = blender_path.parent / f"{version[0]}.{version[1]}" / "scripts"
 addon_directories = tuple(map(Path, addon_utils.paths()))
 
 EXTENSIONS_REPOSITORY: Optional[str] = os.environ.get("VSCODE_EXTENSIONS_REPOSITORY", "user_default") or "user_default"
+VSCODE_IDENTIFIER: Optional[str] = os.environ.get("VSCODE_IDENTIFIER", "") or ""

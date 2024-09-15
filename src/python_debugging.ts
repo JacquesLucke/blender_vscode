@@ -11,21 +11,22 @@ type PathMapping = { localRoot: string, remoteRoot: string };
 
 export async function attachPythonDebuggerToBlender(
     port: number, blenderPath: string, justMyCode: boolean, scriptsFolder: string,
-    addonPathMappings: AddonPathMapping[]) {
+    addonPathMappings: AddonPathMapping[], identifier: string) {
 
     let mappings = await getPythonPathMappings(scriptsFolder, addonPathMappings);
-    return attachPythonDebugger(port, justMyCode, mappings);
+    return attachPythonDebugger(port, justMyCode, mappings, identifier);
 }
 
-function attachPythonDebugger(port: number, justMyCode: boolean, pathMappings: PathMapping[] = []) {
-    let configuration = {
+function attachPythonDebugger(port: number, justMyCode: boolean, pathMappings: PathMapping[], identifier: string) {
+    let configuration: vscode.DebugConfiguration = {
         name: `Python at Port ${port}`,
         request: "attach",
         type: 'python',
         port: port,
         host: 'localhost',
         pathMappings: pathMappings,
-        justMyCode: justMyCode
+        justMyCode: justMyCode,
+        identifier: identifier,
     };
 
     outputChannel.appendLine("Python debug configuration: " + JSON.stringify(configuration, undefined, 2));

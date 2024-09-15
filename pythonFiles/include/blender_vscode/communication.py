@@ -8,7 +8,7 @@ import requests
 import threading
 from functools import partial
 from .utils import run_in_main_thread
-from .environment import blender_path, scripts_folder, python_path
+from .environment import VSCODE_IDENTIFIER, blender_path, scripts_folder, python_path
 
 EDITOR_ADDRESS = None
 OWN_SERVER_PORT = None
@@ -118,6 +118,7 @@ def send_connection_information(path_mappings: Dict):
             "blenderPath": str(blender_path),
             "scriptsFolder": str(scripts_folder),
             "addonPathMappings": path_mappings,
+            "vscodeIdentifier": VSCODE_IDENTIFIER,
         }
     )
 

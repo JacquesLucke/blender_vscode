@@ -41,23 +41,8 @@ export function getAnyWorkspaceFolder() {
     return folders[0];
 }
 
-export function handleErrors(func: () => Promise<void>) {
-    return async () => {
-        try {
-            await func();
-        }
-        catch (err: any) {
-            if (err instanceof Error) {
-                if (err.message !== CANCEL) {
-                    vscode.window.showErrorMessage(err.message);
-                }
-            }
-        }
-    };
-}
-
-export function handleErrorsWithArgs(func: (args: any) => Promise<void | vscode.TaskExecution>) {
-    return async (args: any) => {
+export function handleErrors(func: (args?: any) => Promise<void | vscode.TaskExecution>) {
+    return async (args?: any) => {
         try {
             await func(args);
         }
@@ -180,6 +165,11 @@ export async function runTask(
     let taskDefinition = { type: identifier };
     let source = 'blender';
     let problemMatchers: string[] = [];
+    if (execution.options === undefined)
+        execution.options = {}
+    if (execution.options.env === undefined)
+        execution.options.env = {}
+    execution.options.env['VSCODE_IDENTIFIER'] = identifier;
     let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);
     let taskExecution = await vscode.tasks.executeTask(task);
 

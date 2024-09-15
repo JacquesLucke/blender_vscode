@@ -20,9 +20,10 @@ export class BlenderInstance {
     scriptsFolder: string;
     addonPathMappings: AddonPathMapping[];
     connectionErrors: Error[];
+    vscodeIdentifier: string;
 
     constructor(blenderPort: number, debugpyPort: number, justMyCode: boolean, path: string,
-        scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
+        scriptsFolder: string, addonPathMappings: AddonPathMapping[], vscodeIdentifier: string) {
         this.blenderPort = blenderPort;
         this.debugpyPort = debugpyPort;
         this.justMyCode = justMyCode;
@@ -30,6 +31,7 @@ export class BlenderInstance {
         this.scriptsFolder = scriptsFolder;
         this.addonPathMappings = addonPathMappings;
         this.connectionErrors = [];
+        this.vscodeIdentifier = vscodeIdentifier;
     }
 
     post(data: object) {
@@ -52,7 +54,7 @@ export class BlenderInstance {
     }
 
     attachDebugger() {
-        return attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings);
+        return attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings, this.vscodeIdentifier);
     }
 
     get address() {
@@ -60,8 +62,8 @@ export class BlenderInstance {
     }
 }
 
-export class BlenderInstances {
-    private instances: BlenderInstance[];
+export class RunningBlenderInstances {
+    protected instances: BlenderInstance[];
     protected onRegisterCallbacks: ((instance: BlenderInstance) => void)[];
 
     constructor() {
@@ -76,8 +78,16 @@ export class BlenderInstances {
         }
     }
 
-    onRegisterCallOnce(callback: (instance: BlenderInstance) => void) {
+    onRegister(callback: (instance: BlenderInstance) => void) {
         this.onRegisterCallbacks.push(callback);
+    }
+
+    clearOnRegisterCallbacks() {
+        this.onRegisterCallbacks = []
+    }
+
+    clearInstances(predicate: (instance: BlenderInstance) => boolean) {
+        this.instances.filter(predicate)
     }
 
     async getResponsive(timeout: number = RESPONSIVE_LIMIT_MS): Promise<BlenderInstance[]> {
@@ -102,7 +112,6 @@ export class BlenderInstances {
     }
 
     async sendToResponsive(data: object, timeout: number = RESPONSIVE_LIMIT_MS) {
-        console.log(this.instances)
         let sentTo: request.Request[] = []
         for (const instance of this.instances) {
             const isResponsive = await instance.isResponsive(timeout)
@@ -150,7 +159,7 @@ function SERVER_handleRequest(request: any, response: any) {
                 case 'setup': {
                     let config = getConfig();
                     let justMyCode: boolean = <boolean>config.get('addon.justMyCode')
-                    let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
+                    let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings, req.vscodeIdentifier);
                     instance.attachDebugger().then(() => RunningBlenders.register(instance))
                     response.end('OK');
                     break;
@@ -178,4 +187,4 @@ function SERVER_handleRequest(request: any, response: any) {
 }
 
 var server: any = undefined;
-export const RunningBlenders = new BlenderInstances();
+export const RunningBlenders = new RunningBlenderInstances();
