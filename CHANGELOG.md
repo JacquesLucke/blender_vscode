@@ -24,6 +24,10 @@
   {
     "key": "ctrl+shift+enter",
     "command": "blender.runScript",
+    "args": {
+       // optional, must be absolute path, defaults to current open file
+      "path": "E:\\BlenderProjects\\leagacy_and_extension\\i.py"
+    },
     "when": "editorLangId == 'python'"
   }
 ```
