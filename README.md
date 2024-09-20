@@ -43,8 +43,9 @@ The terminal output can be seen inside of VS Code.
 The first time you open a new Blender build like this can take a few seconds longer than usual because some Python libraries are installed automatically.
 For that it is important that you have an internet connection.
 
-Once Blender is started, you can use the Addon in Blender.
-Debugging should work now.
+Once Blender is started, you can use the addon in Blender.
+Debugging with the VS Code debugger frontend should work now like for any other Python script.
+You can set breakpoints by placing the red dot next to the line number in VS Code and the debugger will hit it while using the extension inside Blender.
 
 ### Extension support
 
@@ -102,6 +103,14 @@ Environment Variables:
 ### How to use with multiple addons?
 
 Use VS Code feature [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces). Each folder in workspace is treated as addon root.
+
+### How can I debug into third party library code from within my addon code?
+
+As described above an addon can be debugged when started from VS Code using the `Blender: Start` command.
+By default, debug breakpoints work only for files and directories opened in the current workspace and it is also not possible to step into code that is not part of the workspace.
+Nevertheless, if you explicitly need to debug third party Python module code, e.g., `site-packages` or Blender internal Python files, you can disable the [`blender.addon.justMyCode`](vscode://settings/blender.addon.justMyCode) extension setting in VS Code.
+You can do so by setting `"blender.addon.justMyCode": false,` in your user `settings.json` or you may also find this setting by searching for `just my code` under `File -> Preferences -> Settings`.
+After changing this setting, breakpoints and step into (<kbd>F11</kbd>) should work also for non-workspace files.
 
 ## Script Tools
 
