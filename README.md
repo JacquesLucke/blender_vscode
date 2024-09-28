@@ -106,11 +106,10 @@ Use VS Code feature [Multi-root Workspaces](https://code.visualstudio.com/docs/e
 
 ### How can I debug into third party library code from within my addon code?
 
-As described above an addon can be debugged when started from VS Code using the `Blender: Start` command.
+Addon can be debugged when started from VS Code using the `Blender: Start` command. 
 By default, debug breakpoints work only for files and directories opened in the current workspace and it is also not possible to step into code that is not part of the workspace.
-Nevertheless, if you explicitly need to debug third party Python module code, e.g., `site-packages` or Blender internal Python files, you can disable the [`blender.addon.justMyCode`](vscode://settings/blender.addon.justMyCode) extension setting in VS Code.
-You can do so by setting `"blender.addon.justMyCode": false,` in your user `settings.json` or you may also find this setting by searching for `just my code` under `File -> Preferences -> Settings`.
-After changing this setting, breakpoints and step into (<kbd>F11</kbd>) should work also for non-workspace files.
+Disable the VS Code setting [`blender.addon.justMyCode`](vscode://settings/blender.addon.justMyCode) to debug code anywhere.
+In rare cases debugging with VS Code can crash Blender (ex. https://github.com/JacquesLucke/blender_vscode/issues/188).
 
 ## Script Tools
 
