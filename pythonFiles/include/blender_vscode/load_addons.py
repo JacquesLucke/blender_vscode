@@ -61,6 +61,7 @@ def _link_addon_or_extension(addon_info: AddonInfo) -> Path:
             load_path = _ADDONS_DEFAULT_DIR / addon_info.module_name
             create_link_in_user_addon_directory(addon_info.load_dir, load_path)
     else:
+        addon_info = process_nested_addon_info(addon_info)
         if addon_has_bl_info(addon_info.load_dir) and is_in_any_addon_directory(addon_info.load_dir):
             # this addon is compatible with legacy addons and extensions
             # but user is developing it in addon directory. Treat it as addon.
@@ -76,6 +77,18 @@ def _link_addon_or_extension(addon_info: AddonInfo) -> Path:
             create_link_in_user_addon_directory(addon_info.load_dir, load_path)
     return load_path
 
+def process_nested_addon_info(addon_info: AddonInfo) -> AddonInfo:
+    """For git project that maintains the actual extension in a subdirectory"""
+    addon_dir = addon_info.load_dir
+    if not (addon_dir / "__init__.py").exists():
+        # addon_dir can be a repo root, so check one level deeper
+        # only consider sth like repo_name/repo_name/__init__.py for now
+        package_candidate = addon_dir / addon_dir.name
+        if package_candidate.exists():
+            addon_dir = package_candidate
+            addon_info.load_dir = addon_dir
+            addon_info.module_name = addon_info.module_name
+    return addon_info
 
 def _remove_duplicate_addon_links(addon_info: AddonInfo):
     existing_addon_with_the_same_target = does_addon_link_exist(addon_info.load_dir)
