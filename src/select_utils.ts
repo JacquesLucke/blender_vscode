@@ -5,10 +5,8 @@ import { BlenderPathData } from './blender_executable';
 
 export interface PickItem extends QuickPickItem {
     data?: any | (() => Promise<BlenderPathData>),
-    label: string;
-    description?: string;
-    detail?: string;
 }
+
 export async function letUserPickItem(items: PickItem[], placeholder: undefined | string = undefined): Promise<PickItem> {
     let quickPick = vscode.window.createQuickPick();
     quickPick.items = items;
