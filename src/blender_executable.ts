@@ -78,7 +78,7 @@ export class BlenderExecutable {
             request: 'launch',
             program: this.data.path,
             args: ['--debug'].concat(getBlenderLaunchArgs()),
-            environment: Object.entries(env).map(([key, value]) => { return {name: key, value}; }),
+            environment: Object.entries(env).map(([key, value]) => { return { name: key, value }; }),
             stopAtEntry: false,
             MIMode: 'gdb',
             cwd: folder.uri.fsPath,
@@ -180,6 +180,10 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         settingsBlenderPaths.push(pathData);
+        // do not save linuxInode is settings
+        for (const settingExe of settingsBlenderPaths) {
+            settingExe.linuxInode = undefined;
+        }
         config.update('executables', settingsBlenderPaths, vscode.ConfigurationTarget.Global);
     }
 
