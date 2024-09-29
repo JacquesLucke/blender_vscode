@@ -8,7 +8,7 @@ import * as util from 'util';
 import { launchPath } from './paths';
 import { getServerPort } from './communication';
 import { letUserPickItem, PickItem } from './select_utils';
-import { getConfig, cancel, runTask } from './utils';
+import { getConfig, cancel, runTask, getAnyWorkspaceFolder } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { outputChannel } from './extension';
@@ -167,7 +167,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
         quickPickItems.push({
             data: async () => blenderPath,
             label: blenderPath.name || blenderPath.path,
-            description: await stat(blenderPath.path).then(_stats => undefined).catch((err: NodeJS.ErrnoException) => "File does not exist")
+            description: await stat(path.isAbsolute(blenderPath.path) ? blenderPath.path : path.join(getAnyWorkspaceFolder().uri.fsPath, blenderPath.path)).then(_stats => undefined).catch((err: NodeJS.ErrnoException) => "File does not exist")
         });
     }
 
