@@ -1,4 +1,6 @@
+import glob
 import importlib.metadata
+import os
 import shutil
 import sys
 import subprocess
@@ -34,21 +36,20 @@ def ensure_packages_are_installed(package_names: List[str]):
     if not is_module_installed("pip"):
         install_pip()
 
-    if not any(is_module_installed(name) for name in package_names):
-        print(f"INFO: installing dependencies: {package_names}")
-        install_packages(package_names)
-        return
-
     # Perform precise checks if any dependency changes are needed.
     # Manual checks prevent from unnecessary updates which on <0.21 installations may require admin rights
-    # Moreover upgrading when using --target is not possible.
+    # Moreover upgrading when using pip install --target is not possible.
     requires_reinstall = False
     for name in package_names:
         _name, requested_version = _split_package_version(name)
         if requested_version is None:
             continue
         requested_version = Version.parse(requested_version)
-        real_version = Version.parse(package_version(name))
+        real_version = package_version(name)
+        if real_version is None:
+            requires_reinstall = f"{name} is not installed"
+            break
+        real_version = Version.parse(real_version)
         assert isinstance(requested_version, Version), requested_version
         assert isinstance(real_version, Version), real_version
         if "==" in name and not (real_version == requested_version):
@@ -65,19 +66,52 @@ def ensure_packages_are_installed(package_names: List[str]):
             break
 
     if requires_reinstall:
-        print(f"INFO: dependencies reuqire update because of {requires_reinstall}, reinstalling...")
-        print(f'INFO: removing "{bpy.utils.user_resource("SCRIPTS", path="modules")}"')
-        shutil.rmtree(bpy.utils.user_resource("SCRIPTS", path="modules"))
+        print(f"INFO: dependencies require update because of {requires_reinstall}, reinstalling...")
+        gracefully_remove_packages(bpy.utils.user_resource("SCRIPTS", path="modules"))
         install_packages(package_names)
 
     assert_packages_are_installed(package_names)
+
+
+def gracefully_remove_packages(target_dir: str):
+    """Carefully remove packages from target_dir that were installed with this extension.
+
+    Known dependencies are produced by manually running dependency tree of dependencies:
+    >>> pip install --target . --ignore-installed <dependencies>
+    """
+    print("INFO: Removing installed dependencies and metadata")
+    known_dependencies = [
+        "blinker",
+        "certifi",
+        "charset_normalizer",
+        "click",
+        "colorama",
+        "debugpy",
+        "flask",
+        "idna",
+        "itsdangerous",
+        "jinja2",
+        "markupsafe",
+        "requests",
+        "urllib3",
+        "werkzeug",
+    ]
+    for package in known_dependencies:
+        installed_package = os.path.join(target_dir, package)
+        if os.path.exists(installed_package):
+            print(f"DEBUG: remove {installed_package}")
+            shutil.rmtree(installed_package)
+        for metadata in glob.glob(os.path.join(target_dir, package + "-*.dist-info")):
+            if os.path.exists(metadata):
+                print(f"DEBUG: remove {metadata}")
+                shutil.rmtree(metadata)
 
 
 def install_packages(names: List[str]):
     target = get_package_install_directory()
     command = [str(python_path), "-m", "pip", "install", "--disable-pip-version-check", "--target", target, *names]
 
-    print("Execute: ", " ".join(_escape_space(c) for c in command))
+    print("INFO: execute:", " ".join(_escape_space(c) for c in command))
     subprocess.run(command, cwd=_CWD_FOR_SUBPROCESSES)
 
 
@@ -89,7 +123,7 @@ def install_pip():
     # try ensurepip before get-pip.py
     if is_module_installed("ensurepip"):
         command = [str(python_path), "-m", "ensurepip", "--upgrade"]
-        print("Execute: ", " ".join(command))
+        print("INFO: execute:", " ".join(command))
         subprocess.run(command, cwd=_CWD_FOR_SUBPROCESSES)
         return
     # pip can not necessarily be imported into Blender after this
