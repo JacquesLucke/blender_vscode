@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import { cancel } from './utils';
 import { QuickPickItem } from 'vscode';
-import { BlenderPathData } from './blender_executable';
+import { BlenderExecutablesRuntime } from './blender_executable';
 
 export interface PickItem extends QuickPickItem {
-    data?: any | (() => Promise<BlenderPathData>),
+    data?: any | (() => Promise<BlenderExecutablesRuntime>),
 }
 
 export async function letUserPickItem(items: PickItem[], placeholder: undefined | string = undefined): Promise<PickItem> {

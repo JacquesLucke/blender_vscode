@@ -19,9 +19,9 @@ import { deduplicateSameHardLinks } from './blender_executable_linux';
 const stat = util.promisify(fs.stat)
 
 export class BlenderExecutable {
-    data: BlenderPathData;
+    data: BlenderExecutablesRuntime;
 
-    constructor(data: BlenderPathData) {
+    constructor(data: BlenderExecutablesRuntime) {
         this.data = data;
     }
 
@@ -96,7 +96,14 @@ export class BlenderExecutable {
     }
 }
 
-export interface BlenderPathData {
+export type BlenderExecutablesSettings = {
+    path: string;
+    name: string;
+    isDebug: boolean;
+    linuxInode?: never;
+}
+
+export type BlenderExecutablesRuntime = {
     path: string;
     name: string;
     isDebug: boolean;
@@ -106,12 +113,12 @@ export interface BlenderPathData {
 interface BlenderType {
     label: string;
     selectNewLabel: string;
-    predicate: (item: BlenderPathData) => boolean;
-    setSettings: (item: BlenderPathData) => void;
+    predicate: (item: BlenderExecutablesRuntime) => boolean;
+    setSettings: (item: BlenderExecutablesRuntime) => void;
 }
 
-async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
-    const blenders: BlenderPathData[] = [];
+async function searchBlenderInSystem(): Promise<BlenderExecutablesRuntime[]> {
+    const blenders: BlenderExecutablesRuntime[] = [];
     if (process.platform === "win32") {
         const windowsBlenders = await getBlenderWindows();
         blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "", isDebug: false })))
@@ -131,11 +138,11 @@ async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
     return blenders;
 }
 
-async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
-    let result: BlenderPathData[] = []
+async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecutablesRuntime> {
+    let result: BlenderExecutablesRuntime[] = []
     {
-        const blenderPathsInSystem: BlenderPathData[] = await searchBlenderInSystem();
-        const deduplicatedBlenderPaths: BlenderPathData[] = deduplicateSamePaths(blenderPathsInSystem);
+        const blenderPathsInSystem: BlenderExecutablesRuntime[] = await searchBlenderInSystem();
+        const deduplicatedBlenderPaths: BlenderExecutablesRuntime[] = deduplicateSamePaths(blenderPathsInSystem);
         if (process.platform !== 'win32') {
             try {
                 result = await deduplicateSameHardLinks(deduplicatedBlenderPaths, true);
@@ -148,9 +155,9 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     }
 
     const config = getConfig();
-    const settingsBlenderPaths = (<BlenderPathData[]>config.get('executables')).filter(type.predicate);
+    const settingsBlenderPaths = (<BlenderExecutablesRuntime[]>config.get('executables')).filter(type.predicate);
     { // deduplicate Blender paths twice: it preserves proper order in UI
-        const deduplicatedBlenderPaths: BlenderPathData[] = deduplicateSamePaths(result, settingsBlenderPaths);
+        const deduplicatedBlenderPaths: BlenderExecutablesRuntime[] = deduplicateSamePaths(result, settingsBlenderPaths);
         if (process.platform !== 'win32') {
             try {
                 result = [...settingsBlenderPaths, ...await deduplicateSameHardLinks(deduplicatedBlenderPaths, false, settingsBlenderPaths)]
@@ -175,23 +182,20 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     quickPickItems.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) })
 
     const pickedItem = await letUserPickItem(quickPickItems);
-    const pathData: BlenderPathData = await pickedItem.data();
+    const pathData: BlenderExecutablesRuntime = await pickedItem.data();
 
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         settingsBlenderPaths.push(pathData);
-        // do not save linuxInode is settings
-        for (const settingExe of settingsBlenderPaths) {
-            settingExe.linuxInode = undefined;
-        }
-        config.update('executables', settingsBlenderPaths, vscode.ConfigurationTarget.Global);
+        const toSave: BlenderExecutablesSettings[] = settingsBlenderPaths.map(item => {return {'name': item.name,'isDebug': item.isDebug, 'path': item.path}})
+        config.update('executables', toSave, vscode.ConfigurationTarget.Global);
     }
 
     return pathData;
 }
 
-function deduplicateSamePaths(blenderPathsToReduce: BlenderPathData[], additionalBlenderPaths: BlenderPathData[] = []) {
-    const deduplicatedBlenderPaths: BlenderPathData[] = [];
+function deduplicateSamePaths(blenderPathsToReduce: BlenderExecutablesRuntime[], additionalBlenderPaths: BlenderExecutablesRuntime[] = []) {
+    const deduplicatedBlenderPaths: BlenderExecutablesRuntime[] = [];
     const uniqueBlenderPaths: string[] = [];
     const isTheSamePath = (path_one: string, path_two: string) => path.relative(path_one, path_two) === '';
     for (const item of blenderPathsToReduce) {
@@ -207,9 +211,9 @@ function deduplicateSamePaths(blenderPathsToReduce: BlenderPathData[], additiona
     return deduplicatedBlenderPaths;
 }
 
-async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
+async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderExecutablesRuntime> {
     let filepath = await askUser_BlenderPath(type.label);
-    let pathData: BlenderPathData = {
+    let pathData: BlenderExecutablesRuntime = {
         path: filepath,
         name: '',
         isDebug: false,
