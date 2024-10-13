@@ -1,11 +1,11 @@
 import * as fs from 'fs';
 import * as util from 'util';
 
-import { BlenderPathData } from "./blender_executable";
+import { BlenderExecutablesRuntime } from "./blender_executable";
 
 const stat = util.promisify(fs.stat)
 
-export async function deduplicateSameHardLinks(blenderPathsToReduce: BlenderPathData[], removeMissingFiles = true, additionalBlenderPaths: BlenderPathData[] = []) {
+export async function deduplicateSameHardLinks(blenderPathsToReduce: BlenderExecutablesRuntime[], removeMissingFiles = true, additionalBlenderPaths: BlenderExecutablesRuntime[] = []) {
     let missingItem = -1;
     const additionalBlenderPathsInodes = new Set<number>();
     for (const item of additionalBlenderPaths) {
@@ -17,7 +17,7 @@ export async function deduplicateSameHardLinks(blenderPathsToReduce: BlenderPath
         additionalBlenderPathsInodes.add(item.linuxInode);
     }
 
-    const deduplicateHardLinks = new Map<number, BlenderPathData>();
+    const deduplicateHardLinks = new Map<number, BlenderExecutablesRuntime>();
     for (const item of blenderPathsToReduce) {
         if (item.linuxInode === undefined) {
             // try to find missing information
