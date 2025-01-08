@@ -4,7 +4,6 @@ import bpy
 import sys
 import addon_utils
 from pathlib import Path
-import platform
 import os
 
 # binary_path_python was removed in blender 2.92
