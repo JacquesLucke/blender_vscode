@@ -60,7 +60,7 @@ export function handleCommandErrors(func: () => Promise<void>) {
     return handleErrors(func);
 }
 
-export function handleFileExplorerCommandErrors(func: (resources: vscode.Uri[]) => Promise<void>) {
+export function handleFileExplorerCommandErrors(func: (resources: vscode.Uri) => Promise<void>) {
     return (resources: vscode.Uri[]) => handleErrors(func, resources)();
 }
 
