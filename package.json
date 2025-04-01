@@ -260,8 +260,8 @@
           "blender.additionalArguments": {
             "type": "array",
             "scope": "resource",
-            "title": "Startup Additional Arguments",
-            "description": "Additional arguments used for starting Blender via the 'Start' command. List of strings.",
+            "title": "Command Line Additional Arguments",
+            "markdownDescription": "Additional arguments used for starting Blender via the `Blender: Start` command. One argument per line. Note: option `--python` is already used by `blender_vscode` extension.",
             "items": {
               "type": "string"
             },
@@ -274,8 +274,8 @@
           "blender.preFileArguments": {
             "type": "array",
             "scope": "resource",
-            "title": "Pre File Arguments",
-            "description": "Arguments passed before opening a file with 'Open With Blender' and 'Open File(s)' commands. List of strings. Populates 'preFileArgs' in 'blender [preFileArgs ...] [file] [postFileArgs ...]'",
+            "title": "Command Line Arguments: Before File Path",
+            "markdownDescription": "Arguments passed **before** file path, used only with `Open With Blender`(right click menu) and `Blender: Open File(s)` commands.\n\nPopulates 'preFileArgs' in `blender.exe [preFileArgs ...] [file] [postFileArgs ...]`",
             "items": {
               "type": "string"
             },
@@ -288,8 +288,8 @@
           "blender.postFileArguments": {
             "type": "array",
             "scope": "resource",
-            "title": "Post File Arguments",
-            "description": "Arguments passed after opening a file with 'Open With Blender' and 'Open File(s)' commands. List of strings. Populates 'postFileArgs' in 'blender [preFileArgs ...] [file] [postFileArgs ...]'",
+            "title": "Command Line Arguments: After File Path",
+            "markdownDescription": "Arguments passed **after** file path, used only with `Open With Blender`(right click menu) and `Blender: Open File(s)` commands.\n\nPopulates 'preFileArgs' in `blender.exe [preFileArgs ...] [file] [postFileArgs ...]`",
             "items": {
               "type": "string"
             },
