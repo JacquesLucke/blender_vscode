@@ -8,7 +8,7 @@ import * as util from 'util';
 import { launchPath } from './paths';
 import { getServerPort } from './communication';
 import { letUserPickItem, PickItem } from './select_utils';
-import { getConfig, cancel, runTask } from './utils';
+import { getConfig, cancel, runTask, getAnyWorkspaceFolder } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { outputChannel } from './extension';
@@ -85,13 +85,14 @@ export class BlenderExecutable {
     }
 
     public async launchDebug(folder: BlenderWorkspaceFolder, blend_filepath?: string) {
+        const env = await getBlenderLaunchEnv();
         let configuration = {
             name: 'Debug Blender',
             type: 'cppdbg',
             request: 'launch',
             program: this.data.path,
             args: ['--debug'].concat(getBlenderLaunchArgs(blend_filepath)),
-            env: await getBlenderLaunchEnv(),
+            environment: Object.entries(env).map(([key, value]) => { return {name: key, value}; }),
             stopAtEntry: false,
             MIMode: 'gdb',
             cwd: folder.uri.fsPath,
@@ -166,7 +167,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
         const deduplicatedBlenderPaths: BlenderPathData[] = deduplicateSamePaths(result, settingsBlenderPaths);
         if (process.platform !== 'win32') {
             try {
-                result = await deduplicateSameHardLinks(deduplicatedBlenderPaths, false, settingsBlenderPaths);
+                result = [...settingsBlenderPaths, ...await deduplicateSameHardLinks(deduplicatedBlenderPaths, false, settingsBlenderPaths)]
             } catch { // weird cases as network attached storage or FAT32 file system are not tested
                 result = [...settingsBlenderPaths, ...deduplicatedBlenderPaths];
             }
@@ -180,7 +181,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
         quickPickItems.push({
             data: async () => blenderPath,
             label: blenderPath.name || blenderPath.path,
-            description: await stat(blenderPath.path).then(_stats => undefined).catch((err: NodeJS.ErrnoException) => "File does not exist")
+            description: await stat(path.isAbsolute(blenderPath.path) ? blenderPath.path : path.join(getAnyWorkspaceFolder().uri.fsPath, blenderPath.path)).then(_stats => undefined).catch((err: NodeJS.ErrnoException) => "File does not exist")
         });
     }
 

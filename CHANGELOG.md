@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## [0.0.25] - 2024-11-07
+
+### Fixed
+
+- Remove clashes with legacy version when linking extension ([#210](https://github.com/JacquesLucke/blender_vscode/pull/210)).
+
+## [0.0.24] - 2024-09-12
+
+### Fixed
+
+- Starting Blender with C and Python debugger.
+- Pin Werkzeug library to avoid crash when opening add-ons in user-preferences ([#191](https://github.com/JacquesLucke/blender_vscode/pull/191)).
+
+## [0.0.23] - 2024-09-06
+
+### Added
+
+- Make `.blend` files use the Blender icon (#187)
+
+### Fixed
+
+- Linux and MacOS: fixed `blender.executables` not showing when calling `Blender: Start` (introduced in #179)
+
 ## [0.0.22] - 2024-09-04
 
 ### Added

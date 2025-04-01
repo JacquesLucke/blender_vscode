@@ -71,6 +71,7 @@ def _link_addon_or_extension(addon_info: AddonInfo) -> Path:
         else:
             # blender does not know about extension, and it must be linked to default location
             _remove_duplicate_extension_links(addon_info)
+            _remove_duplicate_addon_links(addon_info)
             os.makedirs(_EXTENSIONS_DEFAULT_DIR, exist_ok=True)
             load_path = _EXTENSIONS_DEFAULT_DIR / addon_info.module_name
             create_link_in_user_addon_directory(addon_info.load_dir, load_path)
