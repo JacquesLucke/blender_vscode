@@ -26,6 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     let commands: [string, () => Promise<void>][] = [
         ['blender.start', COMMAND_start],
+        ['blender.startWinCMD', COMMAND_startWinCMD],
         ['blender.stop', COMMAND_stop],
         ['blender.build', COMMAND_build],
         ['blender.buildAndStart', COMMAND_buildAndStart],
@@ -82,6 +83,16 @@ async function COMMAND_start() {
     }
     else {
         await BlenderExecutable.LaunchDebug(blenderFolder);
+    }
+}
+
+async function COMMAND_startWinCMD() {
+    let blenderFolder = await blender_folder_1.BlenderWorkspaceFolder.Get();
+    if (blenderFolder === null) {
+        await blender_executable_1.BlenderExecutable.LaunchAnyWinCMD();
+    }
+    else {
+        await blender_executable_1.BlenderExecutable.LaunchDebug(blenderFolder);
     }
 }
 

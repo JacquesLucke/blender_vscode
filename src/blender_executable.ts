@@ -35,6 +35,19 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
+    static async GetAnyWinCMD() {
+        let data = await getFilteredBlenderPath({
+            label: 'Blender Executable',
+            selectNewLabel: 'Choose a new Blender executable...',
+            predicate: () => true,
+            setSettings: () => { }
+        });
+        // const modifiedData = `cmd /k "${data}"`;
+        const modifiedData = data;
+        return new BlenderExecutable(modifiedData);
+    }
+
+
     public static async GetDebug() {
         let data = await getFilteredBlenderPath({
             label: 'Debug Build',
@@ -47,6 +60,10 @@ export class BlenderExecutable {
 
     public static async LaunchAny() {
         await (await this.GetAny()).launch();
+    }
+
+    static async LaunchAnyWinCMD() {
+        await (await this.GetAnyWinCMD()).launchWinCMD();
     }
 
     public static async LaunchDebug(folder: BlenderWorkspaceFolder) {
@@ -69,6 +86,27 @@ export class BlenderExecutable {
 
         await runTask('blender', execution);
     }
+
+    async launchWinCMD() {
+        try {
+            const blenderArgs = await getBlenderLaunchArgs();
+            const envVars = await getBlenderLaunchEnv();
+    
+            // Construct the full command to run
+            const command = 'cmd';
+            const commandArgs = ['/k', this.path, ...blenderArgs];
+    
+            let execution = new vscode.ProcessExecution(command, commandArgs, { env: envVars });
+    
+            extension_1.outputChannel.appendLine(`Starting blender in Win CMD: cmd /k ${this.path} ${blenderArgs.join(' ')}`);
+            extension_1.outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(envVars, undefined, 2));
+    
+            await utils_1.runTask('blender', execution);
+        } catch (error) {
+            extension_1.outputChannel.appendLine(`Error launching Blender: ${error.message}`);
+        }
+    }
+
 
     public async launchDebug(folder: BlenderWorkspaceFolder) {
         const env = await getBlenderLaunchEnv();
