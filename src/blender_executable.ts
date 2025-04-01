@@ -58,19 +58,6 @@ export class BlenderExecutable {
     }
 
     public async launch() {
-        const blenderArgs = getBlenderLaunchArgs()
-        let execution = new vscode.ProcessExecution(
-            this.path,
-            blenderArgs,
-            { env: await getBlenderLaunchEnv() }
-        );
-        outputChannel.appendLine(`Starting blender: ${this.path} ${blenderArgs.join(' ')}`)
-        outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2))
-
-        await runTask('blender', execution);
-    }
-
-    async launch() {
         if (process.platform === 'win32') {
             try {
                 const blenderArgs = await getBlenderLaunchArgs();
