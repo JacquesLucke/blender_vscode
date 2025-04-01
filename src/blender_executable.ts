@@ -70,6 +70,31 @@ export class BlenderExecutable {
         await runTask('blender', execution);
     }
 
+    async launch() {
+        if (process.platform === 'win32') {
+            try {
+                const blenderArgs = await getBlenderLaunchArgs();
+                const envVars = await getBlenderLaunchEnv();
+                // Construct the full command to run
+                const command = 'cmd';
+                const commandArgs = ['/k', this.path, ...blenderArgs];
+                let execution = new vscode.ProcessExecution(command, commandArgs, { env: envVars });
+                outputChannel.appendLine(`Starting blender in Win CMD: cmd /k ${this.path} ${blenderArgs.join(' ')}`);
+                outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(envVars, undefined, 2));
+                await runTask('blender', execution);
+            } catch (error) {
+                outputChannel.appendLine(`Error launching Blender: ${error.message}`);
+            }
+        }
+        else {
+            const blenderArgs = getBlenderLaunchArgs();
+            let execution = new vscode.ProcessExecution(this.path, blenderArgs, { env: await getBlenderLaunchEnv() });
+            outputChannel.appendLine(`Starting blender: ${this.path} ${blenderArgs.join(' ')}`);
+            outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2));
+            await runTask('blender', execution);
+        }
+    }
+
     public async launchDebug(folder: BlenderWorkspaceFolder) {
         const env = await getBlenderLaunchEnv();
         let configuration = {
