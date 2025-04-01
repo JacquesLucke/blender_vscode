@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added 
+
+- Add 2 new operators: `blender.openWithBlender` - usable with right click from file explorer and `blender.openFiles` - usable from command pallete.
+- Add 2 new settings: `blender.preFileArguments` and `blender.postFileArguments` - they work only with above new commands. Placement of file path within command line arguments is important, this this distincion was needed.
+
 ## [0.0.25] - 2024-11-07
 
 ### Fixed
