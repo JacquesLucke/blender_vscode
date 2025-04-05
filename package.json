@@ -2,7 +2,7 @@
   "name": "blender-development",
   "displayName": "Blender Development",
   "description": "Tools to simplify Blender development.",
-  "version": "0.0.23",
+  "version": "0.0.25",
   "publisher": "JacquesLucke",
   "license": "MIT",
   "engines": {
@@ -24,7 +24,9 @@
     "onCommand:blender.runScript",
     "onCommand:blender.setScriptContext",
     "onCommand:blender.openScriptsFolder",
-    "onCommand:blender.newOperator"
+    "onCommand:blender.newOperator",
+    "onCommand:blender.openWithBlender",
+    "onCommand:blender.openFiles"
   ],
   "main": "./out/extension",
   "repository": {
@@ -99,6 +101,16 @@
       {
         "command": "blender.newOperator",
         "title": "New Operator",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.openWithBlender",
+        "title": "Open With Blender",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.openFiles",
+        "title": "Open File(s)",
         "category": "Blender"
       }
     ],
@@ -248,14 +260,43 @@
           "blender.additionalArguments": {
             "type": "array",
             "scope": "resource",
-            "title": "Startup Additional Arguments",
-            "description": "Additional arguments used for Blender start-up. List of strings.",
+            "title": "Command Line Additional Arguments",
+            "markdownDescription": "Additional arguments used for starting Blender via the `Blender: Start` command. One argument per line. Note: option `--python` is already used by `blender_vscode` extension.",
             "items": {
               "type": "string"
             },
             "examples": [
               [
                 "--factory-startup"
+              ]
+            ]
+          },
+          "blender.preFileArguments": {
+            "type": "array",
+            "scope": "resource",
+            "title": "Command Line Arguments: Before File Path",
+            "markdownDescription": "Arguments passed **before** file path, used only with `Open With Blender`(right click menu) and `Blender: Open File(s)` commands.\n\nPopulates 'preFileArgs' in `blender.exe [preFileArgs ...] [file] [postFileArgs ...]`",
+            "items": {
+              "type": "string"
+            },
+            "examples": [
+              [
+                "--window-fullscreen"
+              ]
+            ]
+          },
+          "blender.postFileArguments": {
+            "type": "array",
+            "scope": "resource",
+            "title": "Command Line Arguments: After File Path",
+            "markdownDescription": "Arguments passed **after** file path, used only with `Open With Blender`(right click menu) and `Blender: Open File(s)` commands.\n\nPopulates 'preFileArgs' in `blender.exe [preFileArgs ...] [file] [postFileArgs ...]`",
+            "items": {
+              "type": "string"
+            },
+            "examples": [
+              [
+                "--render-output",
+                "/tmp"
               ]
             ]
           },
@@ -276,6 +317,21 @@
         }
       }
     ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "blender.openWithBlender",
+          "when": "false"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "blender.openWithBlender",
+          "group": "navigation",
+          "when": "resourceScheme == file && resourceExtname == .blend"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "blend",
