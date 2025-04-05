@@ -91,8 +91,8 @@ export class BlenderExecutable {
             type: 'cppdbg',
             request: 'launch',
             program: this.data.path,
-            environment: Object.entries(env).map(([key, value]) => { return { name: key, value }; }),
             args: ['--debug'].concat(getBlenderLaunchArgs(blend_filepath)),
+            environment: Object.entries(env).map(([key, value]) => { return { name: key, value }; }),
             stopAtEntry: false,
             MIMode: 'gdb',
             cwd: folder.uri.fsPath,
@@ -201,7 +201,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecuta
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         settingsBlenderPaths.push(pathData);
-        const toSave: BlenderExecutablesSettings[] = settingsBlenderPaths.map(item => {return {'name': item.name,'isDebug': item.isDebug, 'path': item.path}})
+        const toSave: BlenderExecutablesSettings[] = settingsBlenderPaths.map(item => { return { 'name': item.name, 'isDebug': item.isDebug, 'path': item.path } })
         config.update('executables', toSave, vscode.ConfigurationTarget.Global);
     }
 
