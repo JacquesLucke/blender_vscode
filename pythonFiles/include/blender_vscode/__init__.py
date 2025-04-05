@@ -5,6 +5,10 @@ from typing import List
 
 import bpy
 
+from . import log
+
+LOG = log.getLogger()
+
 
 @dataclass
 class AddonInfo:
@@ -19,7 +23,7 @@ def startup(editor_address, addons_to_load: List[AddonInfo]):
     from . import installation
 
     # blender 2.80 'ssl' module is compiled with 'OpenSSL 1.1.0h' what breaks with requests >2.29.0
-    installation.ensure_packages_are_installed(["debugpy", "requests<=2.29.0", "flask"])
+    installation.ensure_packages_are_installed(["debugpy", "requests<=2.29.0", "werkzeug<=3.0.3", "flask<=3.0.3"])
 
     from . import load_addons
 

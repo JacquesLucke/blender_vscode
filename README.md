@@ -33,7 +33,7 @@ If your addon is a single `.py` file, you have to convert it first.
 To do this, move the file into a new empty folder and rename it to `__init__.py`.
 
 To use the extension with your addon, just load the addon folder into Visual Studio Code.
-Then execute the `Blender: Start` command.
+In Visual Studio Code, open the Command Palette (with CTRL + SHIFT + P) then execute the `Blender: Start` command.
 This will ask you for a path to a Blender executable.
 
 Only Blender 2.8.34 onwards is supported.
@@ -43,8 +43,9 @@ The terminal output can be seen inside of VS Code.
 The first time you open a new Blender build like this can take a few seconds longer than usual because some Python libraries are installed automatically.
 For that it is important that you have an internet connection.
 
-Once Blender is started, you can use the Addon in Blender.
-Debugging should work now.
+Once Blender is started, you can use the addon in Blender.
+Debugging with the VS Code debugger frontend should work now like for any other Python script.
+You can set breakpoints by placing the red dot next to the line number in VS Code and the debugger will hit it while using the extension inside Blender.
 
 ### Extension support
 
@@ -56,7 +57,7 @@ VS code uses the [automatic logic to determine if you are using addon or extensi
 
 ### How can I reload my addon in Blender?
 
-Execute the `Blender: Reload Addons` command.
+Execute the `Blender: Reload Addons` command in VS Code's Command Palette.
 For that to work, Blender has to be started using the extension.
 Your addon does not need to support reloading itself.
 It only has to have correct `register` and `unregister` methods.
@@ -74,6 +75,8 @@ Add the path to .blend file to [`blender.additionalArguments`](vscode://settings
     "./path/to/my-file.blend" // prefered to be last argument, watch out for trailing spaces (which are invisible in VS code UI)
 ],
 ```
+
+Note: You can also right click .blend file and use `Open With Blender`. That command uses separate arguments as position of filename in blender arguments is important ([`blender.preFileArguments`](vscode://settings/blender.preFileArguments), [`blender.postFileArguments`](vscode://settings/blender.postFileArguments))
 
 ### How can I separate development environment from my daily work?
 
@@ -102,6 +105,13 @@ Environment Variables:
 ### How to use with multiple addons?
 
 Use VS Code feature [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces). Each folder in workspace is treated as addon root.
+
+### How can I debug into third party library code from within my addon code?
+
+Addon can be debugged when started from VS Code using the `Blender: Start` command in VS Code's Command Palette.
+By default, debug breakpoints work only for files and directories opened in the current workspace and it is also not possible to step into code that is not part of the workspace.
+Disable the VS Code setting [`blender.addon.justMyCode`](vscode://settings/blender.addon.justMyCode) to debug code anywhere.
+In rare cases debugging with VS Code can crash Blender (ex. https://github.com/JacquesLucke/blender_vscode/issues/188).
 
 ### How to start Blender with shortcut?
 
@@ -133,7 +143,7 @@ For script writing this extension offers
 
 ### How can I create a new script?
 
-Execute the `Blender: New Script` command.
+Execute the `Blender: New Script` command in VS Code's Command Palette.
 You will be asked for a folder to save the script and a script name.
 For quick tests you can also just use the given default name.
 
@@ -141,7 +151,7 @@ The new script file already contains a little bit of code to make it easier to g
 
 ### How can I run the script in Blender?
 
-First you have to start a Blender instance by executing the `Blender: Start` command.
+First you have to start a Blender instance by executing the `Blender: Start` command in VS Code's Command Palette.
 To execute the script in all Blender instances that have been started this way, execute the `Blender: Run Script` command.
 
 You can assign a shortcut to `Blender: Run Script` by editing `keybindings.json`:
@@ -179,7 +189,8 @@ This addon has some ability to help with [Blender source code development](https
 - Use the latest Blender version from https://www.blender.org/download/.
 - Check [CHANGELOG](./CHANGELOG.md) for breaking changes.
 - Search Issues for similar problems.
-- Look in VS Code output window.
+- When reporting issue please enable debug logs using [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) 
+- Look in VS Code Output window.
 
 ## Status
 

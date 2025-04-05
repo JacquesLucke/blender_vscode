@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { handleErrors, handleErrorsWithArgs } from './utils';
+import { handleCommandErrors, handleFileExplorerCommandErrors } from './utils';
 import { COMMAND_newAddon } from './new_addon';
 import { COMMAND_newOperator } from './new_operator';
 import { AddonWorkspaceFolder } from './addon_folder';
@@ -34,6 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.newAddon', COMMAND_newAddon],
         ['blender.newScript', COMMAND_newScript],
         ['blender.openScriptsFolder', COMMAND_openScriptsFolder],
+        ['blender.openFiles', COMMAND_openFiles],
     ];
 
     let textEditorCommands: [string, () => Promise<void>][] = [
@@ -42,20 +43,26 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.newOperator', COMMAND_newOperator],
     ];
 
+    let fileExplorerCommands: [string, (resource: vscode.Uri) => Promise<void>][] = [
+        ['blender.openWithBlender', COMMAND_openWithBlender],
+    ];
+
     let disposables = [
         vscode.workspace.onDidSaveTextDocument(HANDLER_updateOnSave),
     ];
 
-    const startCom = vscode.commands.registerCommand('blender.start', handleErrorsWithArgs(COMMAND_start));
-    disposables.push(startCom);
-
-    for (let [identifier, func] of commands) {
-        let command = vscode.commands.registerCommand(identifier, handleErrors(func));
+    for (const [identifier, func] of commands) {
+        const command = vscode.commands.registerCommand(identifier, handleCommandErrors(func));
         disposables.push(command);
     }
 
-    for (let [identifier, func] of textEditorCommands) {
-        let command = vscode.commands.registerTextEditorCommand(identifier, handleErrors(func));
+    for (const [identifier, func] of textEditorCommands) {
+        const command = vscode.commands.registerTextEditorCommand(identifier, handleCommandErrors(func));
+        disposables.push(command);
+    }
+
+    for (const [identifier, func] of fileExplorerCommands) {
+        const command = vscode.commands.registerCommand(identifier, handleFileExplorerCommandErrors(func));
         disposables.push(command);
     }
 
@@ -83,23 +90,35 @@ type StartCommandArguments = {
     path?: string;
 }
 
-async function COMMAND_start(args?: StartCommandArguments) {
-    // args are used in keybidings
-    console.log(args)
+async function COMMAND_start() {
+    startBlender();
+}
+
+async function COMMAND_openWithBlender(resource: vscode.Uri) {
+    startBlender([resource.fsPath]);
+}
+
+async function COMMAND_openFiles() {
+    let resources = await vscode.window.showOpenDialog({
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: true,
+        filters: { 'Blender files': ['blend'] },
+        openLabel: "Select .blend file(s)"
+    });
+    if (resources === undefined) {
+        return Promise.reject(new Error('No .blend file selected.'));
+    }
+    startBlender(resources.map(r => r.fsPath));
+}
+
+async function startBlender(blend_filepaths?: string[]) {
     let blenderFolder = await BlenderWorkspaceFolder.Get();
     if (blenderFolder === null) {
-        if (args === undefined) {
-            await BlenderExecutable.LaunchAnyInteractive();
-        } else {
-            if (args.path === undefined)
-                throw new Error("args.path is not defined")
-            if (args.additionalArguments !== undefined && !Array.isArray(args.additionalArguments))
-                throw new Error("args.additionalArguments must be list")
-            await BlenderExecutable.LaunchAny(args.path, args.additionalArguments);             
-        }
+        await BlenderExecutable.LaunchAny(blend_filepaths);
     }
     else {
-        await BlenderExecutable.LaunchDebugInteractive(blenderFolder);
+        await BlenderExecutable.LaunchDebug(blenderFolder, blend_filepaths);
     }
 }
 
