@@ -166,9 +166,8 @@ This addon has some ability to help with [Blender source code development](https
 - Use the latest Blender version from https://www.blender.org/download/.
 - Check [CHANGELOG](./CHANGELOG.md) for breaking changes.
 - Search Issues for similar problems.
-  - when reporting issue please enable debug logs using [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) 
-    and [`blender.addon.logLevelGlobal`](vscode://settings/blender.addon.logLevelGlobal) 
-- Look in VS Code output window.
+- When reporting issue please enable debug logs using [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) 
+- Look in VS Code Output window.
 
 ## Status
 

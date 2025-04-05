@@ -1,3 +1,4 @@
+import logging
 import random
 import threading
 import time
@@ -8,7 +9,7 @@ import debugpy
 import flask
 import requests
 
-from .environment import blender_path, scripts_folder, python_path
+from .environment import LOG_FLASK, blender_path, scripts_folder, python_path
 from .utils import run_in_main_thread
 from . import log
 
@@ -19,7 +20,7 @@ OWN_SERVER_PORT = None
 DEBUGPY_PORT = None
 
 SERVER = flask.Flask("Blender Server")
-log.configure_flask_log(SERVER)
+SERVER.logger.setLevel(logging.DEBUG if LOG_FLASK else logging.ERROR)
 POST_HANDLERS = {}
 
 

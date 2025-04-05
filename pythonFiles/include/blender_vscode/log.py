@@ -1,8 +1,6 @@
 import logging
 
-import flask.app
-
-from .environment import LOG_LEVEL, LOG_LEVEL_GLOBAL
+from .environment import LOG_LEVEL
 
 
 class ColoredFormatter(logging.Formatter):
@@ -28,15 +26,8 @@ class ColoredFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def configure_flask_log(app: flask.app.Flask):
-    if LOG_LEVEL_GLOBAL <= logging.DEBUG:
-        return
-    logging.getLogger("werkzeug").disabled = True
-    app.logger.disabled = True
-
-
 def getLogger(name: str = "blender_vs"):
-    logging.getLogger().setLevel(LOG_LEVEL_GLOBAL)
+    logging.getLogger().setLevel(LOG_LEVEL)
 
     log = logging.getLogger(name)
     if log.handlers:
