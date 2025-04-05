@@ -1,11 +1,12 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { handleCommandErrors, handleFileExplorerCommandErrors } from './utils';
+import { handleCommandErrors, handleCommandWithArgsErrors, handleFileExplorerCommandErrors } from './utils';
 import { COMMAND_newAddon } from './new_addon';
 import { COMMAND_newOperator } from './new_operator';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderExecutable } from './blender_executable';
+import { BlenderExecutableData } from "./blender_executable";
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { startServer, stopServer, RunningBlenders } from './communication';
 import {
@@ -25,7 +26,6 @@ export function activate(context: vscode.ExtensionContext) {
     outputChannel.show(true);
 
     let commands: [string, () => Promise<void>][] = [
-        ['blender.start', COMMAND_start],
         ['blender.stop', COMMAND_stop],
         ['blender.build', COMMAND_build],
         ['blender.buildAndStart', COMMAND_buildAndStart],
@@ -47,10 +47,11 @@ export function activate(context: vscode.ExtensionContext) {
     let fileExplorerCommands: [string, (resource: vscode.Uri) => Promise<void>][] = [
         ['blender.openWithBlender', COMMAND_openWithBlender],
     ];
-
     let disposables = [
         vscode.workspace.onDidSaveTextDocument(HANDLER_updateOnSave),
     ];
+    const startCom = vscode.commands.registerCommand('blender.start', handleCommandWithArgsErrors(COMMAND_start));
+    disposables.push(startCom);
 
     for (const [identifier, func] of commands) {
         const command = vscode.commands.registerCommand(identifier, handleCommandErrors(func));
@@ -82,11 +83,40 @@ export function deactivate() {
 
 async function COMMAND_buildAndStart() {
     await COMMAND_build();
-    await COMMAND_start();
+    await COMMAND_start(undefined);
 }
 
-async function COMMAND_start() {
-    startBlender();
+type StartCommandArguments = {
+    blenderExecutable?: BlenderExecutableData;
+    // additionalArguments?: string[]; // support someday
+}
+
+async function COMMAND_start(args?: StartCommandArguments) {
+    // args are used for example in calls from keybindings
+    let blenderFolder = await BlenderWorkspaceFolder.Get()
+    if (blenderFolder === null) {
+        if (args !== undefined && args.blenderExecutable !== undefined) {
+            if (args.blenderExecutable.path === undefined) {
+                await BlenderExecutable.LaunchAnyInteractive()
+                return
+            }
+            const executable = new BlenderExecutable(args.blenderExecutable)
+            await BlenderExecutable.LaunchAny(executable, undefined)
+        } else {
+            await BlenderExecutable.LaunchAnyInteractive()
+        }
+    } else {
+        if (args !== undefined && args.blenderExecutable !== undefined) {
+            if (args.blenderExecutable.path === undefined) {
+                await BlenderExecutable.LaunchDebugInteractive(blenderFolder, undefined)
+                return
+            }
+            const executable = new BlenderExecutable(args.blenderExecutable)
+            await BlenderExecutable.LaunchDebug(executable, blenderFolder, undefined)
+        } else {
+            await BlenderExecutable.LaunchDebugInteractive(blenderFolder, undefined)
+        }
+    }
 }
 
 async function COMMAND_openWithBlender(resource: vscode.Uri) {
@@ -110,10 +140,10 @@ async function COMMAND_openFiles() {
 async function startBlender(blend_filepaths?: string[]) {
     let blenderFolder = await BlenderWorkspaceFolder.Get();
     if (blenderFolder === null) {
-        await BlenderExecutable.LaunchAny(blend_filepaths);
+        await BlenderExecutable.LaunchAnyInteractive(blend_filepaths);
     }
     else {
-        await BlenderExecutable.LaunchDebug(blenderFolder, blend_filepaths);
+        await BlenderExecutable.LaunchDebugInteractive(blenderFolder, blend_filepaths);
     }
 }
 
@@ -131,7 +161,7 @@ async function COMMAND_build() {
 }
 
 async function COMMAND_startWithoutCDebugger() {
-    await BlenderExecutable.LaunchAny();
+    await BlenderExecutable.LaunchAnyInteractive();
 }
 
 async function COMMAND_buildPythonApiDocs() {
@@ -163,7 +193,7 @@ async function reloadAddons(addons: AddonWorkspaceFolder[]) {
     let names = await Promise.all(addons.map(a => a.getModuleName()));
     // Send source dirs so that the python script can determine if each addon is an extension or not.
     let dirs = await Promise.all(addons.map(a => a.getSourceDirectory()));
-    instances.forEach(instance => instance.post({ type: 'reload', names: names, dirs: dirs}));
+    instances.forEach(instance => instance.post({ type: 'reload', names: names, dirs: dirs }));
 }
 
 async function rebuildAddons(addons: AddonWorkspaceFolder[]) {

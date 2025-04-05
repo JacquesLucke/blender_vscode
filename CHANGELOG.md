@@ -4,6 +4,18 @@
 
 ### Added
 
+- Run `Blender: Start` using single button by adding snippet to `keybindings.json`. Other Commands (like `Blender: Build and Start`) are not supported ([#199](https://github.com/JacquesLucke/blender_vscode/pull/199)).
+```json
+{
+  "key": "ctrl+h",
+  "command": "blender.start",
+  "args": {
+    "blenderExecutable": { // optional, same format as item in blender.executables
+      "path": "C:\\...\\blender.exe" // optional, if missing user will be prompted to choose blender.exe
+    }
+    // define command line arguments in setting blender.additionalArguments
+}
+```
 - You can now configure VS code internal log level using [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) ([#198](https://github.com/JacquesLucke/blender_vscode/pull/198))
   - to mute logs set log level to critical
   - to enable more logs set log level to debug
@@ -30,7 +42,6 @@
 
 - Starting Blender with C and Python debugger.
 - Pin Werkzeug library to avoid crash when opening add-ons in user-preferences ([#191](https://github.com/JacquesLucke/blender_vscode/pull/191)).
->>>>>>> jack/master
 
 ## [0.0.23] - 2024-09-06
 

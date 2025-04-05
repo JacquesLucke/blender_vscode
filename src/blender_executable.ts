@@ -25,7 +25,7 @@ export class BlenderExecutable {
         this.data = data;
     }
 
-    public static async GetAny() {
+    public static async GetAnyInteractive() {
         let data = await getFilteredBlenderPath({
             label: 'Blender Executable',
             selectNewLabel: 'Choose a new Blender executable...',
@@ -35,7 +35,7 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
-    public static async GetDebug() {
+    public static async GetDebugInteractive() {
         let data = await getFilteredBlenderPath({
             label: 'Debug Build',
             selectNewLabel: 'Choose a new debug build...',
@@ -45,9 +45,13 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
-    public static async LaunchAny(blend_filepaths?: string[]) {
-        const executable = await this.GetAny();
-        if (blend_filepaths === undefined) {
+    public static async LaunchAnyInteractive(blend_filepaths?: string[]) {
+        const executable = await this.GetAnyInteractive();
+        await this.LaunchAny(executable, blend_filepaths)
+    }
+
+    public static async LaunchAny(executable: BlenderExecutable, blend_filepaths?: string[]) {
+        if (blend_filepaths === undefined || !blend_filepaths.length) {
             await executable.launch();
             return;
         }
@@ -56,9 +60,13 @@ export class BlenderExecutable {
         }
     }
 
-    public static async LaunchDebug(folder: BlenderWorkspaceFolder, blend_filepaths?: string[]) {
-        const executable = await this.GetAny();
-        if (blend_filepaths === undefined) {
+    public static async LaunchDebugInteractive(folder: BlenderWorkspaceFolder, blend_filepaths?: string[]) {
+        const executable = await this.GetAnyInteractive();
+        await this.LaunchDebug(executable, folder, blend_filepaths)
+    }
+
+    public static async LaunchDebug(executable: BlenderExecutable, folder: BlenderWorkspaceFolder, blend_filepaths?: string[]) {
+        if (blend_filepaths === undefined || !blend_filepaths.length) {
             await executable.launchDebug(folder);
             return;
         }

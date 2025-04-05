@@ -113,6 +113,21 @@ By default, debug breakpoints work only for files and directories opened in the 
 Disable the VS Code setting [`blender.addon.justMyCode`](vscode://settings/blender.addon.justMyCode) to debug code anywhere.
 In rare cases debugging with VS Code can crash Blender (ex. https://github.com/JacquesLucke/blender_vscode/issues/188).
 
+### How to start Blender with shortcut?
+
+You can assign a shortcut to `Blender: Start` by editing `keybindings.json`:
+```json
+{
+"key": "ctrl+h",
+"command": "blender.start",
+"args": {
+  "blenderExecutable": { // optional, if missing user will be prompted to choose blender.exe
+    "path": "C:\\...\\blender.exe"
+  }
+  // define command line arguments in **settings** blender.additionalArguments (not here!!)
+}
+```
+
 ## Script Tools
 
 When I say "script" I mean a piece of Python code that runs in Blender but is not an addon.
