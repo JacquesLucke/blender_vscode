@@ -52,18 +52,18 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.workspace.onDidSaveTextDocument(HANDLER_updateOnSave),
     ];
 
-    for (let [identifier, func] of commands) {
-        let command = vscode.commands.registerCommand(identifier, handleCommandErrors(func));
+    for (const [identifier, func] of commands) {
+        const command = vscode.commands.registerCommand(identifier, handleCommandErrors(func));
         disposables.push(command);
     }
 
-    for (let [identifier, func] of textEditorCommands) {
-        let command = vscode.commands.registerTextEditorCommand(identifier, handleCommandErrors(func));
+    for (const [identifier, func] of textEditorCommands) {
+        const command = vscode.commands.registerTextEditorCommand(identifier, handleCommandErrors(func));
         disposables.push(command);
     }
 
-    for (let [identifier, func] of fileExplorerCommands) {
-        let command = vscode.commands.registerCommand(identifier, handleFileExplorerCommandErrors(func));
+    for (const [identifier, func] of fileExplorerCommands) {
+        const command = vscode.commands.registerCommand(identifier, handleFileExplorerCommandErrors(func));
         disposables.push(command);
     }
 

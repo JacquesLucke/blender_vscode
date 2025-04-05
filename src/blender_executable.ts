@@ -46,23 +46,23 @@ export class BlenderExecutable {
     }
 
     public static async LaunchAny(blend_filepaths?: string[]) {
-        let executable = await this.GetAny();
+        const executable = await this.GetAny();
         if (blend_filepaths === undefined) {
             await executable.launch();
             return;
         }
-        for (let blend_filepath of blend_filepaths) {
+        for (const blend_filepath of blend_filepaths) {
             await executable.launch(blend_filepath);
         }
     }
 
     public static async LaunchDebug(folder: BlenderWorkspaceFolder, blend_filepaths?: string[]) {
-        let executable = await this.GetAny();
+        const executable = await this.GetAny();
         if (blend_filepaths === undefined) {
             await executable.launchDebug(folder);
             return;
         }
-        for (let blend_filepath of blend_filepaths) {
+        for (const blend_filepath of blend_filepaths) {
             await executable.launchDebug(folder, blend_filepath);
         }
     }
@@ -73,7 +73,7 @@ export class BlenderExecutable {
 
     public async launch(blend_filepath?: string) {
         const blenderArgs = getBlenderLaunchArgs(blend_filepath);
-        let execution = new vscode.ProcessExecution(
+        const execution = new vscode.ProcessExecution(
             this.path,
             blenderArgs,
             { env: await getBlenderLaunchEnv() }
@@ -101,7 +101,7 @@ export class BlenderExecutable {
     }
 
     public async launchWithCustomArgs(taskName: string, args: string[]) {
-        let execution = new vscode.ProcessExecution(
+        const execution = new vscode.ProcessExecution(
             this.path,
             args,
         );
@@ -275,7 +275,7 @@ async function testIfPathIsBlender(filepath: string) {
 }
 
 function getBlenderLaunchArgs(blend_filepath?: string) {
-    let config = getConfig();
+    const config = getConfig();
     let additional_args = [];
     if (blend_filepath !== undefined) {
         if (!fs.existsSync(blend_filepath)) {
@@ -283,9 +283,9 @@ function getBlenderLaunchArgs(blend_filepath?: string) {
         }
         let pre_args = <string[]>config.get("preFileArguments", []);
         let post_args = <string[]>config.get("postFileArguments", []);
-        for (let arg of pre_args) {
-            // Don't allow any arguments after "--" to be added in the pre-args
+        for (const [index, arg] of pre_args.entries()) {
             if (arg === "--" || arg.startsWith("-- ")) {
+                outputChannel.appendLine(`WARNING: ignoring any remainning arguments: '--' arument can not be in preFileArguments. Please put arguemnts [${pre_args.slice(index).toString()}] in postFileArguments`)
                 break;
             }
             additional_args.push(arg);
@@ -295,7 +295,7 @@ function getBlenderLaunchArgs(blend_filepath?: string) {
     } else {
         additional_args = <string[]>config.get("additionalArguments", []);
     }
-    let args = ['--python', launchPath].concat(additional_args);
+    const args = ['--python', launchPath].concat(additional_args);
     return args;
 }
 
