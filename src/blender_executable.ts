@@ -19,9 +19,9 @@ import { deduplicateSameHardLinks } from './blender_executable_linux';
 const stat = util.promisify(fs.stat)
 
 export class BlenderExecutable {
-    data: BlenderExecutableRuntime;
+    data: BlenderExecutableData;
 
-    constructor(data: BlenderExecutableRuntime) {
+    constructor(data: BlenderExecutableData) {
         this.data = data;
     }
 
@@ -117,7 +117,7 @@ export type BlenderExecutableSettings = {
     linuxInode?: never;
 }
 
-export type BlenderExecutableRuntime = {
+export type BlenderExecutableData = {
     path: string;
     name: string;
     isDebug: boolean;
@@ -127,12 +127,12 @@ export type BlenderExecutableRuntime = {
 interface BlenderType {
     label: string;
     selectNewLabel: string;
-    predicate: (item: BlenderExecutableRuntime) => boolean;
-    setSettings: (item: BlenderExecutableRuntime) => void;
+    predicate: (item: BlenderExecutableData) => boolean;
+    setSettings: (item: BlenderExecutableData) => void;
 }
 
-async function searchBlenderInSystem(): Promise<BlenderExecutableRuntime[]> {
-    const blenders: BlenderExecutableRuntime[] = [];
+async function searchBlenderInSystem(): Promise<BlenderExecutableData[]> {
+    const blenders: BlenderExecutableData[] = [];
     if (process.platform === "win32") {
         const windowsBlenders = await getBlenderWindows();
         blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "", isDebug: false })))
@@ -152,11 +152,11 @@ async function searchBlenderInSystem(): Promise<BlenderExecutableRuntime[]> {
     return blenders;
 }
 
-async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecutableRuntime> {
-    let result: BlenderExecutableRuntime[] = []
+async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecutableData> {
+    let result: BlenderExecutableData[] = []
     {
-        const blenderPathsInSystem: BlenderExecutableRuntime[] = await searchBlenderInSystem();
-        const deduplicatedBlenderPaths: BlenderExecutableRuntime[] = deduplicateSamePaths(blenderPathsInSystem);
+        const blenderPathsInSystem: BlenderExecutableData[] = await searchBlenderInSystem();
+        const deduplicatedBlenderPaths: BlenderExecutableData[] = deduplicateSamePaths(blenderPathsInSystem);
         if (process.platform !== 'win32') {
             try {
                 result = await deduplicateSameHardLinks(deduplicatedBlenderPaths, true);
@@ -169,9 +169,9 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecuta
     }
 
     const config = getConfig();
-    const settingsBlenderPaths = (<BlenderExecutableRuntime[]>config.get('executables')).filter(type.predicate);
+    const settingsBlenderPaths = (<BlenderExecutableData[]>config.get('executables')).filter(type.predicate);
     { // deduplicate Blender paths twice: it preserves proper order in UI
-        const deduplicatedBlenderPaths: BlenderExecutableRuntime[] = deduplicateSamePaths(result, settingsBlenderPaths);
+        const deduplicatedBlenderPaths: BlenderExecutableData[] = deduplicateSamePaths(result, settingsBlenderPaths);
         if (process.platform !== 'win32') {
             try {
                 result = [...settingsBlenderPaths, ...await deduplicateSameHardLinks(deduplicatedBlenderPaths, false, settingsBlenderPaths)]
@@ -196,7 +196,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecuta
     quickPickItems.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) })
 
     const pickedItem = await letUserPickItem(quickPickItems);
-    const pathData: BlenderExecutableRuntime = await pickedItem.data();
+    const pathData: BlenderExecutableData = await pickedItem.data();
 
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
@@ -208,8 +208,8 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecuta
     return pathData;
 }
 
-function deduplicateSamePaths(blenderPathsToReduce: BlenderExecutableRuntime[], additionalBlenderPaths: BlenderExecutableRuntime[] = []) {
-    const deduplicatedBlenderPaths: BlenderExecutableRuntime[] = [];
+function deduplicateSamePaths(blenderPathsToReduce: BlenderExecutableData[], additionalBlenderPaths: BlenderExecutableData[] = []) {
+    const deduplicatedBlenderPaths: BlenderExecutableData[] = [];
     const uniqueBlenderPaths: string[] = [];
     const isTheSamePath = (path_one: string, path_two: string) => path.relative(path_one, path_two) === '';
     for (const item of blenderPathsToReduce) {
@@ -225,9 +225,9 @@ function deduplicateSamePaths(blenderPathsToReduce: BlenderExecutableRuntime[], 
     return deduplicatedBlenderPaths;
 }
 
-async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderExecutableRuntime> {
+async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderExecutableData> {
     let filepath = await askUser_BlenderPath(type.label);
-    let pathData: BlenderExecutableRuntime = {
+    let pathData: BlenderExecutableData = {
         path: filepath,
         name: '',
         isDebug: false,
