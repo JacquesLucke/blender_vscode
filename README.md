@@ -76,6 +76,8 @@ Add the path to .blend file to [`blender.additionalArguments`](vscode://settings
 ],
 ```
 
+Note: You can also right click .blend file and use `Open With Blender`. That command uses separate arguments as position of filename in blender arguments is important ([`blender.preFileArguments`](vscode://settings/blender.preFileArguments), [`blender.postFileArguments`](vscode://settings/blender.postFileArguments))
+
 ### How can I separate development environment from my daily work?
 
 By default, Blender started from VS Code uses your global Blender settings (in windows: `%appdata%\Blender Foundation\Blender\<version>`). 

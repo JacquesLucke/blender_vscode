@@ -45,21 +45,35 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
-    public static async LaunchAny() {
-        await (await this.GetAny()).launch();
+    public static async LaunchAny(blend_filepaths?: string[]) {
+        const executable = await this.GetAny();
+        if (blend_filepaths === undefined) {
+            await executable.launch();
+            return;
+        }
+        for (const blend_filepath of blend_filepaths) {
+            await executable.launch(blend_filepath);
+        }
     }
 
-    public static async LaunchDebug(folder: BlenderWorkspaceFolder) {
-        await (await this.GetDebug()).launchDebug(folder);
+    public static async LaunchDebug(folder: BlenderWorkspaceFolder, blend_filepaths?: string[]) {
+        const executable = await this.GetAny();
+        if (blend_filepaths === undefined) {
+            await executable.launchDebug(folder);
+            return;
+        }
+        for (const blend_filepath of blend_filepaths) {
+            await executable.launchDebug(folder, blend_filepath);
+        }
     }
 
     get path() {
         return this.data.path;
     }
 
-    public async launch() {
-        const blenderArgs = getBlenderLaunchArgs()
-        let execution = new vscode.ProcessExecution(
+    public async launch(blend_filepath?: string) {
+        const blenderArgs = getBlenderLaunchArgs(blend_filepath);
+        const execution = new vscode.ProcessExecution(
             this.path,
             blenderArgs,
             { env: await getBlenderLaunchEnv() }
@@ -70,15 +84,15 @@ export class BlenderExecutable {
         await runTask('blender', execution);
     }
 
-    public async launchDebug(folder: BlenderWorkspaceFolder) {
+    public async launchDebug(folder: BlenderWorkspaceFolder, blend_filepath?: string) {
         const env = await getBlenderLaunchEnv();
         let configuration = {
             name: 'Debug Blender',
             type: 'cppdbg',
             request: 'launch',
             program: this.data.path,
-            args: ['--debug'].concat(getBlenderLaunchArgs()),
             environment: Object.entries(env).map(([key, value]) => { return { name: key, value }; }),
+            args: ['--debug'].concat(getBlenderLaunchArgs(blend_filepath)),
             stopAtEntry: false,
             MIMode: 'gdb',
             cwd: folder.uri.fsPath,
@@ -87,7 +101,7 @@ export class BlenderExecutable {
     }
 
     public async launchWithCustomArgs(taskName: string, args: string[]) {
-        let execution = new vscode.ProcessExecution(
+        const execution = new vscode.ProcessExecution(
             this.path,
             args,
         );
@@ -268,9 +282,29 @@ async function testIfPathIsBlender(filepath: string) {
     });
 }
 
-function getBlenderLaunchArgs() {
-    let config = getConfig();
-    return ['--python', launchPath].concat(<string[]>config.get("additionalArguments", []));
+function getBlenderLaunchArgs(blend_filepath?: string) {
+    const config = getConfig();
+    let additional_args = [];
+    if (blend_filepath !== undefined) {
+        if (!fs.existsSync(blend_filepath)) {
+            new Error(`File does not exist: '${blend_filepath}'`);
+        }
+        let pre_args = <string[]>config.get("preFileArguments", []);
+        let post_args = <string[]>config.get("postFileArguments", []);
+        for (const [index, arg] of pre_args.entries()) {
+            if (arg === "--" || arg.startsWith("-- ")) {
+                outputChannel.appendLine(`WARNING: ignoring any remainning arguments: '--' arument can not be in preFileArguments. Please put arguemnts [${pre_args.slice(index).toString()}] in postFileArguments`)
+                break;
+            }
+            additional_args.push(arg);
+        }
+        additional_args.push(blend_filepath);
+        additional_args = additional_args.concat(post_args);
+    } else {
+        additional_args = <string[]>config.get("additionalArguments", []);
+    }
+    const args = ['--python', launchPath].concat(additional_args);
+    return args;
 }
 
 async function getBlenderLaunchEnv() {

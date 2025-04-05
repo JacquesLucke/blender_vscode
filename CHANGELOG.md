@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added 
+
+- 2 new operators: `blender.openWithBlender` - usable with right click from file explorer and `blender.openFiles` - usable from command pallete ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
+- 2 new settings: `blender.preFileArguments` and `blender.postFileArguments` - they work only with above new commands. Placement of file path within command line arguments is important, this this distincion was needed ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
+-- `blender.postFileArguments` can not have `--` in args (it causes invalid syntax). Note: the `--` is used for passing arguments to python scripts inside blender.
+-- `blender.additionalArguments` remains unchanged and will work only with `Blender: Start` command.
+
 ## [0.0.25] - 2024-11-07
 
 ### Fixed

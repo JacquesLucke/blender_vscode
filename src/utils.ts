@@ -41,10 +41,10 @@ export function getAnyWorkspaceFolder() {
     return folders[0];
 }
 
-export function handleErrors(func: () => Promise<void>) {
+function handleErrors(func: (...args: any[]) => Promise<void>, ...args: any[]) {
     return async () => {
         try {
-            await func();
+            await func(...args);
         }
         catch (err: any) {
             if (err instanceof Error) {
@@ -54,6 +54,14 @@ export function handleErrors(func: () => Promise<void>) {
             }
         }
     };
+}
+
+export function handleCommandErrors(func: () => Promise<void>) {
+    return handleErrors(func);
+}
+
+export function handleFileExplorerCommandErrors(func: (resources: vscode.Uri) => Promise<void>) {
+    return (resources: vscode.Uri[]) => handleErrors(func, resources)();
 }
 
 export function getRandomString(length: number = 10) {
