@@ -43,7 +43,6 @@
 - Starting Blender with C and Python debugger.
 - Pin Werkzeug library to avoid crash when opening add-ons in user-preferences ([#191](https://github.com/JacquesLucke/blender_vscode/pull/191)).
 
-### Added
 ## [0.0.23] - 2024-09-06
 
 ### Added
