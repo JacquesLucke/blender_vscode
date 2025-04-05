@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.0.25] - 2024-11-07
+
+### Fixed
+
+- Remove clashes with legacy version when linking extension ([#210](https://github.com/JacquesLucke/blender_vscode/pull/210)).
+
 ## [0.0.24] - 2024-09-12
 
 ### Fixed
