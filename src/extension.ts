@@ -1,11 +1,12 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { handleCommandErrors, handleFileExplorerCommandErrors } from './utils';
+import { handleCommandErrors, handleCommandErrorsWithArgs, handleFileExplorerCommandErrors } from './utils';
 import { COMMAND_newAddon } from './new_addon';
 import { COMMAND_newOperator } from './new_operator';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { BlenderExecutable } from './blender_executable';
+import { BlenderExecutableData } from "./blender_executable";
 import { BlenderWorkspaceFolder } from './blender_folder';
 import { startServer, stopServer, RunningBlenders } from './communication';
 import {
@@ -46,10 +47,11 @@ export function activate(context: vscode.ExtensionContext) {
     let fileExplorerCommands: [string, (resource: vscode.Uri) => Promise<void>][] = [
         ['blender.openWithBlender', COMMAND_openWithBlender],
     ];
-
     let disposables = [
         vscode.workspace.onDidSaveTextDocument(HANDLER_updateOnSave),
     ];
+    const startCom = vscode.commands.registerCommand('blender.start', handleCommandErrorsWithArgs(COMMAND_start));
+    disposables.push(startCom);
 
     for (const [identifier, func] of commands) {
         const command = vscode.commands.registerCommand(identifier, handleCommandErrors(func));
@@ -84,14 +86,37 @@ async function COMMAND_buildAndStart() {
     await COMMAND_start(undefined);
 }
 
-
 type StartCommandArguments = {
-    additionalArguments?: string[];
-    path?: string;
+    blenderExecutable?: BlenderExecutableData;
+    // additionalArguments?: string[]; // support someday
 }
 
-async function COMMAND_start() {
-    startBlender();
+async function COMMAND_start(args?: StartCommandArguments) {
+    // args are used for example in calls from keybindings
+    let blenderFolder = await BlenderWorkspaceFolder.Get()
+    if (blenderFolder === null) {
+        if (args !== undefined && args.blenderExecutable !== undefined) {
+            if (args.blenderExecutable.path === undefined) {
+                await BlenderExecutable.LaunchAnyInteractive()
+                return
+            }
+            const executable = new BlenderExecutable(args.blenderExecutable)
+            await BlenderExecutable.LaunchAny(executable, undefined)
+        } else {
+            await BlenderExecutable.LaunchAnyInteractive()
+        }
+    } else {
+        if (args !== undefined && args.blenderExecutable !== undefined) {
+            if (args.blenderExecutable.path === undefined) {
+                await BlenderExecutable.LaunchDebugInteractive(blenderFolder, undefined)
+                return
+            }
+            const executable = new BlenderExecutable(args.blenderExecutable)
+            await BlenderExecutable.LaunchDebug(executable, blenderFolder, undefined)
+        } else {
+            await BlenderExecutable.LaunchDebugInteractive(blenderFolder, undefined)
+        }
+    }
 }
 
 async function COMMAND_openWithBlender(resource: vscode.Uri) {
@@ -115,10 +140,10 @@ async function COMMAND_openFiles() {
 async function startBlender(blend_filepaths?: string[]) {
     let blenderFolder = await BlenderWorkspaceFolder.Get();
     if (blenderFolder === null) {
-        await BlenderExecutable.LaunchAny(blend_filepaths);
+        await BlenderExecutable.LaunchAnyInteractive(blend_filepaths);
     }
     else {
-        await BlenderExecutable.LaunchDebug(blenderFolder, blend_filepaths);
+        await BlenderExecutable.LaunchDebugInteractive(blenderFolder, blend_filepaths);
     }
 }
 

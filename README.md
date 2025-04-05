@@ -118,12 +118,13 @@ In rare cases debugging with VS Code can crash Blender (ex. https://github.com/J
 You can assign a shortcut to `Blender: Start` by editing `keybindings.json`:
 ```json
 {
-    "key": "ctrl+h",
-    "command": "blender.start",
-    "args": {
-        "path": "/path/to/blender.exe"
-        // "additionalArguments": [], // overrides VS Code settings blender.additionalArguments
-    }
+"key": "ctrl+h",
+"command": "blender.start",
+"args": {
+  "blenderExecutable": { // optional, same format as blender.executables
+    "path": "C:\\...\\blender.exe" // optional, if missing user will be prompted to choose blender.exe
+  }
+  // define command line arguments in setting blender.additionalArguments
 }
 ```
 
@@ -153,15 +154,6 @@ The new script file already contains a little bit of code to make it easier to g
 
 First you have to start a Blender instance by executing the `Blender: Start` command in VS Code's Command Palette.
 To execute the script in all Blender instances that have been started this way, execute the `Blender: Run Script` command.
-
-You can assign a shortcut to `Blender: Run Script` by editing `keybindings.json`:
-```json
-  {
-    "key": "ctrl+shift+enter",
-    "command": "blender.runScript",
-    "when": "editorLangId == 'python'"
-  }
-```
 
 ### How can I change the context the script runs in?
 

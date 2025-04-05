@@ -41,6 +41,21 @@ export function getAnyWorkspaceFolder() {
     return folders[0];
 }
 
+export function handleCommandErrorsWithArgs(func: (args: any) => Promise<void>) {
+    return async (args: any) => {
+        try {
+            await func(args);
+        }
+        catch (err: any) {
+            if (err instanceof Error) {
+                if (err.message !== CANCEL) {
+                    vscode.window.showErrorMessage(err.message);
+                }
+            }
+        }
+    };
+}
+
 function handleErrors(func: (...args: any[]) => Promise<void>, ...args: any[]) {
     return async () => {
         try {
