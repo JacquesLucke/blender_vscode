@@ -155,6 +155,15 @@ The new script file already contains a little bit of code to make it easier to g
 First you have to start a Blender instance by executing the `Blender: Start` command in VS Code's Command Palette.
 To execute the script in all Blender instances that have been started this way, execute the `Blender: Run Script` command.
 
+You can assign a shortcut to `Blender: Run Script` by editing `keybindings.json`:
+```json
+{
+  "key": "ctrl+shift+enter",
+  "command": "blender.runScript",
+  "when": "editorLangId == 'python'"
+}
+```
+
 ### How can I change the context the script runs in?
 
 Currently the support for this is very basic, but still useful.
