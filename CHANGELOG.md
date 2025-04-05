@@ -2,12 +2,17 @@
 
 ## Unreleased
 
-### Added 
+### Added
 
+- You can now configure VS code internal log level using [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) ([#198](https://github.com/JacquesLucke/blender_vscode/pull/198))
+  - to mute logs set log level to critical
+  - to enable more logs set log level to debug
+  - changing log level required blender restart
+  - logs now have colors
 - 2 new operators: `blender.openWithBlender` - usable with right click from file explorer and `blender.openFiles` - usable from command pallete ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
 - 2 new settings: `blender.preFileArguments` and `blender.postFileArguments` - they work only with above new commands. Placement of file path within command line arguments is important, this this distincion was needed ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
--- `blender.postFileArguments` can not have `--` in args (it causes invalid syntax). Note: the `--` is used for passing arguments to python scripts inside blender.
--- `blender.additionalArguments` remains unchanged and will work only with `Blender: Start` command.
+  - `blender.postFileArguments` can not have `--` in args (it causes invalid syntax). Note: the `--` is used for passing arguments to python scripts inside blender.
+  - `blender.additionalArguments` remains unchanged and will work only with `Blender: Start` command.
 
 ### Fixed
 
@@ -25,6 +30,7 @@
 
 - Starting Blender with C and Python debugger.
 - Pin Werkzeug library to avoid crash when opening add-ons in user-preferences ([#191](https://github.com/JacquesLucke/blender_vscode/pull/191)).
+>>>>>>> jack/master
 
 ## [0.0.23] - 2024-09-06
 

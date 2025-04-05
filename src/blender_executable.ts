@@ -315,6 +315,7 @@ async function getBlenderLaunchEnv() {
     return {
         ADDONS_TO_LOAD: JSON.stringify(loadDirsWithNames),
         VSCODE_EXTENSIONS_REPOSITORY: <string>config.get("addon.extensionsRepository"),
+        VSCODE_LOG_LEVEL: <string>config.get("addon.logLevel"),
         EDITOR_PORT: getServerPort().toString(),
         ...<object>config.get("environmentVariables", {}),
     };
