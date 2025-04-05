@@ -121,7 +121,7 @@ You can assign a shortcut to `Blender: Start` by editing `keybindings.json`:
 "key": "ctrl+h",
 "command": "blender.start",
 "args": {
-  "blenderExecutable": { // optional, same format as blender.executables
+  "blenderExecutable": { // optional, same format as item in blender.executables
     "path": "C:\\...\\blender.exe" // optional, if missing user will be prompted to choose blender.exe
   }
   // define command line arguments in setting blender.additionalArguments

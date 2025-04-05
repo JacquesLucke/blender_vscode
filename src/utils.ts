@@ -41,7 +41,7 @@ export function getAnyWorkspaceFolder() {
     return folders[0];
 }
 
-export function handleCommandErrorsWithArgs(func: (args: any) => Promise<void>) {
+export function handleCommandWithArgsErrors(func: (args: any) => Promise<void>) {
     return async (args: any) => {
         try {
             await func(args);

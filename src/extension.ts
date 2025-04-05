@@ -1,7 +1,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { handleCommandErrors, handleCommandErrorsWithArgs, handleFileExplorerCommandErrors } from './utils';
+import { handleCommandErrors, handleCommandWithArgsErrors, handleFileExplorerCommandErrors } from './utils';
 import { COMMAND_newAddon } from './new_addon';
 import { COMMAND_newOperator } from './new_operator';
 import { AddonWorkspaceFolder } from './addon_folder';
@@ -50,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
     let disposables = [
         vscode.workspace.onDidSaveTextDocument(HANDLER_updateOnSave),
     ];
-    const startCom = vscode.commands.registerCommand('blender.start', handleCommandErrorsWithArgs(COMMAND_start));
+    const startCom = vscode.commands.registerCommand('blender.start', handleCommandWithArgsErrors(COMMAND_start));
     disposables.push(startCom);
 
     for (const [identifier, func] of commands) {
