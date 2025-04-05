@@ -43,3 +43,6 @@ EXTENSIONS_REPOSITORY: Optional[str] = os.environ.get("VSCODE_EXTENSIONS_REPOSIT
 LOG_LEVEL, LOG_FLASK = _parse_log("VSCODE_LOG_LEVEL")
 
 logging.getLogger("werkzeug").setLevel(logging.DEBUG if LOG_FLASK else logging.ERROR)
+# to mute all logs, disable also those logs. Be careful, the libs are extremely popular and it will mute logs for everyone!
+# logging.getLogger("requests").setLevel(logging.DEBUG if LOG_FLASK else logging.INFO)
+# logging.getLogger("urllib3").setLevel(logging.DEBUG if LOG_FLASK else logging.INFO)
