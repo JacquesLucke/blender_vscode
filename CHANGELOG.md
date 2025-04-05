@@ -9,6 +9,10 @@
 -- `blender.postFileArguments` can not have `--` in args (it causes invalid syntax). Note: the `--` is used for passing arguments to python scripts inside blender.
 -- `blender.additionalArguments` remains unchanged and will work only with `Blender: Start` command.
 
+### Fixed
+
+- linux only: temporary viariable `linuxInode` will no longer be saved in vs code settings ([#208](https://github.com/JacquesLucke/blender_vscode/pull/208)).
+
 ## [0.0.25] - 2024-11-07
 
 ### Fixed
