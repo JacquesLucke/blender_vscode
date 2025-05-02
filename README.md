@@ -86,7 +86,7 @@ To prevent any accidental changes to your daily setup, change environment var in
 
 ```javascript
 "blender.environmentVariables": {
-    "BLENDER_USER_RESOURCES": "./blender_vscode_development" // changes folder for addons, extensions, modules, config
+    "BLENDER_USER_RESOURCES": "${workspaceFolder}/blender_vscode_development" // changes folder for addons, extensions, modules, config
 },
 ```
 
@@ -179,6 +179,7 @@ Be aware about:
 
 - [sys.exit gotcha](https://docs.blender.org/api/current/info_gotcha.html#sys-exit) 
 - and [register_cli_command](https://docs.blender.org/api/current/bpy.utils.html#bpy.utils.register_cli_command) 
+- 
 
 ## Core Blender development
 
