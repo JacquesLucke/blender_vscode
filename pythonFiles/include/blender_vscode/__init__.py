@@ -1,4 +1,5 @@
 import sys
+from pprint import pformat
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -47,5 +48,6 @@ def handle_fatal_error(message):
     for line in message.splitlines():
         print(">  ", line)
     print("#" * 80)
+    print(f"PATHONPATH: {pformat(sys.path)}")
     print()
     sys.exit(1)
