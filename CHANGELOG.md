@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Removed
+
+- Removed dependency on `ms-vscode.cpptools` what causes problems for other editors #235, #157. There is no plans to further support Blender Core develompent in this addon.
+- Deprecated setting: `blender.core.buildDebugCommand`
+- Removed commands:
+  - `blender.build`
+  - `blender.buildAndStart`
+  - `blender.startWithoutCDebugger`
+
 ## [0.0.26] - 2025-08-14
 
 ### Added

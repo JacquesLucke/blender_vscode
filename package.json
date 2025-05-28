@@ -133,11 +133,7 @@
                 "name": {
                   "type": "string",
                   "description": "Custom name for this Blender version."
-                },
-                "isDebug": {
-                  "type": "boolean",
-                  "description": "Is this executable a debug build.",
-                  "default": false
+                
                 }
               }
             }
@@ -216,7 +212,8 @@
             "type": "string",
             "scope": "resource",
             "description": "Command used to compile Blender.",
-            "default": "make debug"
+            "default": "make debug",
+            "deprecationMessage": "Removed in version 0.0.27"
           },
           "blender.scripts.directories": {
             "type": "array",
@@ -372,7 +369,6 @@
     "request": "^2.87.0"
   },
   "extensionDependencies": [
-    "ms-python.python",
-    "ms-vscode.cpptools"
+    "ms-python.python"
   ]
 }
