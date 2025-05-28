@@ -27,9 +27,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     let commands: [string, () => Promise<void>][] = [
         ['blender.stop', COMMAND_stop],
-        ['blender.build', COMMAND_build],
-        ['blender.buildAndStart', COMMAND_buildAndStart],
-        ['blender.startWithoutCDebugger', COMMAND_startWithoutCDebugger],
         ['blender.buildPythonApiDocs', COMMAND_buildPythonApiDocs],
         ['blender.reloadAddons', COMMAND_reloadAddons],
         ['blender.newAddon', COMMAND_newAddon],
@@ -81,11 +78,6 @@ export function deactivate() {
 /* Commands
  *********************************************/
 
-async function COMMAND_buildAndStart() {
-    await COMMAND_build();
-    await COMMAND_start(undefined);
-}
-
 type StartCommandArguments = {
     blenderExecutable?: BlenderExecutableData;
     // additionalArguments?: string[]; // support someday
@@ -104,17 +96,6 @@ async function COMMAND_start(args?: StartCommandArguments) {
             await BlenderExecutable.LaunchAny(executable, undefined)
         } else {
             await BlenderExecutable.LaunchAnyInteractive()
-        }
-    } else {
-        if (args !== undefined && args.blenderExecutable !== undefined) {
-            if (args.blenderExecutable.path === undefined) {
-                await BlenderExecutable.LaunchDebugInteractive(blenderFolder, undefined)
-                return
-            }
-            const executable = new BlenderExecutable(args.blenderExecutable)
-            await BlenderExecutable.LaunchDebug(executable, blenderFolder, undefined)
-        } else {
-            await BlenderExecutable.LaunchDebugInteractive(blenderFolder, undefined)
         }
     }
 }
@@ -142,26 +123,10 @@ async function startBlender(blend_filepaths?: string[]) {
     if (blenderFolder === null) {
         await BlenderExecutable.LaunchAnyInteractive(blend_filepaths);
     }
-    else {
-        await BlenderExecutable.LaunchDebugInteractive(blenderFolder, blend_filepaths);
-    }
 }
 
 async function COMMAND_stop() {
     RunningBlenders.sendToAll({ type: 'stop' });
-}
-
-async function COMMAND_build() {
-    await rebuildAddons(await AddonWorkspaceFolder.All());
-
-    let blenderFolder = await BlenderWorkspaceFolder.Get();
-    if (blenderFolder !== null) {
-        await blenderFolder.buildDebug();
-    }
-}
-
-async function COMMAND_startWithoutCDebugger() {
-    await BlenderExecutable.LaunchAnyInteractive();
 }
 
 async function COMMAND_buildPythonApiDocs() {

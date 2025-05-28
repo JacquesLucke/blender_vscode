@@ -30,6 +30,15 @@
 
 - linux only: temporary viariable `linuxInode` will no longer be saved in vs code settings ([#208](https://github.com/JacquesLucke/blender_vscode/pull/208)).
 
+### Removed
+
+- Removed dependency on `ms-vscode.cpptools` what causes problems for other editors #235, #157. There is no plans to further support Blender Core develompent in this addon.
+- Deprecated setting: `blender.core.buildDebugCommand`
+- Removed commands:
+  - `blender.build`
+  - `blender.buildAndStart`
+  - `blender.startWithoutCDebugger`
+
 ## [0.0.25] - 2024-11-07
 
 ### Fixed
