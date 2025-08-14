@@ -30,6 +30,10 @@
 
 - linux only: temporary viariable `linuxInode` will no longer be saved in vs code settings ([#208](https://github.com/JacquesLucke/blender_vscode/pull/208)).
 
+### Changed
+
+- updated dependency engines.vscode to 1.63 (to support beta releases)
+
 ## [0.0.25] - 2024-11-07
 
 ### Fixed
