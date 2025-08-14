@@ -21,6 +21,7 @@
   - to enable more logs set log level to debug
   - changing log level required blender restart
   - logs now have colors
+- Print python dependency version (log level info) and path (log level debug) even when it is already installed 
 - 2 new operators: `blender.openWithBlender` - usable with right click from file explorer and `blender.openFiles` - usable from command pallete ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
 - 2 new settings: `blender.preFileArguments` and `blender.postFileArguments` - they work only with above new commands. Placement of file path within command line arguments is important, this this distincion was needed ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
   - `blender.postFileArguments` can not have `--` in args (it causes invalid syntax). Note: the `--` is used for passing arguments to python scripts inside blender.
