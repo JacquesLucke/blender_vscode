@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.26] - 2025-08-14
+
 ### Added
 
 - Run `Blender: Start` using single button by adding snippet to `keybindings.json`. Other Commands (like `Blender: Build and Start`) are not supported ([#199](https://github.com/JacquesLucke/blender_vscode/pull/199)).
