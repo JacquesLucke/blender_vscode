@@ -16,20 +16,20 @@
     // define command line arguments in setting blender.additionalArguments
 }
 ```
-- You can now configure VS code internal log level using [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) ([#198](https://github.com/JacquesLucke/blender_vscode/pull/198))
+- You can now configure VS Code internal log level using [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) ([#198](https://github.com/JacquesLucke/blender_vscode/pull/198))
   - to mute logs set log level to critical
   - to enable more logs set log level to debug
   - changing log level required blender restart
   - logs now have colors
-- Print python dependency version (log level info) and path (log level debug) even when it is already installed 
-- 2 new operators: `blender.openWithBlender` - usable with right click from file explorer and `blender.openFiles` - usable from command pallete ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
-- 2 new settings: `blender.preFileArguments` and `blender.postFileArguments` - they work only with above new commands. Placement of file path within command line arguments is important, this this distincion was needed ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
+- Print python dependency version (log level info) and path (log level debug) even when it is already installed
+- 2 new operators: `blender.openWithBlender` - usable with right click from file explorer and `blender.openFiles` - usable from command palette ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
+- 2 new settings: `blender.preFileArguments` and `blender.postFileArguments` - they work only with above new commands. Placement of file path within command line arguments is important, this distincion was needed ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
   - `blender.postFileArguments` can not have `--` in args (it causes invalid syntax). Note: the `--` is used for passing arguments to python scripts inside blender.
   - `blender.additionalArguments` remains unchanged and will work only with `Blender: Start` command.
 
 ### Fixed
 
-- linux only: temporary viariable `linuxInode` will no longer be saved in vs code settings ([#208](https://github.com/JacquesLucke/blender_vscode/pull/208)).
+- Linux only: temporary variable `linuxInode` will no longer be saved in VS Code settings ([#208](https://github.com/JacquesLucke/blender_vscode/pull/208)).
 
 ### Changed
 
