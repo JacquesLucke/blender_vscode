@@ -41,6 +41,21 @@ export function getAnyWorkspaceFolder() {
     return folders[0];
 }
 
+export function handleCommandWithArgsErrors(func: (args: any) => Promise<void>) {
+    return async (args: any) => {
+        try {
+            await func(args);
+        }
+        catch (err: any) {
+            if (err instanceof Error) {
+                if (err.message !== CANCEL) {
+                    vscode.window.showErrorMessage(err.message);
+                }
+            }
+        }
+    };
+}
+
 export function handleErrors(func: (args?: any) => Promise<void | vscode.TaskExecution>) {
     return async (args?: any) => {
         try {
@@ -55,6 +70,11 @@ export function handleErrors(func: (args?: any) => Promise<void | vscode.TaskExe
         }
     };
 }
+
+
+// export function handleFileExplorerCommandErrors(func: (resources: vscode.Uri) => Promise<void>) {
+//     return (resources: vscode.Uri[]) => handleErrors(func, resources)();
+// }
 
 export function getRandomString(length: number = 10) {
     return crypto.randomBytes(length).toString('hex').substring(0, length);

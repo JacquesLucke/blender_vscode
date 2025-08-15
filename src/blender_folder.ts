@@ -29,18 +29,6 @@ export class BlenderWorkspaceFolder {
         return this.folder.uri;
     }
 
-    get buildDebugCommand() {
-        return <string>this.getConfig().get('core.buildDebugCommand');
-    }
-
-    public async buildDebug() {
-        let execution = new vscode.ShellExecution(
-            this.buildDebugCommand,
-            { cwd: this.uri.fsPath }
-        );
-        await runTask('Build Blender', execution, true, this.folder);
-    }
-
     public async buildPythonDocs(part: string | undefined = undefined) {
         let api_folder = path.join(this.uri.fsPath, 'doc', 'python_api');
 

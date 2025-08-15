@@ -36,6 +36,63 @@
 
 - `linuxInode` should no longer be saved in settings [`blender.executables`](vscode://settings/blender.executables)
 
+### Removed
+
+- Removed dependency on `ms-vscode.cpptools` what causes problems for other editors #235, #157. There is no plans to further support Blender Core develompent in this addon.
+- Deprecated setting: `blender.core.buildDebugCommand`
+- Removed commands:
+  - `blender.build`
+  - `blender.buildAndStart`
+  - `blender.startWithoutCDebugger`
+
+## [0.0.26] - 2025-08-14
+
+### Added
+
+- Run `Blender: Start` using single button by adding snippet to `keybindings.json`. Other Commands (like `Blender: Build and Start`) are not supported ([#199](https://github.com/JacquesLucke/blender_vscode/pull/199)).
+```json
+{
+  "key": "ctrl+h",
+  "command": "blender.start",
+  "args": {
+    "blenderExecutable": { // optional, same format as item in blender.executables
+      "path": "C:\\...\\blender.exe" // optional, if missing user will be prompted to choose blender.exe
+    }
+    // define command line arguments in setting blender.additionalArguments
+}
+```
+- You can now configure VS Code internal log level using [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) ([#198](https://github.com/JacquesLucke/blender_vscode/pull/198))
+  - to mute logs set log level to critical
+  - to enable more logs set log level to debug
+  - changing log level required blender restart
+  - logs now have colors
+- Print python dependency version (log level info) and path (log level debug) even when it is already installed
+- 2 new operators: `blender.openWithBlender` - usable with right click from file explorer and `blender.openFiles` - usable from command palette ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
+- 2 new settings: `blender.preFileArguments` and `blender.postFileArguments` - they work only with above new commands. Placement of file path within command line arguments is important, this distincion was needed ([#225](https://github.com/JacquesLucke/blender_vscode/pull/225)).
+  - `blender.postFileArguments` can not have `--` in args (it causes invalid syntax). Note: the `--` is used for passing arguments to python scripts inside blender.
+  - `blender.additionalArguments` remains unchanged and will work only with `Blender: Start` command.
+
+### Fixed
+
+- Linux only: temporary variable `linuxInode` will no longer be saved in VS Code settings ([#208](https://github.com/JacquesLucke/blender_vscode/pull/208)).
+
+### Changed
+
+- updated dependency engines.vscode to 1.63 (to support beta releases)
+
+## [0.0.25] - 2024-11-07
+
+### Fixed
+
+- Remove clashes with legacy version when linking extension ([#210](https://github.com/JacquesLucke/blender_vscode/pull/210)).
+
+## [0.0.24] - 2024-09-12
+
+### Fixed
+
+- Starting Blender with C and Python debugger.
+- Pin Werkzeug library to avoid crash when opening add-ons in user-preferences ([#191](https://github.com/JacquesLucke/blender_vscode/pull/191)).
+
 ## [0.0.23] - 2024-09-06
 
 ### Added

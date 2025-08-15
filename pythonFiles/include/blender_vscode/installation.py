@@ -6,8 +6,10 @@ import bpy
 from pathlib import Path
 
 from . import handle_fatal_error
+from . import log
 from .environment import python_path
 
+LOG = log.getLogger()
 _CWD_FOR_SUBPROCESSES = python_path.parent
 
 
@@ -40,7 +42,7 @@ def ensure_package_is_installed(name: str):
 def install_package(name: str):
     target = get_package_install_directory()
     command = [str(python_path), "-m", "pip", "install", name, "--target", target]
-    print("Execute: ", " ".join(command))
+    LOG.info(f"Execute: {' '.join(command)}")
     subprocess.run(command, cwd=_CWD_FOR_SUBPROCESSES)
 
     if not module_can_be_imported(name):
@@ -51,7 +53,7 @@ def install_pip():
     # try ensurepip before get-pip.py
     if module_can_be_imported("ensurepip"):
         command = [str(python_path), "-m", "ensurepip", "--upgrade"]
-        print("Execute: ", " ".join(command))
+        LOG.info(f"Execute: {' '.join(command)}")
         subprocess.run(command, cwd=_CWD_FOR_SUBPROCESSES)
         return
     # pip can not necessarily be imported into Blender after this
@@ -71,7 +73,10 @@ def get_package_install_directory() -> str:
 
 def module_can_be_imported(name: str):
     try:
-        __import__(_strip_pip_version(name))
+        stripped_name = _strip_pip_version(name)
+        mod = __import__(stripped_name)
+        LOG.info("module: " + name + " is already installed")
+        LOG.debug(stripped_name + ":" + getattr(mod ,"__version__", "None") + " in path: " + getattr(mod, "__file__", "None"))
         return True
     except ModuleNotFoundError:
         return False

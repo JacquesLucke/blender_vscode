@@ -56,7 +56,6 @@ export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promi
     }
 }
 
-
 export async function COMMAND_newScript(): Promise<void> {
     let [folderPath, filePath] = await getPathForNewScript();
     await createNewScriptAtPath(filePath);

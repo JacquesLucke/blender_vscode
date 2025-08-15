@@ -8,9 +8,8 @@ import * as util from 'util';
 import { launchPath } from './paths';
 import { getServerPort } from './communication';
 import { letUserPickItem, PickItem } from './select_utils';
-import { getConfig, cancel, runTask } from './utils';
+import { getConfig, cancel, runTask, getAnyWorkspaceFolder } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
-import { BlenderWorkspaceFolder } from './blender_folder';
 import { outputChannel } from './extension';
 import { getBlenderWindows } from './blender_executable_windows';
 import { deduplicateSameHardLinks } from './blender_executable_linux';
@@ -35,43 +34,28 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
-    public static async GetDebugInteractive() {
-        let data = await getFilteredBlenderPath({
-            label: 'Debug Build',
-            selectNewLabel: 'Choose a new debug build...',
-            predicate: item => item.isDebug,
-            setSettings: item => { item.isDebug = true; }
-        });
-        return new BlenderExecutable(data);
+    public static async LaunchAnyInteractive(blend_filepaths?: string[]) {
+        const executable = await this.GetAnyInteractive();
+        await this.LaunchAny(executable, blend_filepaths)
     }
 
-    public static async LaunchAnyInteractive() {
-        const blenderArgs = getBlenderLaunchArgsFromConfig()
-        return await (await this.GetAnyInteractive()).launch(blenderArgs);
-    }
-
-    public static async LaunchAny(path: string, additionalArguments?: string[]) {
-        let blenderArgs;
-        if (additionalArguments === undefined) {
-            blenderArgs = getBlenderLaunchArgsFromConfig()
-        } else {
-            blenderArgs = ['--python', launchPath].concat(additionalArguments);
+    public static async LaunchAny(executable: BlenderExecutable, blend_filepaths?: string[]) {
+        if (blend_filepaths === undefined || !blend_filepaths.length) {
+            await executable.launch();
+            return;
         }
-        const data: BlenderPathData = { path: path, name: '', isDebug: false }
-        const blender = new BlenderExecutable(data);
-        return await blender.launch(blenderArgs);
-    }
-
-    public static async LaunchDebugInteractive(folder: BlenderWorkspaceFolder) {
-        return await (await this.GetDebugInteractive()).launchDebug(folder);
+        for (const blend_filepath of blend_filepaths) {
+            await executable.launch(blend_filepath);
+        }
     }
 
     get path() {
         return this.data.path;
     }
 
-    public async launch(blenderArgs: string[]) {
-        let execution = new vscode.ProcessExecution(
+    public async launch(blend_filepath?: string) {
+        const blenderArgs = getBlenderLaunchArgs(blend_filepath);
+        const execution = new vscode.ProcessExecution(
             this.path,
             blenderArgs,
             { env: await getBlenderLaunchEnv() }
@@ -82,23 +66,8 @@ export class BlenderExecutable {
         return await runTask('blender', execution);
     }
 
-    public async launchDebug(folder: BlenderWorkspaceFolder) {
-        let configuration = {
-            name: 'Debug Blender',
-            type: 'cppdbg',
-            request: 'launch',
-            program: this.data.path,
-            args: ['--debug'].concat(getBlenderLaunchArgsFromConfig()),
-            env: await getBlenderLaunchEnv(),
-            stopAtEntry: false,
-            MIMode: 'gdb',
-            cwd: folder.uri.fsPath,
-        };
-        vscode.debug.startDebugging(folder.folder, configuration);
-    }
-
     public async launchWithCustomArgs(taskName: string, args: string[]) {
-        let execution = new vscode.ProcessExecution(
+        const execution = new vscode.ProcessExecution(
             this.path,
             args,
         );
@@ -107,10 +76,15 @@ export class BlenderExecutable {
     }
 }
 
+export type BlenderExecutableSettings = {
+    path: string;
+    name: string;
+    linuxInode?: never;
+}
+
 export type BlenderPathData = {
     path: string;
     name: string;
-    isDebug: boolean;
     linuxInode?: number;
     isBlenderRunScriptDefault?: boolean;
 }
@@ -126,7 +100,7 @@ async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
     const blenders: BlenderPathData[] = [];
     if (process.platform === "win32") {
         const windowsBlenders = await getBlenderWindows();
-        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "", isDebug: false })))
+        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: ""})))
     }
     const separator = process.platform === "win32" ? ";" : ":"
     const path_env = process.env.PATH?.split(separator);
@@ -138,7 +112,7 @@ async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
         const executable = path.join(p, exe)
         const stats = await stat(executable).catch((err: NodeJS.ErrnoException) => undefined);
         if (stats === undefined || !stats?.isFile()) continue;
-        blenders.push({ path: executable, name: "", isDebug: false, linuxInode: stats.ino })
+        blenders.push({ path: executable, name: "", linuxInode: stats.ino })
     }
     return blenders;
 }
@@ -179,7 +153,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
         quickPickItems.push({
             data: async () => blenderPath,
             label: blenderPath.name || blenderPath.path,
-            description: await stat(blenderPath.path).then(_stats => undefined).catch((err: NodeJS.ErrnoException) => "File does not exist")
+            description: await stat(path.isAbsolute(blenderPath.path) ? blenderPath.path : path.join(getAnyWorkspaceFolder().uri.fsPath, blenderPath.path)).then(_stats => undefined).catch((err: NodeJS.ErrnoException) => "File does not exist")
         });
     }
 
@@ -192,13 +166,8 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         settingsBlenderPaths.push(pathData);
-        if (process.platform !== 'win32') {
-            for (const settingExe of settingsBlenderPaths) {
-                // Do not save linuxInode is settings
-                settingExe.linuxInode = undefined;
-            }
-        }
-        config.update('executables', settingsBlenderPaths, vscode.ConfigurationTarget.Global);
+        const toSave: BlenderExecutableSettings[] = settingsBlenderPaths.map(item => { return { 'name': item.name, 'path': item.path } })
+        config.update('executables', toSave, vscode.ConfigurationTarget.Global);
     }
 
     return pathData;
@@ -226,7 +195,6 @@ async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderPa
     let pathData: BlenderPathData = {
         path: filepath,
         name: '',
-        isDebug: false,
     };
     type.setSettings(pathData);
     return pathData;
@@ -278,9 +246,29 @@ async function testIfPathIsBlender(filepath: string) {
     });
 }
 
-function getBlenderLaunchArgsFromConfig() {
-    let config = getConfig();
-    return ['--python', launchPath].concat(<string[]>config.get("additionalArguments", []));
+function getBlenderLaunchArgs(blend_filepath?: string) {
+    const config = getConfig();
+    let additional_args = [];
+    if (blend_filepath !== undefined) {
+        if (!fs.existsSync(blend_filepath)) {
+            new Error(`File does not exist: '${blend_filepath}'`);
+        }
+        let pre_args = <string[]>config.get("preFileArguments", []);
+        let post_args = <string[]>config.get("postFileArguments", []);
+        for (const [index, arg] of pre_args.entries()) {
+            if (arg === "--" || arg.startsWith("-- ")) {
+                outputChannel.appendLine(`WARNING: ignoring any remainning arguments: '--' arument can not be in preFileArguments. Please put arguemnts [${pre_args.slice(index).toString()}] in postFileArguments`)
+                break;
+            }
+            additional_args.push(arg);
+        }
+        additional_args.push(blend_filepath);
+        additional_args = additional_args.concat(post_args);
+    } else {
+        additional_args = <string[]>config.get("additionalArguments", []);
+    }
+    const args = ['--python', launchPath].concat(additional_args);
+    return args;
 }
 
 async function getBlenderLaunchEnv() {
@@ -291,6 +279,7 @@ async function getBlenderLaunchEnv() {
     return {
         ADDONS_TO_LOAD: JSON.stringify(loadDirsWithNames),
         VSCODE_EXTENSIONS_REPOSITORY: <string>config.get("addon.extensionsRepository"),
+        VSCODE_LOG_LEVEL: <string>config.get("addon.logLevel"),
         EDITOR_PORT: getServerPort().toString(),
         ...<object>config.get("environmentVariables", {}),
     };
