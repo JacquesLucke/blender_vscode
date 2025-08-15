@@ -10,7 +10,6 @@ import { getServerPort } from './communication';
 import { letUserPickItem, PickItem } from './select_utils';
 import { getConfig, cancel, runTask, getAnyWorkspaceFolder } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
-import { BlenderWorkspaceFolder } from './blender_folder';
 import { outputChannel } from './extension';
 import { getBlenderWindows } from './blender_executable_windows';
 import { deduplicateSameHardLinks } from './blender_executable_linux';
@@ -35,16 +34,6 @@ export class BlenderExecutable {
         return new BlenderExecutable(data);
     }
 
-    public static async GetDebugInteractive() {
-        let data = await getFilteredBlenderPath({
-            label: 'Debug Build',
-            selectNewLabel: 'Choose a new debug build...',
-            predicate: item => item.isDebug,
-            setSettings: item => { item.isDebug = true; }
-        });
-        return new BlenderExecutable(data);
-    }
-
     public static async LaunchAnyInteractive(blend_filepaths?: string[]) {
         const executable = await this.GetAnyInteractive();
         await this.LaunchAny(executable, blend_filepaths)
@@ -57,21 +46,6 @@ export class BlenderExecutable {
         }
         for (const blend_filepath of blend_filepaths) {
             await executable.launch(blend_filepath);
-        }
-    }
-
-    public static async LaunchDebugInteractive(folder: BlenderWorkspaceFolder, blend_filepaths?: string[]) {
-        const executable = await this.GetAnyInteractive();
-        await this.LaunchDebug(executable, folder, blend_filepaths)
-    }
-
-    public static async LaunchDebug(executable: BlenderExecutable, folder: BlenderWorkspaceFolder, blend_filepaths?: string[]) {
-        if (blend_filepaths === undefined || !blend_filepaths.length) {
-            await executable.launchDebug(folder);
-            return;
-        }
-        for (const blend_filepath of blend_filepaths) {
-            await executable.launchDebug(folder, blend_filepath);
         }
     }
 
@@ -92,22 +66,6 @@ export class BlenderExecutable {
         await runTask('blender', execution);
     }
 
-    public async launchDebug(folder: BlenderWorkspaceFolder, blend_filepath?: string) {
-        const env = await getBlenderLaunchEnv();
-        let configuration = {
-            name: 'Debug Blender',
-            type: 'cppdbg',
-            request: 'launch',
-            program: this.data.path,
-            args: ['--debug'].concat(getBlenderLaunchArgs(blend_filepath)),
-            environment: Object.entries(env).map(([key, value]) => { return { name: key, value }; }),
-            stopAtEntry: false,
-            MIMode: 'gdb',
-            cwd: folder.uri.fsPath,
-        };
-        vscode.debug.startDebugging(folder.folder, configuration);
-    }
-
     public async launchWithCustomArgs(taskName: string, args: string[]) {
         const execution = new vscode.ProcessExecution(
             this.path,
@@ -121,14 +79,12 @@ export class BlenderExecutable {
 export type BlenderExecutableSettings = {
     path: string;
     name: string;
-    isDebug: boolean;
     linuxInode?: never;
 }
 
 export type BlenderExecutableData = {
     path: string;
     name: string;
-    isDebug: boolean;
     linuxInode?: number;
 }
 
@@ -143,7 +99,7 @@ async function searchBlenderInSystem(): Promise<BlenderExecutableData[]> {
     const blenders: BlenderExecutableData[] = [];
     if (process.platform === "win32") {
         const windowsBlenders = await getBlenderWindows();
-        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "", isDebug: false })))
+        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: ""})))
     }
     const separator = process.platform === "win32" ? ";" : ":"
     const path_env = process.env.PATH?.split(separator);
@@ -155,7 +111,7 @@ async function searchBlenderInSystem(): Promise<BlenderExecutableData[]> {
         const executable = path.join(p, exe)
         const stats = await stat(executable).catch((err: NodeJS.ErrnoException) => undefined);
         if (stats === undefined || !stats?.isFile()) continue;
-        blenders.push({ path: executable, name: "", isDebug: false, linuxInode: stats.ino })
+        blenders.push({ path: executable, name: "", linuxInode: stats.ino })
     }
     return blenders;
 }
@@ -209,7 +165,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecuta
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         settingsBlenderPaths.push(pathData);
-        const toSave: BlenderExecutableSettings[] = settingsBlenderPaths.map(item => { return { 'name': item.name, 'isDebug': item.isDebug, 'path': item.path } })
+        const toSave: BlenderExecutableSettings[] = settingsBlenderPaths.map(item => { return { 'name': item.name, 'path': item.path } })
         config.update('executables', toSave, vscode.ConfigurationTarget.Global);
     }
 
@@ -238,7 +194,6 @@ async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderEx
     let pathData: BlenderExecutableData = {
         path: filepath,
         name: '',
-        isDebug: false,
     };
     type.setSettings(pathData);
     return pathData;
