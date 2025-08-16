@@ -2,39 +2,78 @@
 
 ## Unreleased
 
+### Changed
+
+- Disconnecting debug session will now hard close/terminate blender
+
 ### Added
 
-- Run `Blender: Start` using single button by adding snippet to `keybindings.json`. Other Commands (like `Blender: Build and Start`) are not supported.
+- A `blender.executable` can be now marked as default.
+  - When no blender is marked as default, a notification will appear after and offer setting it as default 
+```json
+"blender.executables": [
+  {
+    "name": "blender-4.5.1",
+    "path": "C:\\...\\blender-4.5.1-windows-x64\\blender.exe",
+    "isDefault": true
+  }
+]
+```
+- Run `Blender: Start` using single button by adding snippet to `keybindings.json`. Other commands are not supported.
+
+Simple example:
 ```json
 {
     "key": "ctrl+h",
     "command": "blender.start",
-    "args": {
-        "path": "/path/to/blender.exe"
-        // "additionalArguments": [], // overrides VS Code settings blender.additionalArguments
-    }
+}
+```
+
+Advanced example:
+```json
+{
+  "key": "ctrl+h",
+  "command": "blender.start",
+  "args": {
+    "blenderExecutable": {
+      "path": "C:\\...\\blender.exe" 
+    },
+    // optional, run script after debugger is attached, must be absolute path
+    "script": "E:\\BlenderProjects\\leagacy_and_extension\\i.py"
+  }
 }
 ```
 - Improvements for `Blender: Run Script`:
-  - When **no** Blender instances are running, run `Blender: Start` and then immediately run `Blender: Run Script`
-  - When Blender instances are running, just run the script on all available instances (old behavior)
-  - Specify default `Blender: Start` configuration in settings using `isBlenderRunScriptDefault` in [`blender.executables`](vscode://settings/blender.executables)
+  - When **no** Blender instances are running, start blender automatically
+  - When Blender instances are running, just run the script on all available instances (consistant with old behavior)
   - Run `Blender: Run Script` using single button by adding snippet to `keybindings.json`. 
+
+Simple example:
 ```json
-  {
-    "key": "ctrl+shift+enter",
-    "command": "blender.runScript",
-    "args": {
-       // optional, must be absolute path, defaults to current open file
-      "path": "E:\\BlenderProjects\\leagacy_and_extension\\i.py"
-    },
-    "when": "editorLangId == 'python'"
-  }
+{
+  "key": "ctrl+shift+enter",
+  "command": "blender.runScript",
+  "when": "editorLangId == 'python'"
+}
 ```
 
-### Fixed
-
-- `linuxInode` should no longer be saved in settings [`blender.executables`](vscode://settings/blender.executables)
+Advanced example:
+```json
+{
+  "key": "ctrl+shift+enter",
+  "command": "blender.runScript",
+  "args": {
+    // optional, same format as item in blender.executables
+    // if missing user will be prompted to choose blender.exe or default blender.exe will be used
+    "blenderExecutable": { 
+      "path": "C:\\...\\blender.exe" 
+    },
+    // optional, run script after debugger is attached, must be absolute path, defaults to current open file
+    "script": "E:\\BlenderProjects\\leagacy_and_extension\\i.py"
+  },
+  "when": "editorLangId == 'python'"
+}
+```
 
 ### Removed
 
@@ -44,6 +83,8 @@
   - `blender.build`
   - `blender.buildAndStart`
   - `blender.startWithoutCDebugger`
+  - `blender.buildPythonApiDocs`
+
 
 ## [0.0.26] - 2025-08-14
 
@@ -57,7 +98,7 @@
   "args": {
     "blenderExecutable": { // optional, same format as item in blender.executables
       "path": "C:\\...\\blender.exe" // optional, if missing user will be prompted to choose blender.exe
-    }
+    },
     // define command line arguments in setting blender.additionalArguments
 }
 ```
