@@ -82,7 +82,7 @@ export async function COMMAND_start(args?: StartCommandArguments) {
     if (args !== undefined) {
         script = args.script
         if (args.blenderExecutable !== undefined) {
-            if (args.blenderExecutable.path === undefined) {
+            if (args.blenderExecutable.path !== undefined) {
                 blenderToRun = args.blenderExecutable
             }
             filePaths = args.blendFilepaths

@@ -33,7 +33,7 @@ export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promi
     if (args?.path !== undefined) {
         scriptPath = args?.path;
     }
-    if (args?.script === undefined) {
+    if (args?.script === undefined && args?.path === undefined) {
         const editor = vscode.window.activeTextEditor;
         if (editor === undefined)
             return Promise.reject(new Error('no active script'));
@@ -48,8 +48,8 @@ export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promi
     if (instances.length !== 0) {
         RunningBlenders.sendToResponsive({ type: 'script', path: scriptPath })
     } else {
-        const args: StartCommandArguments = { script: scriptPath }
-        await COMMAND_start(args)
+        const commandArgs: StartCommandArguments = { script: scriptPath, blenderExecutable: args?.blenderExecutable }
+        await COMMAND_start(commandArgs)
     }
 }
 
