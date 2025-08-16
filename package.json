@@ -134,6 +134,11 @@
                   "type": "string",
                   "description": "Custom name for this Blender version."
                 
+                },
+                "isDefault": {
+                  "type": "boolean",
+                  "description": "Set default choice for blender executable. The interactive choise will no longer be offered.",
+                  "default": false
                 }
               }
             }

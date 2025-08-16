@@ -115,18 +115,60 @@ In rare cases debugging with VS Code can crash Blender (ex. https://github.com/J
 
 ### How to start Blender with shortcut?
 
-You can assign a shortcut to `Blender: Start` by editing `keybindings.json`:
+Limited shortcuts are supported by editing `keybindings.json`. 
+Add `"isDefault": true"` to one of [`blender.executables`](vscode://settings/blender.executables) to mute most popups.
+
+Shortcut to `Blender: Start` simple example:
 ```json
 {
-"key": "ctrl+h",
-"command": "blender.start",
-"args": {
-  "blenderExecutable": { // optional, if missing user will be prompted to choose blender.exe
-    "path": "C:\\...\\blender.exe"
-  }
-  // define command line arguments in **settings** blender.additionalArguments (not here!!)
+    "key": "ctrl+h",
+    "command": "blender.start",
 }
 ```
+
+Shortcut to `Blender: Start` advanced example:
+```json
+{
+  "key": "ctrl+h",
+  "command": "blender.start",
+  "args": {
+    "blenderExecutable": {
+      "path": "C:\\...\\blender.exe" 
+    },
+    // optional, run script after debugger is attached, must be absolute path
+    "script": "C:\\script.py"
+  }
+}
+```
+
+Shortcut to `Blender: Run Script` simple example:
+```json
+{
+  "key": "ctrl+shift+enter",
+  "command": "blender.runScript",
+  "when": "editorLangId == 'python'"
+}
+```
+
+Shortcut to `Blender: Run Script` advanced example:
+```json
+{
+  "key": "ctrl+shift+enter",
+  "command": "blender.runScript",
+  "args": {
+    // optional, same format as item in blender.executables
+    // if missing user will be prompted to choose blender.exe or default blender.exe will be used
+    "blenderExecutable": { 
+      "path": "C:\\...\\blender.exe" 
+    },
+    // optional, run script after debugger is attached, must be absolute path, defaults to current open file
+    "script": "C:\\script.py"
+  },
+  "when": "editorLangId == 'python'"
+}
+```
+
+
 
 ## Script Tools
 
@@ -155,14 +197,7 @@ The new script file already contains a little bit of code to make it easier to g
 First you have to start a Blender instance by executing the `Blender: Start` command in VS Code's Command Palette.
 To execute the script in all Blender instances that have been started this way, execute the `Blender: Run Script` command.
 
-You can assign a shortcut to `Blender: Run Script` by editing `keybindings.json`:
-```json
-{
-  "key": "ctrl+shift+enter",
-  "command": "blender.runScript",
-  "when": "editorLangId == 'python'"
-}
-```
+You can assign a shortcut to `Blender: Run Script` by editing `keybindings.json`, see section [How to start Blender with shortcut?](#how-to-start-blender-with-shortcut)
 
 ### How can I change the context the script runs in?
 
@@ -179,7 +214,6 @@ Be aware about:
 
 - [sys.exit gotcha](https://docs.blender.org/api/current/info_gotcha.html#sys-exit) 
 - and [register_cli_command](https://docs.blender.org/api/current/bpy.utils.html#bpy.utils.register_cli_command) 
-- 
 
 ## Core Blender development
 

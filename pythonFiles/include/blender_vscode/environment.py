@@ -41,8 +41,11 @@ addon_directories = tuple(map(Path, addon_utils.paths()))
 
 EXTENSIONS_REPOSITORY: Optional[str] = os.environ.get("VSCODE_EXTENSIONS_REPOSITORY", "user_default") or "user_default"
 LOG_LEVEL, LOG_FLASK = _parse_log("VSCODE_LOG_LEVEL")
+VSCODE_IDENTIFIER: Optional[str] = os.environ.get("VSCODE_IDENTIFIER", "") or ""
 
 logging.getLogger("werkzeug").setLevel(logging.DEBUG if LOG_FLASK else logging.ERROR)
 # to mute all logs, disable also those logs. Be careful, the libs are extremely popular and it will mute logs for everyone!
 # logging.getLogger("requests").setLevel(logging.DEBUG if LOG_FLASK else logging.INFO)
 # logging.getLogger("urllib3").setLevel(logging.DEBUG if LOG_FLASK else logging.INFO)
+
+VSCODE_IDENTIFIER: Optional[str] = os.environ.get("VSCODE_IDENTIFIER", "") or ""
