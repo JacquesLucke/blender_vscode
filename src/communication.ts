@@ -169,7 +169,7 @@ function SERVER_handleRequest(request: any, response: any) {
                     let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings, req.vscodeIdentifier);
                     response.end('OK');
                     instance.attachDebugger().then(() => {
-RunningBlenders.registerInstance(instance)
+                        RunningBlenders.registerInstance(instance)
                         RunningBlenders.getTask(instance.vscodeIdentifier)?.onStartDebugging()
 
                     }
