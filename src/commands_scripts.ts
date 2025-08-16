@@ -9,14 +9,16 @@ import { addFolderToWorkspace, cancel, copyFile, getConfig, getRandomString, pat
 
 export function COMMAND_runScript_registerCleanup() {
     const disposableDebugSessionListener = vscode.debug.onDidTerminateDebugSession(session => {
-        if (session.name !== 'Debug Blender' && !session.name.startsWith('Python at Port '))
-            return
-        RunningBlenders.clearInstances(instance => instance.vscodeIdentifier !== session.configuration.identifier)
+        // if (session.name !== 'Debug Blender' && !session.name.startsWith('Python at Port '))
+        //     return
+        const id = session.configuration.identifier;
+        RunningBlenders.kill(id);
     });
     const disposableTaskListener = vscode.tasks.onDidEndTaskProcess((e) => {
         if (e.execution.task.source !== 'blender')
             return
-        RunningBlenders.clearInstances(instance => instance.vscodeIdentifier !== e.execution.task.definition.type)
+        const id = e.execution.task.definition.type;
+        RunningBlenders.kill(id);
     });
     return [disposableDebugSessionListener, disposableTaskListener]
 }

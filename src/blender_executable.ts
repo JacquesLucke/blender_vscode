@@ -39,11 +39,11 @@ export async function LaunchAny(executable: BlenderExecutableData, blend_filepat
 }
 
 export class BlenderTask {
-    task: vscode.Task
+    task: vscode.TaskExecution
     script?: string
     vscodeIdentifier: string
 
-    constructor(task: any, vscode_identifier: string, script?: string) {
+    constructor(task: vscode.TaskExecution, vscode_identifier: string, script?: string) {
         this.task = task
         this.script = script
         this.vscodeIdentifier = vscode_identifier

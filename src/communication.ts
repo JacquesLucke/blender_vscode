@@ -74,7 +74,7 @@ export class RunningBlenderInstances {
         this.tasks = [];
     }
 
-    register(instance: BlenderInstance) {
+    registerInstance(instance: BlenderInstance) {
         this.instances.push(instance);
     }
     registerTask(task: BlenderTask) {
@@ -88,17 +88,13 @@ export class RunningBlenderInstances {
         return this.instances.filter(item => item.vscodeIdentifier === vscodeIdentifier)[0]
     }
 
-    // public async kill(vscodeIdentifier: string) {
-    //     const task = this.getTask(vscodeIdentifier)
-    //     const execution = task?.task.execution
-    //     const instance = this.getInstance(vscodeIdentifier)
+    public async kill(vscodeIdentifier: string) {
+        const task = this.getTask(vscodeIdentifier)
+        task?.task.terminate()
+        this.tasks = this.tasks.filter(item => item.vscodeIdentifier !== vscodeIdentifier)
 
-    //     this.tasks = this.tasks.filter(item => item.vscodeIdentifier !== vscodeIdentifier)
-    //     this.instances = this.instances.filter(item => item.vscodeIdentifier !== vscodeIdentifier)
-    // }
-
-    clearInstances(predicate: (instance: BlenderInstance) => boolean) {
-        this.instances.filter(predicate)
+        // const instance = this.getInstance(vscodeIdentifier)
+        this.instances = this.instances.filter(item => item.vscodeIdentifier !== vscodeIdentifier)
     }
 
     async getResponsive(timeout: number = RESPONSIVE_LIMIT_MS): Promise<BlenderInstance[]> {
@@ -173,7 +169,7 @@ function SERVER_handleRequest(request: any, response: any) {
                     let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings, req.vscodeIdentifier);
                     response.end('OK');
                     instance.attachDebugger().then(() => {
-RunningBlenders.register(instance)
+RunningBlenders.registerInstance(instance)
                         RunningBlenders.getTask(instance.vscodeIdentifier)?.onStartDebugging()
 
                     }
