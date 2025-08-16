@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import * as request from 'request';
 import { getConfig } from './utils';
 import { attachPythonDebuggerToBlender } from './python_debugging';
+import { BlenderTask } from './blender_executable';
 
 const RESPONSIVE_LIMIT_MS = 1000;
 
@@ -20,7 +21,8 @@ export class BlenderInstance {
     scriptsFolder: string;
     addonPathMappings: AddonPathMapping[];
     connectionErrors: Error[];
-    vscodeIdentifier: string;
+    vscodeIdentifier: string; // can identify vs code task and in http communication
+    debug_session: any;
 
     constructor(blenderPort: number, debugpyPort: number, justMyCode: boolean, path: string,
         scriptsFolder: string, addonPathMappings: AddonPathMapping[], vscodeIdentifier: string) {
@@ -54,7 +56,8 @@ export class BlenderInstance {
     }
 
     attachDebugger() {
-        return attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings, this.vscodeIdentifier);
+        this.debug_session = attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings, this.vscodeIdentifier);
+        return this.debug_session
     }
 
     get address() {
@@ -64,27 +67,35 @@ export class BlenderInstance {
 
 export class RunningBlenderInstances {
     protected instances: BlenderInstance[];
-    protected onRegisterCallbacks: ((instance: BlenderInstance) => void)[];
+    protected tasks: BlenderTask[];
 
     constructor() {
         this.instances = [];
-        this.onRegisterCallbacks = [];
+        this.tasks = [];
     }
 
     register(instance: BlenderInstance) {
         this.instances.push(instance);
-        for (const onRegisterCallback of this.onRegisterCallbacks) {
-            onRegisterCallback(instance)
-        }
+    }
+    registerTask(task: BlenderTask) {
+        this.tasks.push(task)
     }
 
-    onRegister(callback: (instance: BlenderInstance) => void) {
-        this.onRegisterCallbacks.push(callback);
+    public getTask(vscodeIdentifier: string): BlenderTask | undefined {
+        return this.tasks.filter(item => item.vscodeIdentifier === vscodeIdentifier)[0]
+    }
+    public getInstance(vscodeIdentifier: string): BlenderInstance | undefined {
+        return this.instances.filter(item => item.vscodeIdentifier === vscodeIdentifier)[0]
     }
 
-    clearOnRegisterCallbacks() {
-        this.onRegisterCallbacks = []
-    }
+    // public async kill(vscodeIdentifier: string) {
+    //     const task = this.getTask(vscodeIdentifier)
+    //     const execution = task?.task.execution
+    //     const instance = this.getInstance(vscodeIdentifier)
+
+    //     this.tasks = this.tasks.filter(item => item.vscodeIdentifier !== vscodeIdentifier)
+    //     this.instances = this.instances.filter(item => item.vscodeIdentifier !== vscodeIdentifier)
+    // }
 
     clearInstances(predicate: (instance: BlenderInstance) => boolean) {
         this.instances.filter(predicate)
@@ -160,8 +171,13 @@ function SERVER_handleRequest(request: any, response: any) {
                     let config = getConfig();
                     let justMyCode: boolean = <boolean>config.get('addon.justMyCode')
                     let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings, req.vscodeIdentifier);
-                    instance.attachDebugger().then(() => RunningBlenders.register(instance))
                     response.end('OK');
+                    instance.attachDebugger().then(() => {
+RunningBlenders.register(instance)
+                        RunningBlenders.getTask(instance.vscodeIdentifier)?.onStartDebugging()
+
+                    }
+                    )
                     break;
                 }
                 case 'enableFailure': {
@@ -186,5 +202,5 @@ function SERVER_handleRequest(request: any, response: any) {
     }
 }
 
-var server: any = undefined;
+var server: http.Server | any = undefined;
 export const RunningBlenders = new RunningBlenderInstances();

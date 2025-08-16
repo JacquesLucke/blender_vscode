@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
 import { getConfig } from './utils';
-import { BlenderExecutable, BlenderExecutableSettings } from './blender_executable';
+import { BlenderExecutableData, BlenderExecutableSettings } from './blender_executable';
 
 export function factoryShowNotificationAddDefault(context: vscode.ExtensionContext) {
-    return async function showNotificationAddDefault(
-        executable: BlenderExecutable
+    return async function showNotificationAddDefault(executable : BlenderExecutableData
     ) {
         // context.globalState.update('showNotificationAddDefault', undefined);
         const show = context.globalState.get('showNotificationAddDefault');
@@ -13,7 +12,7 @@ export function factoryShowNotificationAddDefault(context: vscode.ExtensionConte
         }
 
         const choice = await vscode.window.showInformationMessage(
-            `Make "${executable.data.name}" default?\n\`${executable.data.path}\``,
+            `Make "${executable.name}" default?\n\`${executable.path}\``,
             'Never show again',
             'Make default'
         );
@@ -28,7 +27,7 @@ export function factoryShowNotificationAddDefault(context: vscode.ExtensionConte
             let matchFound = false
             for (const setting of toSave) {
                 setting.isDefault = undefined
-                if (setting.path == executable.data.path) {
+                if (setting.path == executable.path) {
                     setting.isDefault = true
                     matchFound = true
                 }
@@ -36,14 +35,14 @@ export function factoryShowNotificationAddDefault(context: vscode.ExtensionConte
 
             if (matchFound === false) {
                 toSave.push({
-                    name: executable.data.name,
-                    path: executable.data.path,
+                    name: executable.name,
+                    path: executable.path,
                     isDefault: true
                 })
             }
 
             config.update('executables', toSave, vscode.ConfigurationTarget.Global);
-            vscode.window.showInformationMessage(`"${executable.data.name}" is now default. Use settings \`blender.executables\` to change that.`);
+            vscode.window.showInformationMessage(`"${executable.name}" is now default. Use settings \`blender.executables\` to change that.`);
         }
     }
 }

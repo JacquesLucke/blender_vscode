@@ -6,9 +6,9 @@ import * as fs from 'fs';
 import * as util from 'util';
 
 import { launchPath } from './paths';
-import { getServerPort } from './communication';
+import { getServerPort, RunningBlenders } from './communication';
 import { letUserPickItem, PickItem } from './select_utils';
-import { getConfig, cancel, runTask, getAnyWorkspaceFolder } from './utils';
+import { getConfig, cancel, runTask, getAnyWorkspaceFolder, getRandomString } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { outputChannel, showNotificationAddDefault } from './extension';
 import { getBlenderWindows } from './blender_executable_windows';
@@ -17,64 +17,62 @@ import { deduplicateSameHardLinks } from './blender_executable_linux';
 
 const stat = util.promisify(fs.stat)
 
-export class BlenderExecutable {
-    data: BlenderPathData;
+export async function LaunchAnyInteractive(blend_filepaths?: string[], script?: string) {
+    const executable = await getFilteredBlenderPath({
+        label: 'Blender Executable',
+        selectNewLabel: 'Choose a new Blender executable...',
+        predicate: () => true,
+        setSettings: () => { }
+    });
+    showNotificationAddDefault(executable)
+    return await LaunchAny(executable, blend_filepaths, script)
+}
 
-    constructor(data: BlenderPathData) {
-        this.data = data;
+export async function LaunchAny(executable: BlenderExecutableData, blend_filepaths?: string[], script?: string) {
+    if (blend_filepaths === undefined || !blend_filepaths.length) {
+        await launch(executable, undefined, script);
+        return;
+    }
+    for (const blend_filepath of blend_filepaths) {
+        await launch(executable, blend_filepath, script);
+    }
+}
+
+export class BlenderTask {
+    task: vscode.Task
+    script?: string
+    vscodeIdentifier: string
+
+    constructor(task: any, vscode_identifier: string, script?: string) {
+        this.task = task
+        this.script = script
+        this.vscodeIdentifier = vscode_identifier
     }
 
-    public static async GetAnyInteractive() {
-        let data = await getFilteredBlenderPath({
-            label: 'Blender Executable',
-            selectNewLabel: 'Choose a new Blender executable...',
-            predicate: () => true,
-            setSettings: () => { }
-        });
-        return new BlenderExecutable(data);
-    }
-
-    public static async LaunchAnyInteractive(blend_filepaths?: string[]) {
-        const executable = await this.GetAnyInteractive();
-        showNotificationAddDefault(executable)
-        await this.LaunchAny(executable, blend_filepaths)
-    }
-
-    public static async LaunchAny(executable: BlenderExecutable, blend_filepaths?: string[]) {
-        if (blend_filepaths === undefined || !blend_filepaths.length) {
-            await executable.launch();
-            return;
+    public onStartDebugging() {
+        if (this.script !== undefined) {
+            RunningBlenders.sendToResponsive({ type: 'script', path: this.script })
         }
-        for (const blend_filepath of blend_filepaths) {
-            await executable.launch(blend_filepath);
-        }
     }
+}
 
-    get path() {
-        return this.data.path;
-    }
+export async function launch(data: BlenderExecutableData, blend_filepath?: string, script?: string) {
+    const blenderArgs = getBlenderLaunchArgs(blend_filepath);
+    const execution = new vscode.ProcessExecution(
+        data.path,
+        blenderArgs,
+        { env: await getBlenderLaunchEnv() }
+    );
+    outputChannel.appendLine(`Starting blender: ${data.path} ${blenderArgs.join(' ')}`)
+    outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2))
 
-    public async launch(blend_filepath?: string) {
-        const blenderArgs = getBlenderLaunchArgs(blend_filepath);
-        const execution = new vscode.ProcessExecution(
-            this.path,
-            blenderArgs,
-            { env: await getBlenderLaunchEnv() }
-        );
-        outputChannel.appendLine(`Starting blender: ${this.path} ${blenderArgs.join(' ')}`)
-        outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2))
+    const vscode_identifier = getRandomString()
+    const task = await runTask('blender', execution, vscode_identifier);
 
-        return await runTask('blender', execution);
-    }
+    const blenderTask = new BlenderTask(task, vscode_identifier, script)
+    RunningBlenders.registerTask(blenderTask)
 
-    public async launchWithCustomArgs(taskName: string, args: string[]) {
-        const execution = new vscode.ProcessExecution(
-            this.path,
-            args,
-        );
-
-        await runTask(taskName, execution, true);
-    }
+    return task;
 }
 
 export type BlenderExecutableSettings = {
@@ -84,22 +82,15 @@ export type BlenderExecutableSettings = {
     isDefault?: boolean;
 }
 
-export type BlenderPathData = {
+export type BlenderExecutableData = {
     path: string;
     name: string;
     linuxInode?: number;
     isDefault?: boolean;
 }
 
-interface BlenderType {
-    label: string;
-    selectNewLabel: string;
-    predicate: (item: BlenderPathData) => boolean;
-    setSettings: (item: BlenderPathData) => void;
-}
-
-async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
-    const blenders: BlenderPathData[] = [];
+async function searchBlenderInSystem(): Promise<BlenderExecutableData[]> {
+    const blenders: BlenderExecutableData[] = [];
     if (process.platform === "win32") {
         const windowsBlenders = await getBlenderWindows();
         blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "" })))
@@ -119,11 +110,18 @@ async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
     return blenders;
 }
 
-async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
-    let result: BlenderPathData[] = []
+interface BlenderType {
+    label: string;
+    selectNewLabel: string;
+    predicate: (item: BlenderExecutableData) => boolean;
+    setSettings: (item: BlenderExecutableData) => void;
+}
+
+async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecutableData> {
+    let result: BlenderExecutableData[] = []
     {
-        const blenderPathsInSystem: BlenderPathData[] = await searchBlenderInSystem();
-        const deduplicatedBlenderPaths: BlenderPathData[] = deduplicateSamePaths(blenderPathsInSystem);
+        const blenderPathsInSystem: BlenderExecutableData[] = await searchBlenderInSystem();
+        const deduplicatedBlenderPaths: BlenderExecutableData[] = deduplicateSamePaths(blenderPathsInSystem);
         if (process.platform !== 'win32') {
             try {
                 result = await deduplicateSameHardLinks(deduplicatedBlenderPaths, true);
@@ -136,9 +134,9 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     }
 
     const config = getConfig();
-    const settingsBlenderPaths = (<BlenderPathData[]>config.get('executables')).filter(type.predicate);
+    const settingsBlenderPaths = (<BlenderExecutableData[]>config.get('executables')).filter(type.predicate);
     { // deduplicate Blender paths twice: it preserves proper order in UI
-        const deduplicatedBlenderPaths: BlenderPathData[] = deduplicateSamePaths(result, settingsBlenderPaths);
+        const deduplicatedBlenderPaths: BlenderExecutableData[] = deduplicateSamePaths(result, settingsBlenderPaths);
         if (process.platform !== 'win32') {
             try {
                 result = [...settingsBlenderPaths, ...await deduplicateSameHardLinks(deduplicatedBlenderPaths, false, settingsBlenderPaths)]
@@ -163,7 +161,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     quickPickItems.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) })
 
     const pickedItem = await letUserPickItem(quickPickItems);
-    const pathData: BlenderPathData = await pickedItem.data();
+    const pathData: BlenderExecutableData = await pickedItem.data();
 
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
@@ -175,8 +173,8 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     return pathData;
 }
 
-function deduplicateSamePaths(blenderPathsToReduce: BlenderPathData[], additionalBlenderPaths: BlenderPathData[] = []) {
-    const deduplicatedBlenderPaths: BlenderPathData[] = [];
+function deduplicateSamePaths(blenderPathsToReduce: BlenderExecutableData[], additionalBlenderPaths: BlenderExecutableData[] = []) {
+    const deduplicatedBlenderPaths: BlenderExecutableData[] = [];
     const uniqueBlenderPaths: string[] = [];
     const isTheSamePath = (path_one: string, path_two: string) => path.relative(path_one, path_two) === '';
     for (const item of blenderPathsToReduce) {
@@ -192,9 +190,9 @@ function deduplicateSamePaths(blenderPathsToReduce: BlenderPathData[], additiona
     return deduplicatedBlenderPaths;
 }
 
-async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderPathData> {
+async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderExecutableData> {
     let filepath = await askUser_BlenderPath(type.label);
-    let pathData: BlenderPathData = {
+    let pathData: BlenderExecutableData = {
         path: filepath,
         name: '',
     };

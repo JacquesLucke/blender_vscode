@@ -1,8 +1,8 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { BlenderInstance, RunningBlenders } from './communication';
+import { RunningBlenders } from './communication';
 import { getAreaTypeItems } from './commands_scripts_data_loader';
-import { COMMAND_start, outputChannel } from './extension';
+import { COMMAND_start, outputChannel, StartCommandArguments } from './extension';
 import { templateFilesDir } from './paths';
 import { letUserPickItem, PickItem } from './select_utils';
 import { addFolderToWorkspace, cancel, copyFile, getConfig, getRandomString, pathExists } from './utils';
@@ -12,13 +12,11 @@ export function COMMAND_runScript_registerCleanup() {
         if (session.name !== 'Debug Blender' && !session.name.startsWith('Python at Port '))
             return
         RunningBlenders.clearInstances(instance => instance.vscodeIdentifier !== session.configuration.identifier)
-        RunningBlenders.clearOnRegisterCallbacks()
     });
     const disposableTaskListener = vscode.tasks.onDidEndTaskProcess((e) => {
         if (e.execution.task.source !== 'blender')
             return
         RunningBlenders.clearInstances(instance => instance.vscodeIdentifier !== e.execution.task.definition.type)
-        RunningBlenders.clearOnRegisterCallbacks()
     });
     return [disposableDebugSessionListener, disposableTaskListener]
 }
@@ -46,12 +44,8 @@ export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promi
     if (instances.length !== 0) {
         RunningBlenders.sendToResponsive({ type: 'script', path: scriptPath })
     } else {
-        RunningBlenders.onRegister((_instance: BlenderInstance) => RunningBlenders.sendToResponsive({ type: 'script', path: scriptPath }))
-
-        const blenderTask = await COMMAND_start()
-        if (blenderTask === undefined) {
-            throw new Error("Starting blender failed")
-        }
+        const args: StartCommandArguments = { script: scriptPath }
+        await COMMAND_start(args)
     }
 }
 

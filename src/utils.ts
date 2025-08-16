@@ -156,7 +156,8 @@ export async function isDirectory(filepath: string) {
 export function getConfig(resource: vscode.Uri | undefined = undefined) {
     return vscode.workspace.getConfiguration('blender', resource);
 }
-export function getDefaultBlender(): BlenderExecutableSettings | undefined {
+
+export function getDefaultBlenderSettings(): BlenderExecutableSettings | undefined {
     let config = getConfig();
     const settingsBlenderPaths = (<BlenderExecutableSettings[]>config.get('executables'));
     const defaultBlenders = settingsBlenderPaths.filter(item => item.isDefault)
@@ -167,33 +168,33 @@ export function getDefaultBlender(): BlenderExecutableSettings | undefined {
 export async function runTask(
     name: string,
     execution: vscode.ProcessExecution | vscode.ShellExecution,
-    wait: boolean = false,
+    vscode_identifier: string,
     target: vscode.WorkspaceFolder = getAnyWorkspaceFolder(),
-    identifier: string = getRandomString()) {
-    let taskDefinition = { type: identifier };
+) {
+    let taskDefinition = { type: vscode_identifier };
     let source = 'blender';
     let problemMatchers: string[] = [];
     if (execution.options === undefined)
         execution.options = {}
     if (execution.options.env === undefined)
         execution.options.env = {}
-    execution.options.env['VSCODE_IDENTIFIER'] = identifier;
+    execution.options.env['VSCODE_IDENTIFIER'] = vscode_identifier;
     let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);
     let taskExecution = await vscode.tasks.executeTask(task);
 
-    if (wait) {
-        return new Promise<vscode.TaskExecution>(resolve => {
-            let disposable = vscode.tasks.onDidEndTask(e => {
-                if (e.execution.task.definition.type === identifier) {
-                    disposable.dispose();
-                    resolve(taskExecution);
-                }
-            });
-        });
-    }
-    else {
-        return taskExecution;
-    }
+    // if (wait) {
+    //     return new Promise<vscode.TaskExecution>(resolve => {
+    //         let disposable = vscode.tasks.onDidEndTask(e => {
+    //             if (e.execution.task.definition.type === vscode_identifier) {
+    //                 disposable.dispose();
+    //                 resolve(taskExecution);
+    //             }
+    //         });
+    //     });
+    // }
+    // else {
+    return taskExecution;
+    // }
 }
 
 export function addFolderToWorkspace(folder: string) {

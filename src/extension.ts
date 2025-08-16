@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode';
 import { AddonWorkspaceFolder } from './addon_folder';
-import { BlenderExecutable, BlenderExecutableSettings } from './blender_executable';
+import { BlenderExecutableData, BlenderExecutableSettings, LaunchAny, LaunchAnyInteractive } from './blender_executable';
 import { RunningBlenders, startServer, stopServer } from './communication';
 import { COMMAND_newAddon } from './commands_new_addon';
 import { COMMAND_newOperator } from './commands_new_operator';
@@ -14,7 +14,7 @@ import {
     COMMAND_runScript_registerCleanup,
     COMMAND_setScriptContext
 } from './commands_scripts';
-import { getDefaultBlender, handleErrors } from './utils';
+import { getDefaultBlenderSettings, handleErrors } from './utils';
 
 export let outputChannel: vscode.OutputChannel;
 
@@ -22,7 +22,7 @@ export let outputChannel: vscode.OutputChannel;
 /* Registration
  *********************************************/
 
-export let showNotificationAddDefault: (executable: BlenderExecutable) => Promise<void>
+export let showNotificationAddDefault: (executable: BlenderExecutableData) => Promise<void>
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -67,27 +67,32 @@ export function deactivate() {
 /* Commands
  *********************************************/
 
-type StartCommandArguments = {
+export type StartCommandArguments = {
     blenderExecutable?: BlenderExecutableSettings;
     blend_filepaths?: string[]
+    // run python script after degugger is attached
+    script?: string
     // additionalArguments?: string[]; // support someday
 }
 
 export async function COMMAND_start(args?: StartCommandArguments) {
-    let blenderToRun = getDefaultBlender()
+    let blenderToRun = getDefaultBlenderSettings()
     let filePaths: string[] | undefined = undefined
-    if (args !== undefined && args.blenderExecutable !== undefined) {
-        if (args.blenderExecutable.path === undefined) {
-            blenderToRun = args.blenderExecutable
+    let script: string | undefined = undefined
+    if (args !== undefined) {
+        script = args.script
+        if (args.blenderExecutable !== undefined) {
+            if (args.blenderExecutable.path === undefined) {
+                blenderToRun = args.blenderExecutable
+            }
+            filePaths = args.blend_filepaths
         }
-        filePaths = args.blend_filepaths
     }
 
     if (blenderToRun === undefined) {
-        await BlenderExecutable.LaunchAnyInteractive(filePaths)
+        await LaunchAnyInteractive(filePaths, script)
     } else {
-        const executable = new BlenderExecutable(blenderToRun)
-        await BlenderExecutable.LaunchAny(executable, filePaths)
+        await LaunchAny(blenderToRun, filePaths, script)
     }
 }
 

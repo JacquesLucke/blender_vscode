@@ -1,7 +1,5 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
 import * as os from 'os';
-import { BlenderWorkspaceFolder } from './blender_folder';
+import * as vscode from 'vscode';
 import { getStoredScriptFolders } from './commands_scripts';
 import { AddonPathMapping } from './communication';
 import { outputChannel } from './extension';
@@ -67,19 +65,10 @@ async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: A
 }
 
 async function getBlenderScriptsPathMapping(scriptsFolder: string): Promise<PathMapping> {
-    let blender = await BlenderWorkspaceFolder.Get();
-    if (blender !== null) {
-        return {
-            localRoot: path.join(blender.uri.fsPath, 'release', 'scripts'),
-            remoteRoot: scriptsFolder
-        };
-    }
-    else {
-        return {
-            localRoot: scriptsFolder,
-            remoteRoot: scriptsFolder
-        };
-    }
+    return {
+        localRoot: scriptsFolder,
+        remoteRoot: scriptsFolder
+    };
 }
 
 function fixMappings(mappings: PathMapping[]) {
