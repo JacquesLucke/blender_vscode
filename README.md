@@ -197,18 +197,7 @@ The new script file already contains a little bit of code to make it easier to g
 First you have to start a Blender instance by executing the `Blender: Start` command in VS Code's Command Palette.
 To execute the script in all Blender instances that have been started this way, execute the `Blender: Run Script` command.
 
-You can assign a shortcut to `Blender: Run Script` by editing `keybindings.json`:
-```json
-  {
-    "key": "ctrl+shift+enter",
-    "command": "blender.runScript",
-    "args": {
-       // optional, must be absolute path, defaults to current open file
-      "path": "E:\\BlenderProjects\\leagacy_and_extension\\i.py"
-    },
-    "when": "editorLangId == 'python'"  // optional
-  }
-```
+You can assign a shortcut to `Blender: Run Script` by editing `keybindings.json`, see section [How to start Blender with shortcut?](#how-to-start-blender-with-shortcut)
 
 ### How can I change the context the script runs in?
 
@@ -225,7 +214,6 @@ Be aware about:
 
 - [sys.exit gotcha](https://docs.blender.org/api/current/info_gotcha.html#sys-exit) 
 - and [register_cli_command](https://docs.blender.org/api/current/bpy.utils.html#bpy.utils.register_cli_command) 
-- 
 
 ## Core Blender development
 

@@ -23,10 +23,16 @@ export function COMMAND_runScript_registerCleanup() {
     return [disposableDebugSessionListener, disposableTaskListener]
 }
 
-type RunScriptCommandArguments = StartCommandArguments
+type RunScriptCommandArguments = {
+    // compability with <0.26
+    path?: string // now called script
+} & StartCommandArguments;
 
 export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promise<void> {
     let scriptPath = args?.script;
+    if (args?.path !== undefined) {
+        scriptPath = args?.path;
+    }
     if (args?.script === undefined) {
         const editor = vscode.window.activeTextEditor;
         if (editor === undefined)
