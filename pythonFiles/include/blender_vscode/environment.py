@@ -47,3 +47,5 @@ logging.getLogger("werkzeug").setLevel(logging.DEBUG if LOG_FLASK else logging.E
 # to mute all logs, disable also those logs. Be careful, the libs are extremely popular and it will mute logs for everyone!
 # logging.getLogger("requests").setLevel(logging.DEBUG if LOG_FLASK else logging.INFO)
 # logging.getLogger("urllib3").setLevel(logging.DEBUG if LOG_FLASK else logging.INFO)
+
+VSCODE_IDENTIFIER: Optional[str] = os.environ.get("VSCODE_IDENTIFIER", "") or ""

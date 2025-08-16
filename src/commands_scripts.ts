@@ -1,12 +1,11 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
-import { templateFilesDir } from './paths';
+import * as vscode from 'vscode';
 import { BlenderInstance, RunningBlenders } from './communication';
-import { letUserPickItem, PickItem } from './select_utils';
-import { getAreaTypeItems } from './data_loader';
-import { getConfig, cancel, addFolderToWorkspace, getRandomString, pathExists, copyFile } from './utils';
+import { getAreaTypeItems } from './commands_scripts_data_loader';
 import { COMMAND_start, outputChannel } from './extension';
-import { BlenderPathData } from './blender_executable';
+import { templateFilesDir } from './paths';
+import { letUserPickItem, PickItem } from './select_utils';
+import { addFolderToWorkspace, cancel, copyFile, getConfig, getRandomString, pathExists } from './utils';
 
 export function COMMAND_runScript_registerCleanup() {
     const disposableDebugSessionListener = vscode.debug.onDidTerminateDebugSession(session => {
@@ -42,17 +41,17 @@ export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promi
         scriptPath = args.path
     }
 
-    if (RunningBlenders.instances.length === 0) {
-        const config = getConfig();
-        const defaultSettings = (<BlenderPathData[]>config.get('executables')).filter(item => item.isBlenderRunScriptDefault === true);
+    const instances = await RunningBlenders.getResponsive();
+
+    if (instances.length !== 0) {
+        RunningBlenders.sendToResponsive({ type: 'script', path: scriptPath })
+    } else {
         RunningBlenders.onRegister((_instance: BlenderInstance) => RunningBlenders.sendToResponsive({ type: 'script', path: scriptPath }))
 
-        const blenderTask = await COMMAND_start(defaultSettings.length === 0 ? undefined : defaultSettings[0])
+        const blenderTask = await COMMAND_start()
         if (blenderTask === undefined) {
             throw new Error("Starting blender failed")
         }
-    } else {
-        RunningBlenders.sendToResponsive({ type: 'script', path: scriptPath })
     }
 }
 

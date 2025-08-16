@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as os from 'os';
 import { BlenderWorkspaceFolder } from './blender_folder';
-import { getStoredScriptFolders } from './scripts';
+import { getStoredScriptFolders } from './commands_scripts';
 import { AddonPathMapping } from './communication';
 import { outputChannel } from './extension';
 import { getAnyWorkspaceFolder } from './utils';

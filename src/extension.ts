@@ -1,25 +1,29 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { handleErrors } from './utils';
-import { COMMAND_newAddon } from './new_addon';
-import { COMMAND_newOperator } from './new_operator';
 import { AddonWorkspaceFolder } from './addon_folder';
-import { BlenderExecutable } from './blender_executable';
-import { BlenderPathData } from "./blender_executable";
-import { BlenderWorkspaceFolder } from './blender_folder';
-import { startServer, stopServer, RunningBlenders } from './communication';
+import { BlenderExecutable, BlenderExecutableSettings } from './blender_executable';
+import { RunningBlenders, startServer, stopServer } from './communication';
+import { COMMAND_newAddon } from './commands_new_addon';
+import { COMMAND_newOperator } from './commands_new_operator';
+import { factoryShowNotificationAddDefault } from './notifications';
 import {
-    COMMAND_runScript, COMMAND_newScript, COMMAND_setScriptContext,
+    COMMAND_newScript,
     COMMAND_openScriptsFolder,
-    COMMAND_runScript_registerCleanup
-} from './scripts';
+    COMMAND_runScript,
+    COMMAND_runScript_registerCleanup,
+    COMMAND_setScriptContext
+} from './commands_scripts';
+import { getDefaultBlender, handleErrors } from './utils';
 
 export let outputChannel: vscode.OutputChannel;
 
 
 /* Registration
  *********************************************/
+
+export let showNotificationAddDefault: (executable: BlenderExecutable) => Promise<void>
+
 
 export function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel("Blender debugpy");
@@ -29,7 +33,6 @@ export function activate(context: vscode.ExtensionContext) {
     let commands: [string, CommandFuncType][] = [
         ['blender.start', COMMAND_start],
         ['blender.stop', COMMAND_stop],
-        ['blender.buildPythonApiDocs', COMMAND_buildPythonApiDocs],
         ['blender.reloadAddons', COMMAND_reloadAddons],
         ['blender.newAddon', COMMAND_newAddon],
         ['blender.newScript', COMMAND_newScript],
@@ -49,9 +52,10 @@ export function activate(context: vscode.ExtensionContext) {
         const command = vscode.commands.registerCommand(identifier, handleErrors(func));
         disposables.push(command);
     }
+    disposables.push(...COMMAND_runScript_registerCleanup())
 
     context.subscriptions.push(...disposables);
-
+    showNotificationAddDefault = factoryShowNotificationAddDefault(context)
     startServer();
 }
 
@@ -64,29 +68,34 @@ export function deactivate() {
  *********************************************/
 
 type StartCommandArguments = {
-    blenderExecutable?: BlenderPathData;
+    blenderExecutable?: BlenderExecutableSettings;
+    blend_filepaths?: string[]
     // additionalArguments?: string[]; // support someday
 }
 
 export async function COMMAND_start(args?: StartCommandArguments) {
-    // args are used for example in calls from keybindings
-    let blenderFolder = await BlenderWorkspaceFolder.Get()
-    if (blenderFolder === null) {
-        if (args !== undefined && args.blenderExecutable !== undefined) {
-            if (args.blenderExecutable.path === undefined) {
-                await BlenderExecutable.LaunchAnyInteractive()
-                return
-            }
-            const executable = new BlenderExecutable(args.blenderExecutable)
-            await BlenderExecutable.LaunchAny(executable, undefined)
-        } else {
-            await BlenderExecutable.LaunchAnyInteractive()
+    let blenderToRun = getDefaultBlender()
+    let filePaths: string[] | undefined = undefined
+    if (args !== undefined && args.blenderExecutable !== undefined) {
+        if (args.blenderExecutable.path === undefined) {
+            blenderToRun = args.blenderExecutable
         }
+        filePaths = args.blend_filepaths
+    }
+
+    if (blenderToRun === undefined) {
+        await BlenderExecutable.LaunchAnyInteractive(filePaths)
+    } else {
+        const executable = new BlenderExecutable(blenderToRun)
+        await BlenderExecutable.LaunchAny(executable, filePaths)
     }
 }
 
 async function COMMAND_openWithBlender(resource: vscode.Uri) {
-    startBlender([resource.fsPath]);
+    const args: StartCommandArguments = {
+        blend_filepaths: [resource.fsPath]
+    }
+    COMMAND_start(args);
 }
 
 async function COMMAND_openFiles() {
@@ -100,29 +109,14 @@ async function COMMAND_openFiles() {
     if (resources === undefined) {
         return Promise.reject(new Error('No .blend file selected.'));
     }
-    startBlender(resources.map(r => r.fsPath));
-}
-
-async function startBlender(blend_filepaths?: string[]) {
-    let blenderFolder = await BlenderWorkspaceFolder.Get();
-    if (blenderFolder === null) {
-        await BlenderExecutable.LaunchAnyInteractive(blend_filepaths);
+    const args: StartCommandArguments = {
+        blend_filepaths: resources.map(r => r.fsPath)
     }
+    COMMAND_start(args);
 }
 
 async function COMMAND_stop() {
     RunningBlenders.sendToAll({ type: 'stop' });
-}
-
-async function COMMAND_buildPythonApiDocs() {
-    let folder = await BlenderWorkspaceFolder.Get();
-    if (folder === null) {
-        vscode.window.showInformationMessage('Cannot generate API docs without Blender source code.');
-        return;
-    }
-    let part = await vscode.window.showInputBox({ placeHolder: 'part' });
-    if (part === undefined) return;
-    await folder.buildPythonDocs(part);
 }
 
 let isSavingForReload = false;

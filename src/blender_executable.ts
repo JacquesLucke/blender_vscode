@@ -10,7 +10,7 @@ import { getServerPort } from './communication';
 import { letUserPickItem, PickItem } from './select_utils';
 import { getConfig, cancel, runTask, getAnyWorkspaceFolder } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
-import { outputChannel } from './extension';
+import { outputChannel, showNotificationAddDefault } from './extension';
 import { getBlenderWindows } from './blender_executable_windows';
 import { deduplicateSameHardLinks } from './blender_executable_linux';
 
@@ -36,6 +36,7 @@ export class BlenderExecutable {
 
     public static async LaunchAnyInteractive(blend_filepaths?: string[]) {
         const executable = await this.GetAnyInteractive();
+        showNotificationAddDefault(executable)
         await this.LaunchAny(executable, blend_filepaths)
     }
 
@@ -80,13 +81,14 @@ export type BlenderExecutableSettings = {
     path: string;
     name: string;
     linuxInode?: never;
+    isDefault?: boolean;
 }
 
 export type BlenderPathData = {
     path: string;
     name: string;
     linuxInode?: number;
-    isBlenderRunScriptDefault?: boolean;
+    isDefault?: boolean;
 }
 
 interface BlenderType {
@@ -100,7 +102,7 @@ async function searchBlenderInSystem(): Promise<BlenderPathData[]> {
     const blenders: BlenderPathData[] = [];
     if (process.platform === "win32") {
         const windowsBlenders = await getBlenderWindows();
-        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: ""})))
+        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "" })))
     }
     const separator = process.platform === "win32" ? ";" : ":"
     const path_env = process.env.PATH?.split(separator);
@@ -166,7 +168,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderPathDat
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         settingsBlenderPaths.push(pathData);
-        const toSave: BlenderExecutableSettings[] = settingsBlenderPaths.map(item => { return { 'name': item.name, 'path': item.path } })
+        const toSave: BlenderExecutableSettings[] = settingsBlenderPaths.map(item => { return { 'name': item.name, 'path': item.path, "isDefault": item.isDefault } })
         config.update('executables', toSave, vscode.ConfigurationTarget.Global);
     }
 

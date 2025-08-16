@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as crypto from 'crypto';
+import { BlenderExecutableSettings } from './blender_executable';
 
 const CANCEL = 'CANCEL';
 
@@ -41,21 +42,6 @@ export function getAnyWorkspaceFolder() {
     return folders[0];
 }
 
-export function handleCommandWithArgsErrors(func: (args: any) => Promise<void>) {
-    return async (args: any) => {
-        try {
-            await func(args);
-        }
-        catch (err: any) {
-            if (err instanceof Error) {
-                if (err.message !== CANCEL) {
-                    vscode.window.showErrorMessage(err.message);
-                }
-            }
-        }
-    };
-}
-
 export function handleErrors(func: (args?: any) => Promise<void | vscode.TaskExecution>) {
     return async (args?: any) => {
         try {
@@ -71,12 +57,7 @@ export function handleErrors(func: (args?: any) => Promise<void | vscode.TaskExe
     };
 }
 
-
-// export function handleFileExplorerCommandErrors(func: (resources: vscode.Uri) => Promise<void>) {
-//     return (resources: vscode.Uri[]) => handleErrors(func, resources)();
-// }
-
-export function getRandomString(length: number = 10) {
+export function getRandomString(length: number = 12) {
     return crypto.randomBytes(length).toString('hex').substring(0, length);
 }
 
@@ -175,6 +156,13 @@ export async function isDirectory(filepath: string) {
 export function getConfig(resource: vscode.Uri | undefined = undefined) {
     return vscode.workspace.getConfiguration('blender', resource);
 }
+export function getDefaultBlender(): BlenderExecutableSettings | undefined {
+    let config = getConfig();
+    const settingsBlenderPaths = (<BlenderExecutableSettings[]>config.get('executables'));
+    const defaultBlenders = settingsBlenderPaths.filter(item => item.isDefault)
+    const defaultBlender = defaultBlenders[0]
+    return defaultBlender
+}
 
 export async function runTask(
     name: string,
@@ -248,8 +236,8 @@ export function isValidPythonModuleName(text: string): boolean {
 }
 
 export function toTitleCase(str: string) {
-  return str.replace(
-    /\w\S*/g,
-    text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
-  );
+    return str.replace(
+        /\w\S*/g,
+        text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+    );
 }

@@ -9,9 +9,9 @@ import debugpy
 import flask
 import requests
 
-from .environment import LOG_FLASK, blender_path, scripts_folder, python_path
+from .environment import LOG_FLASK, VSCODE_IDENTIFIER, blender_path, scripts_folder, python_path
 from .utils import run_in_main_thread
-from . import VSCODE_IDENTIFIER, log
+from . import log
 
 LOG = log.getLogger()
 
