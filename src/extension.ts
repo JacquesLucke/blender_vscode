@@ -69,7 +69,7 @@ export function deactivate() {
 
 export type StartCommandArguments = {
     blenderExecutable?: BlenderExecutableSettings;
-    blend_filepaths?: string[]
+    blendFilepaths?: string[]
     // run python script after degugger is attached
     script?: string
     // additionalArguments?: string[]; // support someday
@@ -85,7 +85,7 @@ export async function COMMAND_start(args?: StartCommandArguments) {
             if (args.blenderExecutable.path === undefined) {
                 blenderToRun = args.blenderExecutable
             }
-            filePaths = args.blend_filepaths
+            filePaths = args.blendFilepaths
         }
     }
 
@@ -98,7 +98,7 @@ export async function COMMAND_start(args?: StartCommandArguments) {
 
 async function COMMAND_openWithBlender(resource: vscode.Uri) {
     const args: StartCommandArguments = {
-        blend_filepaths: [resource.fsPath]
+        blendFilepaths: [resource.fsPath]
     }
     COMMAND_start(args);
 }
@@ -115,7 +115,7 @@ async function COMMAND_openFiles() {
         return Promise.reject(new Error('No .blend file selected.'));
     }
     const args: StartCommandArguments = {
-        blend_filepaths: resources.map(r => r.fsPath)
+        blendFilepaths: resources.map(r => r.fsPath)
     }
     COMMAND_start(args);
 }

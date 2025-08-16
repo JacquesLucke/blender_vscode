@@ -23,13 +23,11 @@ export function COMMAND_runScript_registerCleanup() {
     return [disposableDebugSessionListener, disposableTaskListener]
 }
 
-type RunScriptCommandArguments = {
-    path?: string;
-}
+type RunScriptCommandArguments = StartCommandArguments
 
 export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promise<void> {
-    let scriptPath;
-    if (args?.path === undefined) {
+    let scriptPath = args?.script;
+    if (args?.script === undefined) {
         const editor = vscode.window.activeTextEditor;
         if (editor === undefined)
             return Promise.reject(new Error('no active script'));
@@ -37,8 +35,6 @@ export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promi
         await document.save();
         outputChannel.appendLine(`Blender: Run Script: ${document.uri.fsPath}`)
         scriptPath = document.uri.fsPath;
-    } else {
-        scriptPath = args.path
     }
 
     const instances = await RunningBlenders.getResponsive();
