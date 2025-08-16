@@ -137,7 +137,7 @@
                 },
                 "isDefault": {
                   "type": "boolean",
-                  "description": "Use this settings to automatically start instance when calling `Blender: Run Script` if no blender instances are running. If multiple items have this setting set to true, only first one is used.",
+                  "description": "Set default choice for blender executable. The interactive choise will no longer be offered.",
                   "default": false
                 }
               }
