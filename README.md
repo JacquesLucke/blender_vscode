@@ -136,7 +136,7 @@ Shortcut to `Blender: Start` advanced example:
       "path": "C:\\...\\blender.exe" 
     },
     // optional, run script after debugger is attached, must be absolute path
-    "script": "E:\\BlenderProjects\\leagacy_and_extension\\i.py"
+    "script": "C:\\script.py"
   }
 }
 ```
@@ -162,7 +162,7 @@ Shortcut to `Blender: Run Script` advanced example:
       "path": "C:\\...\\blender.exe" 
     },
     // optional, run script after debugger is attached, must be absolute path, defaults to current open file
-    "script": "E:\\BlenderProjects\\leagacy_and_extension\\i.py"
+    "script": "C:\\script.py"
   },
   "when": "editorLangId == 'python'"
 }
