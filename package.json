@@ -133,7 +133,6 @@
                 "name": {
                   "type": "string",
                   "description": "Custom name for this Blender version."
-                
                 },
                 "isDefault": {
                   "type": "boolean",
@@ -150,6 +149,15 @@
             "description": "Deprecated: automatically installing modules in Python distributions outside of Blender.",
             "markdownDeprecationMessage": "**Deprecated**: modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`.",
             "deprecationMessage": "Deprecated: modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`."
+          },
+          "blender.autocompletion": {
+            "type": "boolean",
+            "scope": "resource",
+            "default": false,
+            "markdownDescription": "Add basic autocompletion powered by Blender internal (console like) code completion. You must use `Blender: Start` before completion starts working.\n\nRequires restart of extension.\n\nFor classic code completion use `fake-bpy-module` or similar.",
+            "tags": [
+              "experimental"
+            ]
           },
           "blender.addon.reloadOnSave": {
             "type": "boolean",
@@ -360,15 +368,19 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "test": "jest"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/mocha": "^2.2.42",
-    "@types/node": "^8.10.25",
+    "@types/node": "^22.17.2",
     "@types/request": "^2.48.1",
     "@types/vscode": "^1.28.0",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
     "tslint": "^5.8.0",
-    "typescript": "^5.5.2"
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "request": "^2.87.0"

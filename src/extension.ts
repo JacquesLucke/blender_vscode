@@ -2,11 +2,10 @@
 
 import * as vscode from 'vscode';
 import { AddonWorkspaceFolder } from './addon_folder';
+import { blenderCompletionProvider } from './blender_completion_provider';
 import { BlenderExecutableData, BlenderExecutableSettings, LaunchAny, LaunchAnyInteractive } from './blender_executable';
-import { RunningBlenders, startServer, stopServer } from './communication';
 import { COMMAND_newAddon } from './commands_new_addon';
 import { COMMAND_newOperator } from './commands_new_operator';
-import { factoryShowNotificationAddDefault } from './notifications';
 import {
     COMMAND_newScript,
     COMMAND_openScriptsFolder,
@@ -14,7 +13,9 @@ import {
     COMMAND_runScript_registerCleanup,
     COMMAND_setScriptContext
 } from './commands_scripts';
-import { getDefaultBlenderSettings, handleErrors } from './utils';
+import { RunningBlenders, startServer, stopServer } from './communication';
+import { factoryShowNotificationAddDefault } from './notifications';
+import { getConfig, getDefaultBlenderSettings, handleErrors } from './utils';
 
 export let outputChannel: vscode.OutputChannel;
 
@@ -54,6 +55,11 @@ export function activate(context: vscode.ExtensionContext) {
     }
     disposables.push(...COMMAND_runScript_registerCleanup())
 
+    const useAutocomplete = <boolean>getConfig().get('autocompletion')
+    if (useAutocomplete) {
+        disposables.push(blenderCompletionProvider())
+    }
+
     context.subscriptions.push(...disposables);
     showNotificationAddDefault = factoryShowNotificationAddDefault(context)
     startServer();
@@ -62,7 +68,6 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
     stopServer();
 }
-
 
 /* Commands
  *********************************************/

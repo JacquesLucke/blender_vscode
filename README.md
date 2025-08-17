@@ -113,6 +113,29 @@ By default, debug breakpoints work only for files and directories opened in the 
 Disable the VS Code setting [`blender.addon.justMyCode`](vscode://settings/blender.addon.justMyCode) to debug code anywhere.
 In rare cases debugging with VS Code can crash Blender (ex. https://github.com/JacquesLucke/blender_vscode/issues/188).
 
+### Python autocomplete `bpy`
+
+There is **experimental** autocomplete engine available that can work together with classic solution like `fake-bpy-module`.
+
+How to use:
+
+1. Enable setting [`blender.autocompletion`](vscode://settings/blender.autocompletion) and **restart** extension (or vs code)
+1. Use `Blender: Start` command - blender must me running for completion to work
+1. In any python file write `bpy.<trigger completion>` (crtl+space in my case)
+
+Pros:
+
+- This method can complete dynamic items like `bpy.ops`, `bpy.data.object` names
+- Can resolve function arguments but ony best effort (extracted from docs)
+- Can show docs for functions
+
+Cons:
+
+- bpy import will be still marked as missing
+- Blender must be running for completion to work with debug session attached
+- Type hints are not supported
+- Variables (aliases) will not work: `D = bpy.data; D.<tab>` will fail to complete
+
 ### How to start Blender with shortcut?
 
 Limited shortcuts are supported by editing `keybindings.json`. 

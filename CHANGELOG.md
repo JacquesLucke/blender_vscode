@@ -8,6 +8,23 @@
 
 ### Added
 
+- Basic autocompletion support, powered by Blender console-like completion engine. It is not mean to replace other completion engines but work in tandem.
+  - hidden under setting `blender.autocompletion`, by default disabled
+  - Pros:
+    - should not break other completion methods like `fake-bpy-module` - in fact, all methods can be used together
+    - this method can complete dynamic items like `bpy.ops`, `bpy.data.object` names
+    - can resolve function arguments but ony best effort (extracted from docs)
+    - can show docs for functions
+  - Cons:
+    - bpy import will be still marked as missing
+    - type hints are ignored
+    - variables (aliases) will not work
+  - How to use
+  1. Enable setting `blender.autocompletion` and restart extension
+  1. Use `Blender: Start` command - blender must me running for completion to work
+  1. In any python file write `bpy.<trigger completion>` (crtl+space in my case)
+
+
 - A `blender.executable` can be now marked as default.
   - When no blender is marked as default, a notification will appear after and offer setting it as default 
 ```json
