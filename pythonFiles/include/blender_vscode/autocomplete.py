@@ -19,16 +19,11 @@ def complete(data):
     current_character: str = data["current_character"]
 
     resultExpand = intellisense.expand(line=line, cursor=current_character, namespace=complete_locals, private=True)
-    # LOG.info("expand")
-    # LOG.info(resultExpand)
 
     resultComplete = intellisense.complete(line=line, cursor=current_character, namespace=complete_locals, private=True)
-    # LOG.info("complete")
-    # LOG.info(resultComplete)
 
     if resultComplete[0]:
         for result in resultComplete[0]:
             yield {"complete": result, "description": "", "prefixToRemove": resultComplete[1]}
     else:
         yield {"complete": resultExpand[0], "description": resultExpand[2]}
-    # return resultComplete[0]

@@ -65,14 +65,7 @@ export class BlenderInstance {
                     }
                 }
             );
-            // req.on('end', () => resolve());
-            // req.on('response', (resp: request.Response) => resolve(resp));
-        //     req.on('complete', (resp: request.Response, body?: string | Buffer) => {
-        //          resolve(resp)
         });
-        //     // req.on('data', (resp: request.Response) => resolve(resp));
-        //     req.on('error', err => { this.connectionErrors.push(err); reject(err); });
-        // });
     }
 
     async isResponsive(timeout: number = RESPONSIVE_LIMIT_MS) {
