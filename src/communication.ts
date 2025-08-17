@@ -48,6 +48,33 @@ export class BlenderInstance {
         });
     }
 
+    async getAsync(data: any): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            request.get(this.address, { json: data },
+                (error, response, body) => {
+                    if (error) {
+                        reject(error)
+                        return;
+                    }
+
+                    if (response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
+                        resolve(body)
+                    } else {
+                        reject(error)
+                        return;
+                    }
+                }
+            );
+            // req.on('end', () => resolve());
+            // req.on('response', (resp: request.Response) => resolve(resp));
+        //     req.on('complete', (resp: request.Response, body?: string | Buffer) => {
+        //          resolve(resp)
+        });
+        //     // req.on('data', (resp: request.Response) => resolve(resp));
+        //     req.on('error', err => { this.connectionErrors.push(err); reject(err); });
+        // });
+    }
+
     async isResponsive(timeout: number = RESPONSIVE_LIMIT_MS) {
         return new Promise<boolean>(resolve => {
             this.ping().then(() => resolve(true)).catch();
@@ -122,10 +149,25 @@ export class RunningBlenderInstances {
         let sentTo: request.Request[] = []
         for (const instance of this.instances) {
             const isResponsive = await instance.isResponsive(timeout)
-            if (!isResponsive)
-                continue
+
+            if (!isResponsive) continue
+
             try {
                 sentTo.push(instance.post(data))
+            } catch { }
+        }
+        return sentTo;
+    }
+
+    async sendGetToResponsive(data: object, timeout: number = RESPONSIVE_LIMIT_MS) {
+        let sentTo: Promise<any>[] = []
+        for (const instance of this.instances) {
+            const isResponsive = await instance.isResponsive(timeout)
+
+            if (!isResponsive) continue
+
+            try {
+                sentTo.push(instance.getAsync(data))
             } catch { }
         }
         return sentTo;
@@ -171,7 +213,6 @@ function SERVER_handleRequest(request: any, response: any) {
                     instance.attachDebugger().then(() => {
                         RunningBlenders.registerInstance(instance)
                         RunningBlenders.getTask(instance.vscodeIdentifier)?.onStartDebugging()
-
                     }
                     )
                     break;
@@ -190,6 +231,11 @@ function SERVER_handleRequest(request: any, response: any) {
                     response.end('OK');
                     break;
                 }
+                // case 'completeResponse': {
+                //     console.log("completeResponse")
+                //     console.log(req)
+                //     break;
+                // }
                 default: {
                     throw new Error('unknown type');
                 }

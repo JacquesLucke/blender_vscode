@@ -86,7 +86,6 @@ def handle_post():
         return POST_HANDLERS[data["type"]](data)
     else:
         LOG.warning(f"Unhandled POST: {data}")
-
     return "OK"
 
 
@@ -98,9 +97,14 @@ def handle_get():
     if data["type"] == "ping":
         pass
     elif data["type"] == "complete":
-        from .blender_complete import complete
+        from .autocomplete import complete
 
-        return {"items": complete(data)}
+        items = list(complete(data))
+
+        # print("repondings:")
+        out = flask.jsonify({"type": "completeResponse", "items": items})
+        # print(out)
+        return out
     else:
         LOG.warning(f"Unhandled GET: {data}")
     return "OK"

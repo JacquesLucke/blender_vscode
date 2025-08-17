@@ -14,7 +14,7 @@ import {
     COMMAND_runScript_registerCleanup,
     COMMAND_setScriptContext
 } from './commands_scripts';
-import { getDefaultBlenderSettings, handleErrors } from './utils';
+import { getConfig, getDefaultBlenderSettings, getRandomString, guesFuncSignature, handleErrors, removeCommonPrefix } from './utils';
 
 export let outputChannel: vscode.OutputChannel;
 
@@ -54,6 +54,11 @@ export function activate(context: vscode.ExtensionContext) {
     }
     disposables.push(...COMMAND_runScript_registerCleanup())
 
+    const useAutocomplete = <boolean>getConfig().get('autocompletion')
+    if (useAutocomplete) {
+        disposables.push(blenderCompletionProvider())
+    }
+
     context.subscriptions.push(...disposables);
     showNotificationAddDefault = factoryShowNotificationAddDefault(context)
     startServer();
@@ -63,6 +68,59 @@ export function deactivate() {
     stopServer();
 }
 
+function blenderCompletionProvider() {
+    const provider1 = vscode.languages.registerCompletionItemProvider('python', {
+        async provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, _token: vscode.CancellationToken, _context: vscode.CompletionContext) {
+            const line = document.lineAt(position.line);
+            const requestData = {
+                "type": "complete",
+                "sessionId": getRandomString(),
+                "line": line.text,
+                "document": document.getText(),
+                "current_line": position.line,
+                "current_character": position.character,
+            }
+            const resultsToAwait = await RunningBlenders.sendGetToResponsive(requestData)
+            const results = await Promise.allSettled(resultsToAwait);
+            const items = results.filter(r => r.status === "fulfilled").map((r: PromiseFulfilledResult<any>) => r.value);
+
+            const seen = new Set<string>();
+            const deduplicatedItems: any[] = items.reduce((acc, responseBody) => {
+                for (const item of responseBody.items) {
+                    if (!seen.has(item.complete)) {
+                        seen.add(item.complete)
+                        acc.push(item)
+                    }
+                }
+                return acc;
+            }, [])
+
+            return deduplicatedItems.map(item => {
+                const complete = new vscode.CompletionItem(item.complete)
+                if (item.prefixToRemove !== undefined) {
+                    complete.insertText = item.complete.substring(item.prefixToRemove.length)
+                } else {
+                    complete.insertText = removeCommonPrefix(item.complete, line.text)
+                }
+                if (item.description) {
+                    complete.documentation = new vscode.MarkdownString(item.description.replace("\r", "\n\n"))
+                }
+                if (item.complete.endsWith('(')) {
+                    complete.kind = vscode.CompletionItemKind.Function
+                    complete.detail = guesFuncSignature(item.description)
+                    if (complete.detail) {
+                        complete.insertText = removeCommonPrefix(complete.detail, line.text)
+                    }
+                }
+                return complete
+            }
+            );
+        }
+    },
+        ".", "(", // trigger characters
+    );
+    return provider1
+}
 
 /* Commands
  *********************************************/

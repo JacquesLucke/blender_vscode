@@ -151,6 +151,13 @@
             "markdownDeprecationMessage": "**Deprecated**: modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`.",
             "deprecationMessage": "Deprecated: modules are now installed to `bpy.utils.user_resource(\"SCRIPTS\", path=\"modules\")`."
           },
+          "blender.autocompletion": {
+            "type": "boolean",
+            "scope": "resource",
+            "default": false,
+            "markdownDescription": "Add basic autocompletion powered by Blender internal (console like) code completion. You must use `Blender: Start` before completion starts working.\n\nRequires restart of extension.\n\nFor classic code completion use `fake-bpy-module` or similar.",
+            "tags": ["experimental"]
+          },
           "blender.addon.reloadOnSave": {
             "type": "boolean",
             "scope": "resource",
