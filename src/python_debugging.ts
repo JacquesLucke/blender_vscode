@@ -1,8 +1,6 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
 import * as os from 'os';
-import { BlenderWorkspaceFolder } from './blender_folder';
-import { getStoredScriptFolders } from './scripts';
+import * as vscode from 'vscode';
+import { getStoredScriptFolders } from './commands_scripts';
 import { AddonPathMapping } from './communication';
 import { outputChannel } from './extension';
 import { getAnyWorkspaceFolder } from './utils';
@@ -11,26 +9,27 @@ type PathMapping = { localRoot: string, remoteRoot: string };
 
 export async function attachPythonDebuggerToBlender(
     port: number, blenderPath: string, justMyCode: boolean, scriptsFolder: string,
-    addonPathMappings: AddonPathMapping[]) {
+    addonPathMappings: AddonPathMapping[], identifier: string) {
 
     let mappings = await getPythonPathMappings(scriptsFolder, addonPathMappings);
-    attachPythonDebugger(port, justMyCode, mappings);
+    return attachPythonDebugger(port, justMyCode, mappings, identifier);
 }
 
-function attachPythonDebugger(port: number, justMyCode: boolean, pathMappings: PathMapping[] = []) {
-    let configuration = {
+function attachPythonDebugger(port: number, justMyCode: boolean, pathMappings: PathMapping[], identifier: string) {
+    let configuration: vscode.DebugConfiguration = {
         name: `Python at Port ${port}`,
         request: "attach",
         type: 'python',
         port: port,
         host: 'localhost',
         pathMappings: pathMappings,
-        justMyCode: justMyCode
+        justMyCode: justMyCode,
+        identifier: identifier,
     };
 
     outputChannel.appendLine("Python debug configuration: " + JSON.stringify(configuration, undefined, 2));
 
-    vscode.debug.startDebugging(undefined, configuration);
+    return vscode.debug.startDebugging(undefined, configuration);
 }
 
 async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
@@ -66,19 +65,10 @@ async function getPythonPathMappings(scriptsFolder: string, addonPathMappings: A
 }
 
 async function getBlenderScriptsPathMapping(scriptsFolder: string): Promise<PathMapping> {
-    let blender = await BlenderWorkspaceFolder.Get();
-    if (blender !== null) {
-        return {
-            localRoot: path.join(blender.uri.fsPath, 'release', 'scripts'),
-            remoteRoot: scriptsFolder
-        };
-    }
-    else {
-        return {
-            localRoot: scriptsFolder,
-            remoteRoot: scriptsFolder
-        };
-    }
+    return {
+        localRoot: scriptsFolder,
+        remoteRoot: scriptsFolder
+    };
 }
 
 function fixMappings(mappings: PathMapping[]) {

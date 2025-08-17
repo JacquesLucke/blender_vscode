@@ -2,6 +2,79 @@
 
 ## Unreleased
 
+### Changed
+
+- Disconnecting debug session will now hard close/terminate blender
+
+### Added
+
+- A `blender.executable` can be now marked as default.
+  - When no blender is marked as default, a notification will appear after and offer setting it as default 
+```json
+"blender.executables": [
+  {
+    "name": "blender-4.5.1",
+    "path": "C:\\...\\blender-4.5.1-windows-x64\\blender.exe",
+    "isDefault": true
+  }
+]
+```
+- Run `Blender: Start` using single button by adding snippet to `keybindings.json`. Other commands are not supported.
+
+Simple example:
+```json
+{
+    "key": "ctrl+h",
+    "command": "blender.start",
+}
+```
+
+Advanced example:
+```json
+{
+  "key": "ctrl+h",
+  "command": "blender.start",
+  "args": {
+    "blenderExecutable": {
+      "path": "C:\\...\\blender.exe" 
+    },
+    // optional, run script after debugger is attached, must be absolute path
+    "script": "C\\script.py"
+  }
+}
+```
+- Improvements for `Blender: Run Script`:
+  - When **no** Blender instances are running, start blender automatically
+  - When Blender instances are running, just run the script on all available instances (consistant with old behavior)
+  - Run `Blender: Run Script` using single button by adding snippet to `keybindings.json`. 
+
+Simple example:
+```json
+{
+  "key": "ctrl+shift+enter",
+  "command": "blender.runScript",
+  "when": "editorLangId == 'python'"
+}
+```
+
+Advanced example:
+```json
+{
+  "key": "ctrl+shift+enter",
+  "command": "blender.runScript",
+  "args": {
+    // optional, same format as item in blender.executables
+    // if missing user will be prompted to choose blender.exe or default blender.exe will be used
+    "blenderExecutable": { 
+      "path": "C:\\...\\blender.exe" 
+    },
+    // optional, run script after debugger is attached, must be absolute path, defaults to current open file
+    "script": "C:\\script.py"
+  },
+  "when": "editorLangId == 'python'"
+}
+```
+
 ### Removed
 
 - Removed dependency on `ms-vscode.cpptools` what causes problems for other editors #235, #157. There is no plans to further support Blender Core develompent in this addon.
@@ -10,6 +83,8 @@
   - `blender.build`
   - `blender.buildAndStart`
   - `blender.startWithoutCDebugger`
+  - `blender.buildPythonApiDocs`
+
 
 ## [0.0.26] - 2025-08-14
 
@@ -23,7 +98,7 @@
   "args": {
     "blenderExecutable": { // optional, same format as item in blender.executables
       "path": "C:\\...\\blender.exe" // optional, if missing user will be prompted to choose blender.exe
-    }
+    },
     // define command line arguments in setting blender.additionalArguments
 }
 ```

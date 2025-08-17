@@ -1,20 +1,56 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
-import { templateFilesDir } from './paths';
+import * as vscode from 'vscode';
 import { RunningBlenders } from './communication';
+import { getAreaTypeItems } from './commands_scripts_data_loader';
+import { COMMAND_start, outputChannel, StartCommandArguments } from './extension';
+import { templateFilesDir } from './paths';
 import { letUserPickItem, PickItem } from './select_utils';
-import { getAreaTypeItems } from './data_loader';
-import { getConfig, cancel, addFolderToWorkspace, getRandomString, pathExists, copyFile } from './utils';
-import { outputChannel } from './extension';
+import { addFolderToWorkspace, cancel, copyFile, getConfig, getRandomString, pathExists } from './utils';
 
-export async function COMMAND_runScript(): Promise<void> {
-    let editor = vscode.window.activeTextEditor;
-    if (editor === undefined) return Promise.reject(new Error('no active script'));
+export function COMMAND_runScript_registerCleanup() {
+    const disposableDebugSessionListener = vscode.debug.onDidTerminateDebugSession(session => {
+        // if (session.name !== 'Debug Blender' && !session.name.startsWith('Python at Port '))
+        //     return
+        const id = session.configuration.identifier;
+        RunningBlenders.kill(id);
+    });
+    const disposableTaskListener = vscode.tasks.onDidEndTaskProcess((e) => {
+        if (e.execution.task.source !== 'blender')
+            return
+        const id = e.execution.task.definition.type;
+        RunningBlenders.kill(id);
+    });
+    return [disposableDebugSessionListener, disposableTaskListener]
+}
 
-    const document = editor.document;
-    outputChannel.appendLine(`Blender: Run Script: ${document.uri.fsPath}`)
-    await document.save();
-    RunningBlenders.sendToResponsive({ type: 'script', path: document.uri.fsPath });
+type RunScriptCommandArguments = {
+    // compability with <0.26
+    path?: string // now called script
+} & StartCommandArguments;
+
+export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promise<void> {
+    let scriptPath = args?.script;
+    if (args?.path !== undefined) {
+        scriptPath = args?.path;
+    }
+    if (args?.script === undefined && args?.path === undefined) {
+        const editor = vscode.window.activeTextEditor;
+        if (editor === undefined)
+            return Promise.reject(new Error('no active script'));
+        const document = editor.document;
+        await document.save();
+        outputChannel.appendLine(`Blender: Run Script: ${document.uri.fsPath}`)
+        scriptPath = document.uri.fsPath;
+    }
+
+    const instances = await RunningBlenders.getResponsive();
+
+    if (instances.length !== 0) {
+        RunningBlenders.sendToResponsive({ type: 'script', path: scriptPath })
+    } else {
+        const commandArgs: StartCommandArguments = { script: scriptPath, blenderExecutable: args?.blenderExecutable }
+        await COMMAND_start(commandArgs)
+    }
 }
 
 export async function COMMAND_newScript(): Promise<void> {

@@ -6,100 +6,94 @@ import * as fs from 'fs';
 import * as util from 'util';
 
 import { launchPath } from './paths';
-import { getServerPort } from './communication';
+import { getServerPort, RunningBlenders } from './communication';
 import { letUserPickItem, PickItem } from './select_utils';
-import { getConfig, cancel, runTask, getAnyWorkspaceFolder } from './utils';
+import { getConfig, cancel, runTask, getAnyWorkspaceFolder, getRandomString } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
-import { outputChannel } from './extension';
+import { outputChannel, showNotificationAddDefault } from './extension';
 import { getBlenderWindows } from './blender_executable_windows';
 import { deduplicateSameHardLinks } from './blender_executable_linux';
 
 
 const stat = util.promisify(fs.stat)
 
-export class BlenderExecutable {
-    data: BlenderExecutableData;
+export async function LaunchAnyInteractive(blend_filepaths?: string[], script?: string) {
+    const executable = await getFilteredBlenderPath({
+        label: 'Blender Executable',
+        selectNewLabel: 'Choose a new Blender executable...',
+        predicate: () => true,
+        setSettings: () => { }
+    });
+    showNotificationAddDefault(executable)
+    return await LaunchAny(executable, blend_filepaths, script)
+}
 
-    constructor(data: BlenderExecutableData) {
-        this.data = data;
+export async function LaunchAny(executable: BlenderExecutableData, blend_filepaths?: string[], script?: string) {
+    if (blend_filepaths === undefined || !blend_filepaths.length) {
+        await launch(executable, undefined, script);
+        return;
+    }
+    for (const blend_filepath of blend_filepaths) {
+        await launch(executable, blend_filepath, script);
+    }
+}
+
+export class BlenderTask {
+    task: vscode.TaskExecution
+    script?: string
+    vscodeIdentifier: string
+
+    constructor(task: vscode.TaskExecution, vscode_identifier: string, script?: string) {
+        this.task = task
+        this.script = script
+        this.vscodeIdentifier = vscode_identifier
     }
 
-    public static async GetAnyInteractive() {
-        let data = await getFilteredBlenderPath({
-            label: 'Blender Executable',
-            selectNewLabel: 'Choose a new Blender executable...',
-            predicate: () => true,
-            setSettings: () => { }
-        });
-        return new BlenderExecutable(data);
-    }
-
-    public static async LaunchAnyInteractive(blend_filepaths?: string[]) {
-        const executable = await this.GetAnyInteractive();
-        await this.LaunchAny(executable, blend_filepaths)
-    }
-
-    public static async LaunchAny(executable: BlenderExecutable, blend_filepaths?: string[]) {
-        if (blend_filepaths === undefined || !blend_filepaths.length) {
-            await executable.launch();
-            return;
+    public onStartDebugging() {
+        if (this.script !== undefined) {
+            RunningBlenders.sendToResponsive({ type: 'script', path: this.script })
         }
-        for (const blend_filepath of blend_filepaths) {
-            await executable.launch(blend_filepath);
-        }
     }
+}
 
-    get path() {
-        return this.data.path;
-    }
+export async function launch(data: BlenderExecutableData, blend_filepath?: string, script?: string) {
+    const blenderArgs = getBlenderLaunchArgs(blend_filepath);
+    const execution = new vscode.ProcessExecution(
+        data.path,
+        blenderArgs,
+        { env: await getBlenderLaunchEnv() }
+    );
+    outputChannel.appendLine(`Starting blender: ${data.path} ${blenderArgs.join(' ')}`)
+    outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2))
 
-    public async launch(blend_filepath?: string) {
-        const blenderArgs = getBlenderLaunchArgs(blend_filepath);
-        const execution = new vscode.ProcessExecution(
-            this.path,
-            blenderArgs,
-            { env: await getBlenderLaunchEnv() }
-        );
-        outputChannel.appendLine(`Starting blender: ${this.path} ${blenderArgs.join(' ')}`)
-        outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2))
+    const vscode_identifier = getRandomString()
+    const task = await runTask('blender', execution, vscode_identifier);
 
-        await runTask('blender', execution);
-    }
+    const blenderTask = new BlenderTask(task, vscode_identifier, script)
+    RunningBlenders.registerTask(blenderTask)
 
-    public async launchWithCustomArgs(taskName: string, args: string[]) {
-        const execution = new vscode.ProcessExecution(
-            this.path,
-            args,
-        );
-
-        await runTask(taskName, execution, true);
-    }
+    return task;
 }
 
 export type BlenderExecutableSettings = {
     path: string;
     name: string;
     linuxInode?: never;
+    isDefault?: boolean;
 }
 
 export type BlenderExecutableData = {
     path: string;
     name: string;
     linuxInode?: number;
-}
-
-interface BlenderType {
-    label: string;
-    selectNewLabel: string;
-    predicate: (item: BlenderExecutableData) => boolean;
-    setSettings: (item: BlenderExecutableData) => void;
+    isDefault?: boolean;
 }
 
 async function searchBlenderInSystem(): Promise<BlenderExecutableData[]> {
     const blenders: BlenderExecutableData[] = [];
     if (process.platform === "win32") {
         const windowsBlenders = await getBlenderWindows();
-        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: ""})))
+        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "" })))
     }
     const separator = process.platform === "win32" ? ";" : ":"
     const path_env = process.env.PATH?.split(separator);
@@ -114,6 +108,13 @@ async function searchBlenderInSystem(): Promise<BlenderExecutableData[]> {
         blenders.push({ path: executable, name: "", linuxInode: stats.ino })
     }
     return blenders;
+}
+
+interface BlenderType {
+    label: string;
+    selectNewLabel: string;
+    predicate: (item: BlenderExecutableData) => boolean;
+    setSettings: (item: BlenderExecutableData) => void;
 }
 
 async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecutableData> {
@@ -165,7 +166,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecuta
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         settingsBlenderPaths.push(pathData);
-        const toSave: BlenderExecutableSettings[] = settingsBlenderPaths.map(item => { return { 'name': item.name, 'path': item.path } })
+        const toSave: BlenderExecutableSettings[] = settingsBlenderPaths.map(item => { return { 'name': item.name, 'path': item.path, "isDefault": item.isDefault } })
         config.update('executables', toSave, vscode.ConfigurationTarget.Global);
     }
 

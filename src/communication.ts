@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import * as request from 'request';
 import { getConfig } from './utils';
 import { attachPythonDebuggerToBlender } from './python_debugging';
+import { BlenderTask } from './blender_executable';
 
 const RESPONSIVE_LIMIT_MS = 1000;
 
@@ -20,9 +21,11 @@ export class BlenderInstance {
     scriptsFolder: string;
     addonPathMappings: AddonPathMapping[];
     connectionErrors: Error[];
+    vscodeIdentifier: string; // can identify vs code task and in http communication
+    debug_session: any;
 
     constructor(blenderPort: number, debugpyPort: number, justMyCode: boolean, path: string,
-        scriptsFolder: string, addonPathMappings: AddonPathMapping[]) {
+        scriptsFolder: string, addonPathMappings: AddonPathMapping[], vscodeIdentifier: string) {
         this.blenderPort = blenderPort;
         this.debugpyPort = debugpyPort;
         this.justMyCode = justMyCode;
@@ -30,10 +33,11 @@ export class BlenderInstance {
         this.scriptsFolder = scriptsFolder;
         this.addonPathMappings = addonPathMappings;
         this.connectionErrors = [];
+        this.vscodeIdentifier = vscodeIdentifier;
     }
 
-    post(data: object): void {
-        request.post(this.address, { json: data });
+    post(data: object) {
+        return request.post(this.address, { json: data });
     }
 
     async ping(): Promise<void> {
@@ -52,7 +56,8 @@ export class BlenderInstance {
     }
 
     attachDebugger() {
-        attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings);
+        this.debug_session = attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings, this.vscodeIdentifier);
+        return this.debug_session
     }
 
     get address() {
@@ -60,15 +65,36 @@ export class BlenderInstance {
     }
 }
 
-export class BlenderInstances {
-    private instances: BlenderInstance[];
+export class RunningBlenderInstances {
+    protected instances: BlenderInstance[];
+    protected tasks: BlenderTask[];
 
     constructor() {
         this.instances = [];
+        this.tasks = [];
     }
 
-    register(instance: BlenderInstance) {
+    registerInstance(instance: BlenderInstance) {
         this.instances.push(instance);
+    }
+    registerTask(task: BlenderTask) {
+        this.tasks.push(task)
+    }
+
+    public getTask(vscodeIdentifier: string): BlenderTask | undefined {
+        return this.tasks.filter(item => item.vscodeIdentifier === vscodeIdentifier)[0]
+    }
+    public getInstance(vscodeIdentifier: string): BlenderInstance | undefined {
+        return this.instances.filter(item => item.vscodeIdentifier === vscodeIdentifier)[0]
+    }
+
+    public async kill(vscodeIdentifier: string) {
+        const task = this.getTask(vscodeIdentifier)
+        task?.task.terminate()
+        this.tasks = this.tasks.filter(item => item.vscodeIdentifier !== vscodeIdentifier)
+
+        // const instance = this.getInstance(vscodeIdentifier)
+        this.instances = this.instances.filter(item => item.vscodeIdentifier !== vscodeIdentifier)
     }
 
     async getResponsive(timeout: number = RESPONSIVE_LIMIT_MS): Promise<BlenderInstance[]> {
@@ -92,12 +118,17 @@ export class BlenderInstances {
         });
     }
 
-    sendToResponsive(data: object, timeout: number = RESPONSIVE_LIMIT_MS) {
+    async sendToResponsive(data: object, timeout: number = RESPONSIVE_LIMIT_MS) {
+        let sentTo: request.Request[] = []
         for (const instance of this.instances) {
-            instance.isResponsive(timeout).then(responsive => {
-                if (responsive) instance.post(data);
-            }).catch();
+            const isResponsive = await instance.isResponsive(timeout)
+            if (!isResponsive)
+                continue
+            try {
+                sentTo.push(instance.post(data))
+            } catch { }
         }
+        return sentTo;
     }
 
     sendToAll(data: object) {
@@ -135,10 +166,14 @@ function SERVER_handleRequest(request: any, response: any) {
                 case 'setup': {
                     let config = getConfig();
                     let justMyCode: boolean = <boolean>config.get('addon.justMyCode')
-                    let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings);
-                    instance.attachDebugger();
-                    RunningBlenders.register(instance);
+                    let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings, req.vscodeIdentifier);
                     response.end('OK');
+                    instance.attachDebugger().then(() => {
+                        RunningBlenders.registerInstance(instance)
+                        RunningBlenders.getTask(instance.vscodeIdentifier)?.onStartDebugging()
+
+                    }
+                    )
                     break;
                 }
                 case 'enableFailure': {
@@ -163,5 +198,5 @@ function SERVER_handleRequest(request: any, response: any) {
     }
 }
 
-var server: any = undefined;
-export const RunningBlenders = new BlenderInstances();
+var server: http.Server | any = undefined;
+export const RunningBlenders = new RunningBlenderInstances();

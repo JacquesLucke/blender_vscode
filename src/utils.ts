@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as crypto from 'crypto';
+import { BlenderExecutableSettings } from './blender_executable';
 
 const CANCEL = 'CANCEL';
 
@@ -41,8 +42,8 @@ export function getAnyWorkspaceFolder() {
     return folders[0];
 }
 
-export function handleCommandWithArgsErrors(func: (args: any) => Promise<void>) {
-    return async (args: any) => {
+export function handleErrors(func: (args?: any) => Promise<void | vscode.TaskExecution>) {
+    return async (args?: any) => {
         try {
             await func(args);
         }
@@ -56,30 +57,7 @@ export function handleCommandWithArgsErrors(func: (args: any) => Promise<void>) 
     };
 }
 
-function handleErrors(func: (...args: any[]) => Promise<void>, ...args: any[]) {
-    return async () => {
-        try {
-            await func(...args);
-        }
-        catch (err: any) {
-            if (err instanceof Error) {
-                if (err.message !== CANCEL) {
-                    vscode.window.showErrorMessage(err.message);
-                }
-            }
-        }
-    };
-}
-
-export function handleCommandErrors(func: () => Promise<void>) {
-    return handleErrors(func);
-}
-
-export function handleFileExplorerCommandErrors(func: (resources: vscode.Uri) => Promise<void>) {
-    return (resources: vscode.Uri[]) => handleErrors(func, resources)();
-}
-
-export function getRandomString(length: number = 10) {
+export function getRandomString(length: number = 12) {
     return crypto.randomBytes(length).toString('hex').substring(0, length);
 }
 
@@ -179,31 +157,44 @@ export function getConfig(resource: vscode.Uri | undefined = undefined) {
     return vscode.workspace.getConfiguration('blender', resource);
 }
 
+export function getDefaultBlenderSettings(): BlenderExecutableSettings | undefined {
+    let config = getConfig();
+    const settingsBlenderPaths = (<BlenderExecutableSettings[]>config.get('executables'));
+    const defaultBlenders = settingsBlenderPaths.filter(item => item.isDefault)
+    const defaultBlender = defaultBlenders[0]
+    return defaultBlender
+}
+
 export async function runTask(
     name: string,
     execution: vscode.ProcessExecution | vscode.ShellExecution,
-    wait: boolean = false,
+    vscode_identifier: string,
     target: vscode.WorkspaceFolder = getAnyWorkspaceFolder(),
-    identifier: string = getRandomString()) {
-    let taskDefinition = { type: identifier };
+) {
+    let taskDefinition = { type: vscode_identifier };
     let source = 'blender';
     let problemMatchers: string[] = [];
+    if (execution.options === undefined)
+        execution.options = {}
+    if (execution.options.env === undefined)
+        execution.options.env = {}
+    execution.options.env['VSCODE_IDENTIFIER'] = vscode_identifier;
     let task = new vscode.Task(taskDefinition, target, name, source, execution, problemMatchers);
     let taskExecution = await vscode.tasks.executeTask(task);
 
-    if (wait) {
-        return new Promise<vscode.TaskExecution>(resolve => {
-            let disposable = vscode.tasks.onDidEndTask(e => {
-                if (e.execution.task.definition.type === identifier) {
-                    disposable.dispose();
-                    resolve(taskExecution);
-                }
-            });
-        });
-    }
-    else {
-        return taskExecution;
-    }
+    // if (wait) {
+    //     return new Promise<vscode.TaskExecution>(resolve => {
+    //         let disposable = vscode.tasks.onDidEndTask(e => {
+    //             if (e.execution.task.definition.type === vscode_identifier) {
+    //                 disposable.dispose();
+    //                 resolve(taskExecution);
+    //             }
+    //         });
+    //     });
+    // }
+    // else {
+    return taskExecution;
+    // }
 }
 
 export function addFolderToWorkspace(folder: string) {
@@ -246,8 +237,8 @@ export function isValidPythonModuleName(text: string): boolean {
 }
 
 export function toTitleCase(str: string) {
-  return str.replace(
-    /\w\S*/g,
-    text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
-  );
+    return str.replace(
+        /\w\S*/g,
+        text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+    );
 }
