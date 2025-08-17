@@ -231,11 +231,6 @@ function SERVER_handleRequest(request: any, response: any) {
                     response.end('OK');
                     break;
                 }
-                // case 'completeResponse': {
-                //     console.log("completeResponse")
-                //     console.log(req)
-                //     break;
-                // }
                 default: {
                     throw new Error('unknown type');
                 }

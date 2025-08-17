@@ -2,11 +2,10 @@
 
 import * as vscode from 'vscode';
 import { AddonWorkspaceFolder } from './addon_folder';
+import { blenderCompletionProvider } from './blender_completion_provider';
 import { BlenderExecutableData, BlenderExecutableSettings, LaunchAny, LaunchAnyInteractive } from './blender_executable';
-import { RunningBlenders, startServer, stopServer } from './communication';
 import { COMMAND_newAddon } from './commands_new_addon';
 import { COMMAND_newOperator } from './commands_new_operator';
-import { factoryShowNotificationAddDefault } from './notifications';
 import {
     COMMAND_newScript,
     COMMAND_openScriptsFolder,
@@ -14,7 +13,9 @@ import {
     COMMAND_runScript_registerCleanup,
     COMMAND_setScriptContext
 } from './commands_scripts';
-import { getConfig, getDefaultBlenderSettings, getRandomString, guesFuncSignature, handleErrors, removeCommonPrefix } from './utils';
+import { RunningBlenders, startServer, stopServer } from './communication';
+import { factoryShowNotificationAddDefault } from './notifications';
+import { getConfig, getDefaultBlenderSettings, handleErrors } from './utils';
 
 export let outputChannel: vscode.OutputChannel;
 
@@ -66,60 +67,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() {
     stopServer();
-}
-
-function blenderCompletionProvider() {
-    const provider1 = vscode.languages.registerCompletionItemProvider('python', {
-        async provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, _token: vscode.CancellationToken, _context: vscode.CompletionContext) {
-            const line = document.lineAt(position.line);
-            const requestData = {
-                "type": "complete",
-                "sessionId": getRandomString(),
-                "line": line.text,
-                "document": document.getText(),
-                "current_line": position.line,
-                "current_character": position.character,
-            }
-            const resultsToAwait = await RunningBlenders.sendGetToResponsive(requestData)
-            const results = await Promise.allSettled(resultsToAwait);
-            const items = results.filter(r => r.status === "fulfilled").map((r: PromiseFulfilledResult<any>) => r.value);
-
-            const seen = new Set<string>();
-            const deduplicatedItems: any[] = items.reduce((acc, responseBody) => {
-                for (const item of responseBody.items) {
-                    if (!seen.has(item.complete)) {
-                        seen.add(item.complete)
-                        acc.push(item)
-                    }
-                }
-                return acc;
-            }, [])
-
-            return deduplicatedItems.map(item => {
-                const complete = new vscode.CompletionItem(item.complete)
-                if (item.prefixToRemove !== undefined) {
-                    complete.insertText = item.complete.substring(item.prefixToRemove.length)
-                } else {
-                    complete.insertText = removeCommonPrefix(item.complete, line.text)
-                }
-                if (item.description) {
-                    complete.documentation = new vscode.MarkdownString(item.description.replace("\r", "\n\n"))
-                }
-                if (item.complete.endsWith('(')) {
-                    complete.kind = vscode.CompletionItemKind.Function
-                    complete.detail = guesFuncSignature(item.description)
-                    if (complete.detail) {
-                        complete.insertText = removeCommonPrefix(complete.detail, line.text)
-                    }
-                }
-                return complete
-            }
-            );
-        }
-    },
-        ".", "(", // trigger characters
-    );
-    return provider1
 }
 
 /* Commands
