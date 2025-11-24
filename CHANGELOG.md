@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Use IANA-recommended port range ([#246](https://github.com/JacquesLucke/blender_vscode/pull/246))
+
 ### Changed
 
 - Disconnecting debug session will now hard close/terminate blender
