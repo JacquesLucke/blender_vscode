@@ -147,7 +147,7 @@ def send_dict_as_json(data):
 
 
 def get_random_port():
-    return random.randint(2000, 10000)
+    return random.randint(49152, 65535)
 
 
 def get_blender_port():
