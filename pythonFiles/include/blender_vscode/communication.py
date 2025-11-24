@@ -68,7 +68,7 @@ def start_debug_server():
             debugpy.configure(python=str(python_path))
             debugpy.listen(("localhost", port))
             break
-        except (OSError, RuntimeError):
+        except OSError:
             pass
     return port
 
