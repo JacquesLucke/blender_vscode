@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.27] - 2025-11-25
+
 ### Fixed
 
 - Use IANA-recommended port range ([#246](https://github.com/JacquesLucke/blender_vscode/pull/246))
@@ -13,7 +15,7 @@
 ### Added
 
 - A `blender.executable` can be now marked as default.
-  - When no blender is marked as default, a notification will appear after and offer setting it as default 
+  - When no blender is marked as default, a notification will appear after and offer setting it as default
 ```json
 "blender.executables": [
   {
@@ -40,7 +42,7 @@ Advanced example:
   "command": "blender.start",
   "args": {
     "blenderExecutable": {
-      "path": "C:\\...\\blender.exe" 
+      "path": "C:\\...\\blender.exe"
     },
     // optional, run script after debugger is attached, must be absolute path
     "script": "C\\script.py"
@@ -49,8 +51,8 @@ Advanced example:
 ```
 - Improvements for `Blender: Run Script`:
   - When **no** Blender instances are running, start blender automatically
-  - When Blender instances are running, just run the script on all available instances (consistant with old behavior)
-  - Run `Blender: Run Script` using single button by adding snippet to `keybindings.json`. 
+  - When Blender instances are running, just run the script on all available instances (consistent with old behavior)
+  - Run `Blender: Run Script` using single button by adding snippet to `keybindings.json`.
 
 Simple example:
 ```json
@@ -69,8 +71,8 @@ Advanced example:
   "args": {
     // optional, same format as item in blender.executables
     // if missing user will be prompted to choose blender.exe or default blender.exe will be used
-    "blenderExecutable": { 
-      "path": "C:\\...\\blender.exe" 
+    "blenderExecutable": {
+      "path": "C:\\...\\blender.exe"
     },
     // optional, run script after debugger is attached, must be absolute path, defaults to current open file
     "script": "C:\\script.py"
@@ -81,7 +83,7 @@ Advanced example:
 
 ### Removed
 
-- Removed dependency on `ms-vscode.cpptools` what causes problems for other editors #235, #157. There is no plans to further support Blender Core develompent in this addon.
+- Removed dependency on `ms-vscode.cpptools` what causes problems for other editors #235, #157. There are no plans to further support Blender Core development in this add-on.
 - Deprecated setting: `blender.core.buildDebugCommand`
 - Removed commands:
   - `blender.build`
