@@ -65,6 +65,7 @@ def start_debug_server():
         try:
             # for < 2.92 support (debugpy has problems when using bpy.app.binary_path_python)
             # https://github.com/microsoft/debugpy/issues/1330
+            LOG.debug(f"Starting debugpy on port {port} with python {python_path}")
             debugpy.configure(python=str(python_path))
             debugpy.listen(("localhost", port))
             break
@@ -90,14 +91,18 @@ def handle_post():
     return "OK"
 
 
+@SERVER.route("/ping", methods=["GET"])
+def handle_get_ping():
+    LOG.debug(f"Got ping")
+    return "OK"
+
+
 @SERVER.route("/", methods=["GET"])
 def handle_get():
     data = flask.request.get_json()
     LOG.debug(f"Got GET: {str(data)}")
 
-    if data["type"] == "ping":
-        pass
-    elif data["type"] == "complete":
+    if data["type"] == "complete":
         from .blender_complete import complete
 
         return {"items": complete(data)}

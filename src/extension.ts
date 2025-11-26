@@ -142,7 +142,7 @@ async function reloadAddons(addons: AddonWorkspaceFolder[]) {
     let names = await Promise.all(addons.map(a => a.getModuleName()));
     // Send source dirs so that the python script can determine if each addon is an extension or not.
     let dirs = await Promise.all(addons.map(a => a.getSourceDirectory()));
-    instances.forEach(instance => instance.post({ type: 'reload', names: names, dirs: dirs }));
+    instances.forEach(async instance => await instance.post({ type: 'reload', names: names, dirs: dirs })); // todo does not really need await?
 }
 
 async function rebuildAddons(addons: AddonWorkspaceFolder[]) {
