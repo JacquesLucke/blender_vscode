@@ -8,19 +8,19 @@ import { letUserPickItem, PickItem } from './select_utils';
 import { addFolderToWorkspace, cancel, copyFile, getConfig, getRandomString, pathExists } from './utils';
 
 export function COMMAND_runScript_registerCleanup() {
-    const disposableDebugSessionListener = vscode.debug.onDidTerminateDebugSession(session => {
-        // if (session.name !== 'Debug Blender' && !session.name.startsWith('Python at Port '))
-        //     return
-        const id = session.configuration.identifier;
-        RunningBlenders.kill(id);
-    });
+    // const disposableDebugSessionListener = vscode.debug.onDidTerminateDebugSession(session => {
+    //     // if (session.name !== 'Debug Blender' && !session.name.startsWith('Python at Port '))
+    //     //     return
+    //     const id = session.configuration.identifier;
+    //     RunningBlenders.kill(id);
+    // });
     const disposableTaskListener = vscode.tasks.onDidEndTaskProcess((e) => {
         if (e.execution.task.source !== 'blender')
             return
         const id = e.execution.task.definition.type;
         RunningBlenders.kill(id);
     });
-    return [disposableDebugSessionListener, disposableTaskListener]
+    return [disposableTaskListener]
 }
 
 type RunScriptCommandArguments = {
