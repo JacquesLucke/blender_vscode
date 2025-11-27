@@ -15,17 +15,16 @@ export class AddonWorkspaceFolder {
         this.folder = folder;
     }
 
-    public static async All() {
+    public static async All(): Promise<AddonWorkspaceFolder[]> {
         // Search folders specified by settings first, if nothing is specified
         // search workspace folders instead.
-        let addonFolders = await foldersToWorkspaceFoldersMockup(
+        const addonFolders = await foldersToWorkspaceFoldersMockup(
             <string[]>getConfig().get('addonFolders'));
-        
-        let searchableFolders = addonFolders.length !== 0 ? addonFolders : getWorkspaceFolders(); 
 
-        let folders = [];
-        for (let folder of searchableFolders) {
-            let addon = new AddonWorkspaceFolder(folder);
+        const searchableFolders = addonFolders.length !== 0 ? addonFolders : getWorkspaceFolders(); 
+        const folders: AddonWorkspaceFolder[] = [];
+        for (const folder of searchableFolders) {
+            const addon = new AddonWorkspaceFolder(folder);
             if (await addon.hasAddonEntryPoint()) {
                 folders.push(addon);
             }
@@ -49,7 +48,7 @@ export class AddonWorkspaceFolder {
         return <boolean>this.getConfig().get('addon.justMyCode');
     }
 
-    public async hasAddonEntryPoint() {
+    public async hasAddonEntryPoint(): Promise<boolean> {
         try {
             let sourceDir = await this.getSourceDirectory();
             return folderContainsAddonEntry(sourceDir);
@@ -61,7 +60,9 @@ export class AddonWorkspaceFolder {
 
     public async buildIfNecessary() {
         let taskName = this.buildTaskName;
-        if (taskName === '') return Promise.resolve();
+        if (taskName === '') {
+            return;
+        }
         await executeTask(taskName, true);
     }
 
@@ -70,8 +71,8 @@ export class AddonWorkspaceFolder {
     }
 
     public async getLoadDirectoryAndModuleName() {
-        let load_dir = await this.getLoadDirectory();
-        let module_name = await this.getModuleName();
+        const load_dir = await this.getLoadDirectory();
+        const module_name = await this.getModuleName();
         return {
             'load_dir' : load_dir,
             'module_name' : module_name,
@@ -79,33 +80,27 @@ export class AddonWorkspaceFolder {
     }
 
     public async getModuleName() {
-        let value = <string>getConfig(this.uri).get('addon.moduleName');
+        const value = <string>getConfig(this.uri).get('addon.moduleName');
         if (value === 'auto') {
             return path.basename(await this.getLoadDirectory());
         }
-        else {
-            return value;
-        }
+        return value;
     }
 
     public async getLoadDirectory() {
-        let value = <string>getConfig(this.uri).get('addon.loadDirectory');
+        const value = <string>getConfig(this.uri).get('addon.loadDirectory');
         if (value === 'auto') {
             return this.getSourceDirectory();
         }
-        else {
-            return this.makePathAbsolute(value);
-        }
+        return this.makePathAbsolute(value);
     }
 
     public async getSourceDirectory() {
-        let value = <string>getConfig(this.uri).get('addon.sourceDirectory');
+        const value = <string>getConfig(this.uri).get('addon.sourceDirectory');
         if (value === 'auto') {
             return await tryFindActualAddonFolder(this.uri.fsPath);
         }
-        else {
-            return this.makePathAbsolute(value);
-        }
+        return this.makePathAbsolute(value);
     }
 
     private makePathAbsolute(directory: string) {
@@ -119,8 +114,10 @@ export class AddonWorkspaceFolder {
 }
 
 async function tryFindActualAddonFolder(root: string) {
-    if (await folderContainsAddonEntry(root)) return root;
-    for (let folder of await getSubfolders(root)) {
+    if (await folderContainsAddonEntry(root)) {
+        return root;
+    }
+    for (const folder of await getSubfolders(root)) {
         if (await folderContainsAddonEntry(folder)) {
             return folder;
         }
@@ -129,14 +126,14 @@ async function tryFindActualAddonFolder(root: string) {
 }
 
 async function folderContainsAddonEntry(folderPath: string) {
-    let manifestPath = path.join(folderPath, "blender_manifest.toml");
+    const manifestPath = path.join(folderPath, "blender_manifest.toml");
     if (await pathExists(manifestPath)) {
         return true;
     }
-        
-    let initPath = path.join(folderPath, '__init__.py');
+
+    const initPath = path.join(folderPath, '__init__.py');
     try {
-        let content = await readTextFile(initPath);
+        const content = await readTextFile(initPath);
         return content.includes('bl_info');
     }
     catch {
@@ -145,18 +142,15 @@ async function folderContainsAddonEntry(folderPath: string) {
 }
 
 async function foldersToWorkspaceFoldersMockup(folders: string[]) {
-    let mockups: vscode.WorkspaceFolder[] = [];
+    const mockups: vscode.WorkspaceFolder[] = [];
     // Assume this functionality is only used with a single workspace folder for now.
-    let rootFolder = getAnyWorkspaceFolder();
+    const rootFolder = getAnyWorkspaceFolder();
     for (let i = 0; i < folders.length; i++) {
-        let absolutePath;
-        if (path.isAbsolute(folders[i])) {
-            absolutePath = folders[i];
-        } else {
-            absolutePath = path.join(rootFolder.uri.fsPath, folders[i])
-        }
+        const absolutePath = path.isAbsolute(folders[i])
+            ? folders[i]
+            : path.join(rootFolder.uri.fsPath, folders[i]);
 
-        let exists = await pathExists(absolutePath);
+        const exists = await pathExists(absolutePath);
         if (!exists) {
             vscode.window.showInformationMessage(
                 `Revise settings, path to addon doesn't exist ${absolutePath}`);
@@ -164,9 +158,9 @@ async function foldersToWorkspaceFoldersMockup(folders: string[]) {
         }
 
         mockups.push({
-            "name" : path.basename(absolutePath),
-            "uri": vscode.Uri.from({ scheme: "file", path: absolutePath }),
-            "index": i
+            name: path.basename(absolutePath),
+            uri: vscode.Uri.from({ scheme: "file", path: absolutePath }),
+            index: i
         });
     }
     return mockups;

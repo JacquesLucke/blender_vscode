@@ -12,32 +12,32 @@ import {
 type AddonBuilder = (path: string, addonName: string, authorName: string, supportLegacy: boolean) => Promise<string>;
 
 const addonTemplateDir = path.join(templateFilesDir, 'addons');
-const manifestFile = path.join(templateFilesDir, 'blender_manifest.toml')
+const manifestFile = path.join(templateFilesDir, 'blender_manifest.toml');
 
 export async function COMMAND_newAddon() {
-    let builder = await getNewAddonGenerator();
-    let [addonName, authorName, supportLegacy] = await askUser_SettingsForNewAddon();
+    const builder = await getNewAddonGenerator();
+    const [addonName, authorName, supportLegacy] = await askUser_SettingsForNewAddon();
     let folderPath = await getFolderForNewAddon();
     folderPath = await fixAddonFolderName(folderPath);
-    let mainPath = await builder(folderPath, addonName, authorName, supportLegacy);
+    const mainPath = await builder(folderPath, addonName, authorName, supportLegacy);
 
     await vscode.window.showTextDocument(vscode.Uri.file(mainPath));
     addFolderToWorkspace(folderPath);
 }
 
 async function getNewAddonGenerator(): Promise<AddonBuilder> {
-    let items = [];
+    const items = [];
     items.push({ label: 'Simple', data: generateAddon_Simple });
     items.push({ label: 'With Auto Load', data: generateAddon_WithAutoLoad });
-    let item = await letUserPickItem(items, 'Choose Template');
+    const item = await letUserPickItem(items, 'Choose Template');
     return item.data;
 }
 
 async function getFolderForNewAddon(): Promise<string> {
-    let items = [];
+    const items = [];
 
-    for (let workspaceFolder of getWorkspaceFolders()) {
-        let folderPath = workspaceFolder.uri.fsPath;
+    for (const workspaceFolder of getWorkspaceFolders()) {
+        const folderPath = workspaceFolder.uri.fsPath;
         if (await canAddonBeCreatedInFolder(folderPath)) {
             items.push({ data: async () => folderPath, label: folderPath });
         }
@@ -45,23 +45,23 @@ async function getFolderForNewAddon(): Promise<string> {
 
     if (items.length > 0) {
         items.push({ data: selectFolderForAddon, label: 'Open Folder...' });
-        let item = await letUserPickItem(items);
+        const item = await letUserPickItem(items);
         return await item.data();
     }
-    else {
-        return await selectFolderForAddon();
-    }
+    return await selectFolderForAddon();
 }
 
 async function selectFolderForAddon() {
-    let value = await vscode.window.showOpenDialog({
+    const value = await vscode.window.showOpenDialog({
         canSelectFiles: false,
         canSelectFolders: true,
         canSelectMany: false,
         openLabel: 'New Addon'
     });
-    if (value === undefined) return Promise.reject(cancel());
-    let folderPath = value[0].fsPath;
+    if (value === undefined) {
+        return Promise.reject(cancel());
+    }
+    const folderPath = value[0].fsPath;
 
     if (!(await canAddonBeCreatedInFolder(folderPath))) {
         let message: string = 'Cannot create new addon in this folder.';
@@ -73,28 +73,23 @@ async function selectFolderForAddon() {
 }
 
 async function canAddonBeCreatedInFolder(folder: string) {
-    return new Promise<boolean>(resolve => {
-        fs.stat(folder, (err, stat) => {
-            if (err !== null) {
-                resolve(false);
-                return;
-            }
-            if (!stat.isDirectory()) {
-                resolve(false);
-                return;
-            }
+    try {
+        const stat = await fs.promises.stat(folder);
+        if (!stat.isDirectory()) {
+            return false;
+        }
 
-            fs.readdir(folder, {}, (err, files) => {
-                for (let name of files) {
-                    if (!(<string>name).startsWith('.')) {
-                        resolve(false);
-                        return;
-                    }
-                }
-                resolve(true);
-            });
-        });
-    });
+        const files = await fs.promises.readdir(folder);
+        for (const name of files) {
+            if (!name.startsWith('.')) {
+                return false;
+            }
+        }
+
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 async function fixAddonFolderName(folder: string) {
@@ -103,13 +98,18 @@ async function fixAddonFolderName(folder: string) {
         return folder;
     }
 
-    let items = [];
-    let alternatives = getFolderNameAlternatives(name).map(newName => path.join(path.dirname(folder), newName));
-    items.push(...alternatives.filter(async p => !(await pathExists(p))).map(p => ({ label: p, data: p })));
+    const items = [];
+    const directory = path.dirname(folder);
+    for (const newName of getFolderNameAlternatives(name)) {
+        const candidate = path.join(directory, newName);
+        if (!(await pathExists(candidate))) {
+            items.push({ label: candidate, data: candidate });
+        }
+    }
     items.push({ label: "Don't change the name.", data: folder });
 
-    let item = await letUserPickItem(items, 'Warning: This folder name should not be used.');
-    let newPath = item.data;
+    const item = await letUserPickItem(items, 'Warning: This folder name should not be used.');
+    const newPath = item.data;
     if (folder !== newPath) {
         renamePath(folder, newPath);
     }
@@ -117,67 +117,65 @@ async function fixAddonFolderName(folder: string) {
 }
 
 function getFolderNameAlternatives(name: string): string[] {
-    let alternatives = [];
-    alternatives.push(name.replace(/\W/, '_'));
-    alternatives.push(name.replace(/\W/, ''));
-    return alternatives;
+    return [name.replace(/\W/, '_'), name.replace(/\W/, '')];
 }
 
 async function askUser_SettingsForNewAddon() {
-    let addonName = await vscode.window.showInputBox({ placeHolder: 'Addon Name' });
+    const addonName = await vscode.window.showInputBox({ placeHolder: 'Addon Name' });
     if (addonName === undefined) {
         return Promise.reject(cancel());
     }
-    else if (addonName === "") {
+    if (addonName === '') {
         return Promise.reject(new Error('Can\'t create an addon without a name.'));
     }
-    
-    let authorName = await vscode.window.showInputBox({ placeHolder: 'Your Name' });
+
+    const authorName = await vscode.window.showInputBox({ placeHolder: 'Your Name' });
     if (authorName === undefined) {
         return Promise.reject(cancel());
     }
-    else if (authorName === "") {
+    if (authorName === '') {
         return Promise.reject(new Error('Can\'t create an addon without an author name.'));
     }
-    
-    let items = [];
-    items.push({ label: "Yes", data: true });
-    items.push({ label: "No", data: false });
-    let item = await letUserPickItem(items, "Support legacy Blender versions (<4.2)?");
-    let supportLegacy = item.data;
 
-    return [<string>addonName, <string>authorName, supportLegacy];
+    const items = [
+    { label: 'Yes', data: true },
+    { label: 'No', data: false },
+];
+    const item = await letUserPickItem(items, 'Support legacy Blender versions (<4.2)?');
+    const supportLegacy = item.data;
+
+    return [addonName, authorName, supportLegacy];
 }
 
 async function generateAddon_Simple(folder: string, addonName: string, authorName: string, supportLegacy: boolean) {
-    let srcDir = path.join(addonTemplateDir, 'simple');
+    const srcDir = path.join(addonTemplateDir, 'simple');
 
-    let initSourcePath = path.join(srcDir, '__init__.py');
-    let initTargetPath = path.join(folder, '__init__.py');
+    const initSourcePath = path.join(srcDir, '__init__.py');
+    const initTargetPath = path.join(folder, '__init__.py');
     await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName, supportLegacy);
 
-    let manifestTargetPath = path.join(folder, 'blender_manifest.toml');
+    const manifestTargetPath = path.join(folder, 'blender_manifest.toml');
     await copyModifiedManifestFile(manifestFile, manifestTargetPath, addonName, authorName);
     
     return manifestTargetPath;
 }
 
 async function generateAddon_WithAutoLoad(folder: string, addonName: string, authorName: string, supportLegacy: boolean) {
-    let srcDir = path.join(addonTemplateDir, 'with_auto_load');
+    const srcDir = path.join(addonTemplateDir, 'with_auto_load');
 
-    let initSourcePath = path.join(srcDir, '__init__.py');
-    let initTargetPath = path.join(folder, '__init__.py');
+    const initSourcePath = path.join(srcDir, '__init__.py');
+    const initTargetPath = path.join(folder, '__init__.py');
     await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName, supportLegacy);
     
-    let manifestTargetPath = path.join(folder, 'blender_manifest.toml');
+    const manifestTargetPath = path.join(folder, 'blender_manifest.toml');
     await copyModifiedManifestFile(manifestFile, manifestTargetPath, addonName, authorName);
     
-    let autoLoadSourcePath = path.join(srcDir, 'auto_load.py');
-    let autoLoadTargetPath = path.join(folder, 'auto_load.py');
+    const autoLoadSourcePath = path.join(srcDir, 'auto_load.py');
+    const autoLoadTargetPath = path.join(folder, 'auto_load.py');
     await copyFileWithReplacedText(autoLoadSourcePath, autoLoadTargetPath, {});
 
     try {
-        let defaultFilePath = path.join(folder, await getDefaultFileName());
+        const defaultFilePath = path.join(folder, await getDefaultFileName());
         if (!(await pathExists(defaultFilePath))) {
             await writeTextFile(defaultFilePath, 'import bpy\n');
         }
@@ -189,35 +187,30 @@ async function generateAddon_WithAutoLoad(folder: string, addonName: string, aut
 }
 
 async function getDefaultFileName() {
-    let items = [];
-    items.push({ label: '__init__.py' });
-    items.push({ label: 'operators.py' });
-
-    let item = await letUserPickItem(items, 'Open File');
+    const items = [
+        { label: '__init__.py' },
+        { label: 'operators.py' },
+    ];
+    const item = await letUserPickItem(items, 'Open File');
     return item.label;
 }
 
 async function copyModifiedInitFile(src: string, dst: string, addonName: string, authorName: string, supportLegacy: boolean) {
-    let replacements;
-
-    // Remove bl_info if not supporting legacy addon system
-    if (supportLegacy) {
-        replacements = {
+    const replacements = supportLegacy
+        ? {
             ADDON_NAME: toTitleCase(addonName),
             AUTHOR_NAME: authorName,
         }
-    }
-    else {
-        // https://regex101.com/r/RmBWrk/1
-        replacements = {
-            'bl_info.+=.+{[\\s\\S]*}\\s*': '',
-        }
-    }
+        : {
+            // https://regex101.com/r/RmBWrk/1
+            'bl_info.+=.+{[\s\S]*}\s*': '',
+        };
+
     await copyFileWithReplacedText(src, dst, replacements);
 }
 
 async function copyModifiedManifestFile(src: string, dst: string, addonName: string, authorName: string) {
-    let replacements = {
+    const replacements = {
         ADDON_ID: addonName.toLowerCase().replace(/\s/g, '_'),
         ADDON_NAME: toTitleCase(addonName),
         AUTHOR_NAME: authorName,
@@ -226,7 +219,7 @@ async function copyModifiedManifestFile(src: string, dst: string, addonName: str
 }
 
 async function copyFileWithReplacedText(src: string, dst: string, replacements: object) {
-    let text = await readTextFile(src);
-    let new_text = multiReplaceText(text, replacements);
-    await writeTextFile(dst, new_text);
+    const text = await readTextFile(src);
+    const updatedText = multiReplaceText(text, replacements);
+    await writeTextFile(dst, updatedText);
 }

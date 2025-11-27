@@ -7,21 +7,21 @@ import {
 } from './utils';
 
 export async function COMMAND_newOperator(): Promise<void> {
-    let editor = vscode.window.activeTextEditor;
+    const editor = vscode.window.activeTextEditor;
     if (editor === undefined) return;
 
-    let operatorName = await vscode.window.showInputBox({
+    const operatorName = await vscode.window.showInputBox({
         placeHolder: 'Name',
     });
     if (operatorName === undefined) return Promise.reject(cancel());
 
-    let group: string = 'object';
+    const group: string = 'object';
     await insertOperator(editor, operatorName, group);
 }
 
 async function insertOperator(editor: vscode.TextEditor, name: string, group: string) {
-    let className = nameToClassIdentifier(name) + 'Operator';
-    let idname = group + '.' + nameToIdentifier(name);
+    const className = nameToClassIdentifier(name) + 'Operator';
+    const idname = group + '.' + nameToIdentifier(name);
 
     let text = await readTextFile(path.join(templateFilesDir, 'operator_simple.py'));
     text = multiReplaceText(text, {
@@ -31,7 +31,7 @@ async function insertOperator(editor: vscode.TextEditor, name: string, group: st
         LABEL: name,
     });
 
-    let workspaceEdit = new vscode.WorkspaceEdit();
+    const workspaceEdit = new vscode.WorkspaceEdit();
 
     if (!hasImportBpy(editor.document)) {
         workspaceEdit.insert(editor.document.uri, new vscode.Position(0, 0), 'import bpy\n');
@@ -43,7 +43,7 @@ async function insertOperator(editor: vscode.TextEditor, name: string, group: st
 
 function hasImportBpy(document: vscode.TextDocument) {
     for (let i = 0; i< document.lineCount; i++) {
-        let line = document.lineAt(i);
+        const line = document.lineAt(i);
         if (line.text.match(/import.*\bbpy\b/)) {
             return true;
         }

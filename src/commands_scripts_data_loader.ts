@@ -15,7 +15,7 @@ export async function getAreaTypeItems() {
 }
 
 async function getGeneratedEnumData(identifier: string): Promise<EnumItem[]> {
-    let text = await readTextFile(enumsPath);
-    let data = JSON.parse(text);
+    const text = await readTextFile(enumsPath);
+    const data = JSON.parse(text);
     return data[identifier];
 }
