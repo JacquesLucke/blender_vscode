@@ -123,19 +123,9 @@ def handle_post():
     return "OK"
 
 
-@SERVER.route("/", methods=["GET"])
-def handle_get():
-    data = flask.request.get_json()
-    LOG.debug(f"Got GET: {str(data)}")
-
-    if data["type"] == "ping":
-        pass
-    elif data["type"] == "complete":
-        from .blender_complete import complete
-
-        return {"items": complete(data)}
-    else:
-        LOG.warning(f"Unhandled GET: {data}")
+@SERVER.route("/ping", methods=["GET"])
+def handle_get_ping():
+    LOG.debug(f"Got ping")
     return "OK"
 
 
