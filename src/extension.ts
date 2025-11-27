@@ -142,7 +142,11 @@ async function reloadAddons(addons: AddonWorkspaceFolder[]) {
     let names = await Promise.all(addons.map(a => a.getModuleName()));
     // Send source dirs so that the python script can determine if each addon is an extension or not.
     let dirs = await Promise.all(addons.map(a => a.getSourceDirectory()));
-    instances.forEach(instance => instance.post({ type: 'reload', names: names, dirs: dirs }));
+    instances.forEach((instance) => {
+        void instance.post({ type: 'reload', names: names, dirs: dirs }).catch((error) => {
+            instance.connectionErrors.push(error instanceof Error ? error : new Error(String(error)));
+        });
+    });
 }
 
 async function rebuildAddons(addons: AddonWorkspaceFolder[]) {

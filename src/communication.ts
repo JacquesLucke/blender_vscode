@@ -1,8 +1,7 @@
 import * as http from 'http';
 import type { IncomingMessage, ServerResponse } from 'http';
 import * as vscode from 'vscode';
-import * as request from 'request';
-import type { Request as HttpRequest } from 'request';
+import axios from 'axios';
 import { getConfig } from './utils';
 import { attachPythonDebuggerToBlender } from './python_debugging';
 import { BlenderTask } from './blender_executable';
@@ -39,16 +38,17 @@ export class BlenderInstance {
         this.vscodeIdentifier = vscodeIdentifier;
     }
 
-    post(data: JsonPayload): HttpRequest {
-        return request.post(this.address, { json: data });
+    async post(data: JsonPayload): Promise<void> {
+        await axios.post(this.address, data);
     }
 
     async ping(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const req = request.get(this.address, { json: { type: 'ping' } });
-            req.on('end', () => resolve());
-            req.on('error', (err: Error) => { this.connectionErrors.push(err); reject(err); });
-        });
+        try {
+            await axios.get(`${this.address}/ping`);
+        } catch (error) {
+            this.connectionErrors.push(error instanceof Error ? error : new Error(String(error)));
+            throw error;
+        }
     }
 
     async isResponsive(timeout: number = RESPONSIVE_LIMIT_MS): Promise<boolean> {
@@ -110,9 +110,9 @@ export class RunningBlenderInstances {
         return this.instances.filter((_, index) => responsiveness[index]);
     }
 
-    async sendToResponsive(data: JsonPayload, timeout: number = RESPONSIVE_LIMIT_MS): Promise<HttpRequest[]> {
+    async sendToResponsive(data: JsonPayload, timeout: number = RESPONSIVE_LIMIT_MS): Promise<void> {
         const responsiveness = await Promise.all(this.instances.map(instance => instance.isResponsive(timeout)));
-        const sentTo: HttpRequest[] = [];
+        const pending: Promise<void>[] = [];
 
         for (let index = 0; index < this.instances.length; index++) {
             if (!responsiveness[index]) {
@@ -121,19 +121,24 @@ export class RunningBlenderInstances {
 
             const instance = this.instances[index];
             try {
-                sentTo.push(instance.post(data));
+                const promise = instance.post(data).catch((error) => {
+                    instance.connectionErrors.push(error instanceof Error ? error : new Error(String(error)));
+                });
+                pending.push(promise);
             } catch (error) {
                 instance.connectionErrors.push(error instanceof Error ? error : new Error(String(error)));
             }
         }
 
-        return sentTo;
+        await Promise.all(pending);
     }
 
     sendToAll(data: JsonPayload): void {
         for (const instance of this.instances) {
             try {
-                instance.post(data);
+                void instance.post(data).catch((error) => {
+                    instance.connectionErrors.push(error instanceof Error ? error : new Error(String(error)));
+                });
             } catch (error) {
                 instance.connectionErrors.push(error instanceof Error ? error : new Error(String(error)));
             }
