@@ -1,11 +1,15 @@
 import * as http from 'http';
+import type { IncomingMessage, ServerResponse } from 'http';
 import * as vscode from 'vscode';
 import * as request from 'request';
+import type { Request as HttpRequest } from 'request';
 import { getConfig } from './utils';
 import { attachPythonDebuggerToBlender } from './python_debugging';
 import { BlenderTask } from './blender_executable';
 
 const RESPONSIVE_LIMIT_MS = 1000;
+
+type JsonPayload = Record<string, unknown>;
 
 
 /* Manage connected Blender instances
@@ -14,15 +18,14 @@ const RESPONSIVE_LIMIT_MS = 1000;
 export type AddonPathMapping = { src: string, load: string };
 
 export class BlenderInstance {
-    blenderPort: number;
-    debugpyPort: number;
-    justMyCode: boolean;
-    path: string;
-    scriptsFolder: string;
-    addonPathMappings: AddonPathMapping[];
-    connectionErrors: Error[];
-    vscodeIdentifier: string; // can identify vs code task and in http communication
-    debug_session: any;
+    public readonly blenderPort: number;
+    public readonly debugpyPort: number;
+    public readonly justMyCode: boolean;
+    public readonly path: string;
+    public readonly scriptsFolder: string;
+    public readonly addonPathMappings: AddonPathMapping[];
+    public readonly connectionErrors: Error[];
+    public readonly vscodeIdentifier: string; // can identify VS Code task and in HTTP communication
 
     constructor(blenderPort: number, debugpyPort: number, justMyCode: boolean, path: string,
         scriptsFolder: string, addonPathMappings: AddonPathMapping[], vscodeIdentifier: string) {
@@ -36,31 +39,33 @@ export class BlenderInstance {
         this.vscodeIdentifier = vscodeIdentifier;
     }
 
-    post(data: object) {
+    post(data: JsonPayload): HttpRequest {
         return request.post(this.address, { json: data });
     }
 
     async ping(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            let req = request.get(this.address, { json: { type: 'ping' } });
+            const req = request.get(this.address, { json: { type: 'ping' } });
             req.on('end', () => resolve());
-            req.on('error', err => { this.connectionErrors.push(err); reject(err); });
+            req.on('error', (err: Error) => { this.connectionErrors.push(err); reject(err); });
         });
     }
 
-    async isResponsive(timeout: number = RESPONSIVE_LIMIT_MS) {
-        return new Promise<boolean>(resolve => {
-            this.ping().then(() => resolve(true)).catch();
-            setTimeout(() => resolve(false), timeout);
-        });
+    async isResponsive(timeout: number = RESPONSIVE_LIMIT_MS): Promise<boolean> {
+        const timeoutPromise = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout));
+        try {
+            await Promise.race([this.ping(), timeoutPromise]);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
-    attachDebugger() {
-        this.debug_session = attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings, this.vscodeIdentifier);
-        return this.debug_session
+    attachDebugger(): Thenable<boolean> {
+        return attachPythonDebuggerToBlender(this.debugpyPort, this.path, this.justMyCode, this.scriptsFolder, this.addonPathMappings, this.vscodeIdentifier);
     }
 
-    get address() {
+    get address(): string {
         return `http://localhost:${this.blenderPort}`;
     }
 }
@@ -74,66 +79,64 @@ export class RunningBlenderInstances {
         this.tasks = [];
     }
 
-    registerInstance(instance: BlenderInstance) {
+    registerInstance(instance: BlenderInstance): void {
+        this.instances = this.instances.filter(item => item.vscodeIdentifier !== instance.vscodeIdentifier);
         this.instances.push(instance);
     }
-    registerTask(task: BlenderTask) {
-        this.tasks.push(task)
+    registerTask(task: BlenderTask): void {
+        this.tasks.push(task);
     }
 
     public getTask(vscodeIdentifier: string): BlenderTask | undefined {
-        return this.tasks.filter(item => item.vscodeIdentifier === vscodeIdentifier)[0]
+        return this.tasks.find(item => item.vscodeIdentifier === vscodeIdentifier);
     }
     public getInstance(vscodeIdentifier: string): BlenderInstance | undefined {
-        return this.instances.filter(item => item.vscodeIdentifier === vscodeIdentifier)[0]
+        return this.instances.find(item => item.vscodeIdentifier === vscodeIdentifier);
     }
 
-    public async kill(vscodeIdentifier: string) {
-        const task = this.getTask(vscodeIdentifier)
-        task?.task.terminate()
-        this.tasks = this.tasks.filter(item => item.vscodeIdentifier !== vscodeIdentifier)
-
-        // const instance = this.getInstance(vscodeIdentifier)
-        this.instances = this.instances.filter(item => item.vscodeIdentifier !== vscodeIdentifier)
+    public kill(vscodeIdentifier: string): void {
+        const task = this.getTask(vscodeIdentifier);
+        task?.task.terminate();
+        this.tasks = this.tasks.filter(item => item.vscodeIdentifier !== vscodeIdentifier);
+        this.instances = this.instances.filter(item => item.vscodeIdentifier !== vscodeIdentifier);
     }
 
     async getResponsive(timeout: number = RESPONSIVE_LIMIT_MS): Promise<BlenderInstance[]> {
-        if (this.instances.length === 0) return [];
+        if (this.instances.length === 0) {
+            return [];
+        }
 
-        return new Promise<BlenderInstance[]>(resolve => {
-            let responsiveInstances: BlenderInstance[] = [];
-            let pingAmount = this.instances.length;
-
-            function addInstance(instance: BlenderInstance) {
-                responsiveInstances.push(instance);
-                if (responsiveInstances.length === pingAmount) {
-                    resolve(responsiveInstances.slice());
-                }
-            }
-
-            for (let instance of this.instances) {
-                instance.ping().then(() => addInstance(instance)).catch(() => { });
-            }
-            setTimeout(() => resolve(responsiveInstances.slice()), timeout);
-        });
+        const responsiveness = await Promise.all(this.instances.map(instance => instance.isResponsive(timeout)));
+        return this.instances.filter((_, index) => responsiveness[index]);
     }
 
-    async sendToResponsive(data: object, timeout: number = RESPONSIVE_LIMIT_MS) {
-        let sentTo: request.Request[] = []
-        for (const instance of this.instances) {
-            const isResponsive = await instance.isResponsive(timeout)
-            if (!isResponsive)
-                continue
+    async sendToResponsive(data: JsonPayload, timeout: number = RESPONSIVE_LIMIT_MS): Promise<HttpRequest[]> {
+        const responsiveness = await Promise.all(this.instances.map(instance => instance.isResponsive(timeout)));
+        const sentTo: HttpRequest[] = [];
+
+        for (let index = 0; index < this.instances.length; index++) {
+            if (!responsiveness[index]) {
+                continue;
+            }
+
+            const instance = this.instances[index];
             try {
-                sentTo.push(instance.post(data))
-            } catch { }
+                sentTo.push(instance.post(data));
+            } catch (error) {
+                instance.connectionErrors.push(error instanceof Error ? error : new Error(String(error)));
+            }
         }
+
         return sentTo;
     }
 
-    sendToAll(data: object) {
+    sendToAll(data: JsonPayload): void {
         for (const instance of this.instances) {
-            instance.post(data);
+            try {
+                instance.post(data);
+            } catch (error) {
+                instance.connectionErrors.push(error instanceof Error ? error : new Error(String(error)));
+            }
         }
     }
 }
@@ -142,61 +145,122 @@ export class RunningBlenderInstances {
 /* Own server
  ********************************************** */
 
-export function startServer() {
-    server = http.createServer(SERVER_handleRequest);
+export function startServer(): void {
+    if (server) {
+        return;
+    }
+
+    server = http.createServer(handleRequest);
     server.listen();
 }
 
-export function stopServer() {
+export function stopServer(): void {
+    if (!server) {
+        return;
+    }
+
     server.close();
+    server = undefined;
 }
 
 export function getServerPort(): number {
-    return server.address().port;
-}
-
-function SERVER_handleRequest(request: any, response: any) {
-    if (request.method === 'POST') {
-        let body = '';
-        request.on('data', (chunk: any) => body += chunk.toString());
-        request.on('end', () => {
-            let req = JSON.parse(body);
-
-            switch (req.type) {
-                case 'setup': {
-                    let config = getConfig();
-                    let justMyCode: boolean = <boolean>config.get('addon.justMyCode')
-                    let instance = new BlenderInstance(req.blenderPort, req.debugpyPort, justMyCode, req.blenderPath, req.scriptsFolder, req.addonPathMappings, req.vscodeIdentifier);
-                    response.end('OK');
-                    instance.attachDebugger().then(() => {
-                        RunningBlenders.registerInstance(instance)
-                        RunningBlenders.getTask(instance.vscodeIdentifier)?.onStartDebugging()
-
-                    }
-                    )
-                    break;
-                }
-                case 'enableFailure': {
-                    vscode.window.showWarningMessage('Enabling the addon failed. See console.');
-                    response.end('OK');
-                    break;
-                }
-                case 'disableFailure': {
-                    vscode.window.showWarningMessage('Disabling the addon failed. See console.');
-                    response.end('OK');
-                    break;
-                }
-                case 'addonUpdated': {
-                    response.end('OK');
-                    break;
-                }
-                default: {
-                    throw new Error('unknown type');
-                }
-            }
-        });
+    if (!server) {
+        throw new Error('Server has not been started.');
     }
+
+    const address = server.address();
+    if (!address || typeof address === 'string') {
+        throw new Error('Server address is not available.');
+    }
+
+    return address.port;
 }
 
-var server: http.Server | any = undefined;
+function handleRequest(request: IncomingMessage, response: ServerResponse): void {
+    if (request.method !== 'POST') {
+        response.writeHead(405).end('Method Not Allowed');
+        return;
+    }
+
+    const chunks: Buffer[] = [];
+    request.on('data', chunk => {
+        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    });
+
+    request.on('error', () => {
+        if (!response.writableEnded) {
+            response.writeHead(500).end('Error receiving data');
+        }
+    });
+
+    request.on('end', () => {
+        if (response.writableEnded) {
+            return;
+        }
+        const body = Buffer.concat(chunks).toString();
+        let payload: JsonPayload;
+        try {
+            payload = JSON.parse(body);
+        } catch {
+            response.writeHead(400).end('Invalid JSON');
+            return;
+        }
+
+        const type = typeof payload.type === 'string' ? payload.type : '';
+
+        switch (type) {
+            case 'setup': {
+                const config = getConfig();
+                const blenderPort = Number(payload.blenderPort);
+                const debugpyPort = Number(payload.debugpyPort);
+                const blenderPath = typeof payload.blenderPath === 'string' ? payload.blenderPath : '';
+                const scriptsFolder = typeof payload.scriptsFolder === 'string' ? payload.scriptsFolder : '';
+                const vscodeIdentifier = typeof payload.vscodeIdentifier === 'string' ? payload.vscodeIdentifier : '';
+
+                if (!Number.isFinite(blenderPort) || !Number.isFinite(debugpyPort) || blenderPath === '' || scriptsFolder === '' || vscodeIdentifier === '') {
+                    response.writeHead(400).end('Invalid setup payload');
+                    return;
+                }
+
+                const addonPathMappings = Array.isArray(payload.addonPathMappings)
+                    ? (payload.addonPathMappings as AddonPathMapping[]).filter(item => typeof item?.src === 'string' && typeof item?.load === 'string')
+                    : [];
+                const justMyCode = Boolean(config.get('addon.justMyCode'));
+                const instance = new BlenderInstance(blenderPort, debugpyPort, justMyCode, blenderPath, scriptsFolder, addonPathMappings, vscodeIdentifier);
+                response.end('OK');
+
+                const attachResult = instance.attachDebugger();
+                Promise.resolve(attachResult)
+                    .then(() => {
+                        RunningBlenders.registerInstance(instance);
+                        RunningBlenders.getTask(instance.vscodeIdentifier)?.onStartDebugging();
+                    })
+                    .catch((error: unknown) => {
+                        instance.connectionErrors.push(error instanceof Error ? error : new Error(String(error)));
+                        vscode.window.showErrorMessage('Failed to attach debugger to Blender instance.');
+                    });
+                break;
+            }
+            case 'enableFailure': {
+                vscode.window.showWarningMessage('Enabling the addon failed. See console.');
+                response.end('OK');
+                break;
+            }
+            case 'disableFailure': {
+                vscode.window.showWarningMessage('Disabling the addon failed. See console.');
+                response.end('OK');
+                break;
+            }
+            case 'addonUpdated': {
+                response.end('OK');
+                break;
+            }
+            default: {
+                response.writeHead(400).end('Unknown type');
+            }
+        }
+    });
+}
+
+let server: http.Server | undefined;
 export const RunningBlenders = new RunningBlenderInstances();

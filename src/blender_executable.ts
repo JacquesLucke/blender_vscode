@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 import * as fs from 'fs';
-import * as util from 'util';
 
 import { launchPath } from './paths';
 import { getServerPort, RunningBlenders } from './communication';
@@ -14,9 +13,6 @@ import { outputChannel, showNotificationAddDefault } from './extension';
 import { getBlenderWindows } from './blender_executable_windows';
 import { deduplicateSameHardLinks } from './blender_executable_linux';
 
-
-const stat = util.promisify(fs.stat)
-
 export async function LaunchAnyInteractive(blend_filepaths?: string[], script?: string) {
     const executable = await getFilteredBlenderPath({
         label: 'Blender Executable',
@@ -24,8 +20,8 @@ export async function LaunchAnyInteractive(blend_filepaths?: string[], script?: 
         predicate: () => true,
         setSettings: () => { }
     });
-    showNotificationAddDefault(executable)
-    return await LaunchAny(executable, blend_filepaths, script)
+    showNotificationAddDefault(executable);
+    return await LaunchAny(executable, blend_filepaths, script);
 }
 
 export async function LaunchAny(executable: BlenderExecutableData, blend_filepaths?: string[], script?: string) {
@@ -39,19 +35,19 @@ export async function LaunchAny(executable: BlenderExecutableData, blend_filepat
 }
 
 export class BlenderTask {
-    task: vscode.TaskExecution
-    script?: string
-    vscodeIdentifier: string
+    task: vscode.TaskExecution;
+    script?: string;
+    vscodeIdentifier: string;
 
     constructor(task: vscode.TaskExecution, vscode_identifier: string, script?: string) {
-        this.task = task
-        this.script = script
-        this.vscodeIdentifier = vscode_identifier
+        this.task = task;
+        this.script = script;
+        this.vscodeIdentifier = vscode_identifier;
     }
 
     public onStartDebugging() {
         if (this.script !== undefined) {
-            RunningBlenders.sendToResponsive({ type: 'script', path: this.script })
+            RunningBlenders.sendToResponsive({ type: 'script', path: this.script });
         }
     }
 }
@@ -63,14 +59,14 @@ export async function launch(data: BlenderExecutableData, blend_filepath?: strin
         blenderArgs,
         { env: await getBlenderLaunchEnv() }
     );
-    outputChannel.appendLine(`Starting blender: ${data.path} ${blenderArgs.join(' ')}`)
-    outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2))
+    outputChannel.appendLine(`Starting blender: ${data.path} ${blenderArgs.join(' ')}`);
+    outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2));
 
-    const vscode_identifier = getRandomString()
+    const vscode_identifier = getRandomString();
     const task = await runTask('blender', execution, vscode_identifier);
 
-    const blenderTask = new BlenderTask(task, vscode_identifier, script)
-    RunningBlenders.registerTask(blenderTask)
+    const blenderTask = new BlenderTask(task, vscode_identifier, script);
+    RunningBlenders.registerTask(blenderTask);
 
     return task;
 }
@@ -91,21 +87,21 @@ export type BlenderExecutableData = {
 
 async function searchBlenderInSystem(): Promise<BlenderExecutableData[]> {
     const blenders: BlenderExecutableData[] = [];
-    if (process.platform === "win32") {
+    if (process.platform === 'win32') {
         const windowsBlenders = await getBlenderWindows();
-        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: "" })))
+        blenders.push(...windowsBlenders.map(blend_path => ({ path: blend_path, name: '' })));
     }
-    const separator = process.platform === "win32" ? ";" : ":"
+    const separator = process.platform === 'win32' ? ';' : ':';
     const path_env = process.env.PATH?.split(separator);
     if (path_env === undefined) {
         return blenders;
     }
-    const exe = process.platform === "win32" ? "blender.exe" : "blender"
+    const exe = process.platform === 'win32' ? 'blender.exe' : 'blender';
     for (const p of path_env) {
-        const executable = path.join(p, exe)
-        const stats = await stat(executable).catch((err: NodeJS.ErrnoException) => undefined);
-        if (stats === undefined || !stats?.isFile()) continue;
-        blenders.push({ path: executable, name: "", linuxInode: stats.ino })
+        const executable = path.join(p, exe);
+        const stats = await fs.promises.stat(executable).catch(() => undefined);
+        if (stats === undefined || !stats.isFile()) continue;
+        blenders.push({ path: executable, name: '', linuxInode: stats.ino });
     }
     return blenders;
 }
@@ -118,7 +114,7 @@ interface BlenderType {
 }
 
 async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecutableData> {
-    let result: BlenderExecutableData[] = []
+    let result: BlenderExecutableData[] = [];
     {
         const blenderPathsInSystem: BlenderExecutableData[] = await searchBlenderInSystem();
         const deduplicatedBlenderPaths: BlenderExecutableData[] = deduplicateSamePaths(blenderPathsInSystem);
@@ -139,8 +135,11 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecuta
         const deduplicatedBlenderPaths: BlenderExecutableData[] = deduplicateSamePaths(result, settingsBlenderPaths);
         if (process.platform !== 'win32') {
             try {
-                result = [...settingsBlenderPaths, ...await deduplicateSameHardLinks(deduplicatedBlenderPaths, false, settingsBlenderPaths)]
-            } catch { // weird cases as network attached storage or FAT32 file system are not tested
+                result = [
+                    ...settingsBlenderPaths,
+                    ...await deduplicateSameHardLinks(deduplicatedBlenderPaths, false, settingsBlenderPaths)
+                ];
+            } catch {
                 result = [...settingsBlenderPaths, ...deduplicatedBlenderPaths];
             }
         } else {
@@ -153,12 +152,14 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecuta
         quickPickItems.push({
             data: async () => blenderPath,
             label: blenderPath.name || blenderPath.path,
-            description: await stat(path.isAbsolute(blenderPath.path) ? blenderPath.path : path.join(getAnyWorkspaceFolder().uri.fsPath, blenderPath.path)).then(_stats => undefined).catch((err: NodeJS.ErrnoException) => "File does not exist")
+            description: await fs.promises
+                .stat(path.isAbsolute(blenderPath.path) ? blenderPath.path : path.join(getAnyWorkspaceFolder().uri.fsPath, blenderPath.path))
+                .then(() => undefined)
+                .catch(() => 'File does not exist')
         });
     }
 
-    // last option opens interactive window
-    quickPickItems.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) })
+    quickPickItems.push({ label: type.selectNewLabel, data: async () => askUser_FilteredBlenderPath(type) });
 
     const pickedItem = await letUserPickItem(quickPickItems);
     const pathData: BlenderExecutableData = await pickedItem.data();
@@ -166,7 +167,7 @@ async function getFilteredBlenderPath(type: BlenderType): Promise<BlenderExecuta
     // update VScode settings
     if (settingsBlenderPaths.find(data => data.path === pathData.path) === undefined) {
         settingsBlenderPaths.push(pathData);
-        const toSave: BlenderExecutableSettings[] = settingsBlenderPaths.map(item => { return { 'name': item.name, 'path': item.path, "isDefault": item.isDefault } })
+        const toSave: BlenderExecutableSettings[] = settingsBlenderPaths.map(item => ({ name: item.name, path: item.path, isDefault: item.isDefault }));
         config.update('executables', toSave, vscode.ConfigurationTarget.Global);
     }
 
@@ -191,17 +192,17 @@ function deduplicateSamePaths(blenderPathsToReduce: BlenderExecutableData[], add
 }
 
 async function askUser_FilteredBlenderPath(type: BlenderType): Promise<BlenderExecutableData> {
-    let filepath = await askUser_BlenderPath(type.label);
-    let pathData: BlenderExecutableData = {
+    const filepath = await askUser_BlenderPath(type.label);
+    const pathData: BlenderExecutableData = {
         path: filepath,
-        name: '',
+        name: ''
     };
     type.setSettings(pathData);
     return pathData;
 }
 
 async function askUser_BlenderPath(openLabel: string) {
-    let value = await vscode.window.showOpenDialog({
+    const value = await vscode.window.showOpenDialog({
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
@@ -210,10 +211,8 @@ async function askUser_BlenderPath(openLabel: string) {
     if (value === undefined) return Promise.reject(cancel());
     let filepath = value[0].fsPath;
 
-    if (os.platform() === 'darwin') {
-        if (filepath.toLowerCase().endsWith('.app')) {
-            filepath += '/Contents/MacOS/blender';
-        }
+    if (os.platform() === 'darwin' && filepath.toLowerCase().endsWith('.app')) {
+        filepath += '/Contents/MacOS/blender';
     }
 
     await testIfPathIsBlender(filepath);
@@ -221,25 +220,24 @@ async function askUser_BlenderPath(openLabel: string) {
 }
 
 async function testIfPathIsBlender(filepath: string) {
-    let name: string = path.basename(filepath);
+    const name = path.basename(filepath);
 
     if (!name.toLowerCase().startsWith('blender')) {
         return Promise.reject(new Error('Expected executable name to begin with \'blender\''));
     }
 
-    let testString = '###TEST_BLENDER###';
-    let command = `"${filepath}" --factory-startup -b --python-expr "import sys;print('${testString}');sys.stdout.flush();sys.exit()"`;
+    const testString = '###TEST_BLENDER###';
+    const command = `"${filepath}" --factory-startup -b --python-expr "import sys;print('${testString}');sys.stdout.flush();sys.exit()"`;
 
     return new Promise<void>((resolve, reject) => {
-        child_process.exec(command, {}, (err, stdout, stderr) => {
-            let text = stdout.toString();
+        child_process.exec(command, {}, (err, stdout) => {
+            const text = stdout.toString();
             if (!text.includes(testString)) {
-                var message = 'A simple check to test if the selected file is Blender failed.';
+                let message = 'A simple check to test if the selected file is Blender failed.';
                 message += ' Please create a bug report when you are sure that the selected file is Blender 2.8 or newer.';
                 message += ' The report should contain the full path to the executable.';
                 reject(new Error(message));
-            }
-            else {
+            } else {
                 resolve();
             }
         });
@@ -248,39 +246,39 @@ async function testIfPathIsBlender(filepath: string) {
 
 function getBlenderLaunchArgs(blend_filepath?: string) {
     const config = getConfig();
-    let additional_args = [];
+    const additional_args: string[] = [];
     if (blend_filepath !== undefined) {
         if (!fs.existsSync(blend_filepath)) {
-            new Error(`File does not exist: '${blend_filepath}'`);
+            throw new Error(`File does not exist: '${blend_filepath}'`);
         }
-        let pre_args = <string[]>config.get("preFileArguments", []);
-        let post_args = <string[]>config.get("postFileArguments", []);
+        const pre_args = <string[]>config.get('preFileArguments', []);
+        const post_args = <string[]>config.get('postFileArguments', []);
         for (const [index, arg] of pre_args.entries()) {
-            if (arg === "--" || arg.startsWith("-- ")) {
-                outputChannel.appendLine(`WARNING: ignoring any remainning arguments: '--' arument can not be in preFileArguments. Please put arguemnts [${pre_args.slice(index).toString()}] in postFileArguments`)
+            if (arg === '--' || arg.startsWith('-- ')) {
+                outputChannel.appendLine(`WARNING: ignoring any remaining arguments: '--' argument cannot be in preFileArguments. Please put arguments [${pre_args.slice(index).toString()}] in postFileArguments`);
                 break;
             }
             additional_args.push(arg);
         }
         additional_args.push(blend_filepath);
-        additional_args = additional_args.concat(post_args);
+        additional_args.push(...post_args);
     } else {
-        additional_args = <string[]>config.get("additionalArguments", []);
+        additional_args.push(...(<string[]>config.get('additionalArguments', [])));
     }
-    const args = ['--python', launchPath].concat(additional_args);
+    const args = ['--python', launchPath, ...additional_args];
     return args;
 }
 
 async function getBlenderLaunchEnv() {
-    let config = getConfig();
-    let addons = await AddonWorkspaceFolder.All();
-    let loadDirsWithNames = await Promise.all(addons.map(a => a.getLoadDirectoryAndModuleName()));
+    const config = getConfig();
+    const addons = await AddonWorkspaceFolder.All();
+    const loadDirsWithNames = await Promise.all(addons.map(a => a.getLoadDirectoryAndModuleName()));
 
     return {
         ADDONS_TO_LOAD: JSON.stringify(loadDirsWithNames),
-        VSCODE_EXTENSIONS_REPOSITORY: <string>config.get("addon.extensionsRepository"),
-        VSCODE_LOG_LEVEL: <string>config.get("addon.logLevel"),
+        VSCODE_EXTENSIONS_REPOSITORY: <string>config.get('addon.extensionsRepository'),
+        VSCODE_LOG_LEVEL: <string>config.get('addon.logLevel'),
         EDITOR_PORT: getServerPort().toString(),
-        ...<object>config.get("environmentVariables", {}),
+        ...<object>config.get('environmentVariables', {})
     };
 }
