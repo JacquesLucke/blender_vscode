@@ -1,98 +1,77 @@
-# Blender Development in VS Code
+> [!TIP] 
+> Check [CHANGELOG](./CHANGELOG.md) for changes and new features.
+> 
+> Prefer the previous layout? Browse the [classic README](https://github.com/JacquesLucke/blender_vscode/blob/b4c6ebba67172d9425f28533e0ece5cac1977da6/README.md).
 
-The only key combination you have to remember is `ctrl+shift+P`.
-All commands of this extension can be found by searching for `Blender`.
+# Blender VS Code
 
-## Installation
+**Blender addon development with python debugger.** Everything you need is available through the `Blender` command palette menu (press `Ctrl+Shift+P`).
 
-The extension is [installed](https://code.visualstudio.com/docs/editor/extension-gallery) like any other extension in Visual Studio Code.
+## Table of Contents
+- [Blender VS Code](#blender-vs-code)
+  - [Table of Contents](#table-of-contents)
+  - [Quick Start](#quick-start)
+  - [Addon Development](#addon-development)
+    - [Creating a new addon](#creating-a-new-addon)
+    - [Opening an existing addon](#opening-an-existing-addon)
+    - [Environment Isolation](#environment-isolation)
+  - [Script Tools](#script-tools)
+  - [Customization \& Shortcuts](#customization--shortcuts)
+    - [Keyboard Shortcuts](#keyboard-shortcuts)
+  - [Troubleshooting \& Logs](#troubleshooting--logs)
+  - [Status \& Contribution](#status--contribution)
 
-## Addon Tools
+## Quick Start
+1. Install the extension the same way you install any VS Code extension (id: `JacquesLucke.blender-development`).
+2. Open the addon folder (one per workspace) and press `Ctrl+Shift+P` → `Blender: Start`.
+3. Choose a Blender executable (any Blender ≥ 2.8.34) and wait for the session to launch.
+4. Use `Blender: Reload Addons` after editing your addon and `Blender: Run Script` to execute scripts.
 
-You can develop your addon anywhere, VS Code will create a **permanent soft link** (in windows: junction) to link you workspace:
-- for addons to `bpy.utils.user_resource("SCRIPTS", path="addons")`
-- for extensions to `bpy.utils.user_resource("EXTENSIONS", path="vscode_development")`
-  - VS code installs to local `vscode_development` extensions repository `Blender -> Preferences -> Get Extensions -> Repositories (dropdown, top right)`, see [`blender.addon.extensionsRepository`](vscode://settings/blender.addon.extensionsRepository) 
+> Opening Blender for the first time may take longer because dependency libraries are set up automatically.
 
-> [!WARNING]
-> In some cases uninstalling addon using Blender Preferences UI interface [might lead to data loss](./EXTENSION-SUPPORT.md#uninstall-addon-and-cleanup)
+## Addon Development
 
-### How do I create a new addon?
-
-Execute the **Blender: New Addon** operator and use the setup wizard.
-You will be asked for the following information:
-* Which addon template should be used?
-* Where should the addon be created? This should be an empty folder, preferably without spaces or special characters in the name.
-* What is the name of the addon?
-* What is your name?
-
-### How can I use the extension with my existing addon?
-
-The extension only supports addons that have a folder structure.
-If your addon is a single `.py` file, you have to convert it first.
-To do this, move the file into a new empty folder and rename it to `__init__.py`.
-
-To use the extension with your addon, just load the addon folder into Visual Studio Code.
-In Visual Studio Code, open the Command Palette (with CTRL + SHIFT + P) then execute the `Blender: Start` command.
-This will ask you for a path to a Blender executable.
-
-Only Blender 2.8.34 onwards is supported.
-
-After you choose a path, Blender will open.
-The terminal output can be seen inside of VS Code.
-The first time you open a new Blender build like this can take a few seconds longer than usual because some Python libraries are installed automatically.
-For that it is important that you have an internet connection.
-
-Once Blender is started, you can use the addon in Blender.
-Debugging with the VS Code debugger frontend should work now like for any other Python script.
-You can set breakpoints by placing the red dot next to the line number in VS Code and the debugger will hit it while using the extension inside Blender.
-
-### Extension support
-
-> With the introduction of Extensions in Blender 4.2, the old way of creating add-ons is considered deprecated.
-
-[Extensions](https://docs.blender.org/manual/en/4.2/advanced/extensions/getting_started.html) are supported.
+[Extensions](https://docs.blender.org/manual/en/4.2/advanced/extensions/getting_started.html) and legacy addons (pre Blender 4.2) are supported.
 For migration guide visit [Legacy vs Extension Add-ons](https://docs.blender.org/manual/en/4.2/advanced/extensions/addons.html#legacy-vs-extension-add-ons).
 VS code uses the [automatic logic to determine if you are using addon or extension](./EXTENSION-SUPPORT.md)
 
-### How can I reload my addon in Blender?
+> [!NOTE] 
+> VS Code automatically creates permanent symlinks (junctions on Windows) so your addon is visble inside Blender:
+>  - Addons: `bpy.utils.user_resource("SCRIPTS", path="addons")`
+>  - Extensions: `bpy.utils.user_resource("EXTENSIONS", path="vscode_development")`
 
-Execute the `Blender: Reload Addons` command in VS Code's Command Palette.
-For that to work, Blender has to be started using the extension.
-Your addon does not need to support reloading itself.
-It only has to have correct `register` and `unregister` methods.
+### Creating a new addon
+- Run **`Blender: New Addon`** to scaffold a ready-to-use addon folder. The wizard asks which template to use, where to save the addon (prefer an empty folder without spaces), what to name it, and who is authoring it.
+- Once the scaffold exists, open it in VS Code to start developing. All commands, including reload and script runners, work immediately because VS Code creates the required symlinks.
 
-To reload the addon every time a file is saved, activate the [`blender.addon.reloadOnSave`](vscode://settings/blender.addon.reloadOnSave) setting in VS Code.
+### Opening an existing addon
+- This extension works with folder-based addons or extensions. If your addon is just single file `something.py`, move it into a folder and rename the file to `__init__.py`.
+- Open the folder for your addon in VS Code, run `Ctrl+Shift+P` → `Blender: Start`, and point the command at a Blender executable (Blender ≥ 2.8.34). The terminal output appears inside VS Code and you can debug as usual with breakpoints.
+- The very first launch can take longer because Blender installs the required Python dependencies automatically; keep a stable internet connection during that run.
+- Debugging is limited to workspace files by default. Disable [`blender.addon.justMyCode`](vscode://settings/blender.addon.justMyCode) if you want to step into third-party libraries (caution: this can make Blender less stable in rare cases).
+- Use `Blender: Reload Addons` after each change (requires Blender started via the extension).
+- Enable [`blender.addon.reloadOnSave`](vscode://settings/blender.addon.reloadOnSave) to trigger reload automatically on save.
 
-### How can I open blender file automatically when running `Blender: Start`?
 
-Add the path to .blend file to [`blender.additionalArguments`](vscode://settings/blender.additionalArguments):
+> [!WARNING]
+> In some cases uninstalling addon using Blender Preferences UI interface [might lead to data loss](./EXTENSION-SUPPORT.md#uninstall-addon-and-cleanup). So don't use UI to uninstall, just delete the link manually.
 
-```javascript
-"blender.additionalArguments": [
-    "--factory-startup", // any arguments you want
-    // "--open-last", // Open the most recently opened blend file, or:
-    "./path/to/my-file.blend" // prefered to be last argument, watch out for trailing spaces (which are invisible in VS code UI)
-],
-```
+### Environment Isolation
+Set [`blender.environmentVariables`](vscode://settings/blender.environmentVariables) to point Blender to a dedicated development workspace:
 
-Note: You can also right click .blend file and use `Open With Blender`. That command uses separate arguments as position of filename in blender arguments is important ([`blender.preFileArguments`](vscode://settings/blender.preFileArguments), [`blender.postFileArguments`](vscode://settings/blender.postFileArguments))
-
-### How can I separate development environment from my daily work?
-
-By default, Blender started from VS Code uses your global Blender settings (in windows: `%appdata%\Blender Foundation\Blender\<version>`). 
-
-To prevent any accidental changes to your daily setup, change environment var in VS Code setting [`blender.environmentVariables`](vscode://settings/blender.environmentVariables):
-
-```javascript
+```json
 "blender.environmentVariables": {
-    "BLENDER_USER_RESOURCES": "${workspaceFolder}/blender_vscode_development" // changes folder for addons, extensions, modules, config
-},
+  "BLENDER_USER_RESOURCES": "${workspaceFolder}/blender_vscode_development"
+}
 ```
 
-See `blender --help` for more environment vars with finer controls: 
+<details>
 
-```shell
+<summary>
+This keeps settings, addons, and user scripts separate from your daily Blender setup. You can also specify the finer-grained `BLENDER_USER_*` variables listed here:
+</summary>
+
+```
 Environment Variables:
   $BLENDER_USER_RESOURCES  Replace default directory of all user files.
                            Other 'BLENDER_USER_*' variables override when set.
@@ -102,46 +81,58 @@ Environment Variables:
   $BLENDER_USER_DATAFILES  Directory for user data files (icons, translations, ..).
 ```
 
-### How to use with multiple addons?
+</details>
 
-Use VS Code feature [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces). Each folder in workspace is treated as addon root.
+## Script Tools
+This extension helps you write, run, and debug standalone Blender scripts that are not full addons.
 
-### How can I debug into third party library code from within my addon code?
+> [!WARNING]
+> Running scripts from VS Code occasionally crashes Blender. Keep your work saved and restart Blender if it becomes unresponsive. Don't go crazy with you scripts!
 
-Addon can be debugged when started from VS Code using the `Blender: Start` command in VS Code's Command Palette.
-By default, debug breakpoints work only for files and directories opened in the current workspace and it is also not possible to step into code that is not part of the workspace.
-Disable the VS Code setting [`blender.addon.justMyCode`](vscode://settings/blender.addon.justMyCode) to debug code anywhere.
-In rare cases debugging with VS Code can crash Blender (ex. https://github.com/JacquesLucke/blender_vscode/issues/188).
+- Execute `Blender: New Script` and follow the prompts to create a script in your chosen folder.
+- Run `Blender: Run Script` to execute every script in any open Blender session started through VS Code. Blender will automatically start if no instances are running.
+- Insert a comment like `#context.area: VIEW_3D` or run `Blender: Set Script Context` to control where scripts execute.
+- Pass CLI arguments by adding them after `--` in [`blender.additionalArguments`](vscode://settings/blender.additionalArguments) [(they become available in `sys.argv`)](https://docs.blender.org/manual/en/latest/advanced/command_line/arguments.html). 
 
-### How to start Blender with shortcut?
+**Common pitfalls**:
+- Avoid calling `sys.exit` inside Blender scripts (see [sys.exit gotcha](https://docs.blender.org/api/current/info_gotcha.html#sys-exit)).
+- Prefer `bpy.utils.register_cli_command` when wiring command line entry points.
 
-Limited shortcuts are supported by editing `keybindings.json`. 
-Add `"isDefault": true"` to one of [`blender.executables`](vscode://settings/blender.executables) to mute most popups.
 
-Shortcut to `Blender: Start` simple example:
+## Customization & Shortcuts
+The extension is driven by settings (search for `blender.` inside VS Code settings). A few useful ones:
+- [`blender.additionalArguments`](vscode://settings/blender.additionalArguments): pass extra CLI flags and optionally a default `.blend` file (prefer this as the last argument).
+- [`blender.preFileArguments`](vscode://settings/blender.preFileArguments) / [`blender.postFileArguments`](vscode://settings/blender.postFileArguments): control where Blender expects file names in the argument list.
+- [`blender.executables`](vscode://settings/blender.executables): register frequently used Blender installations and **mark one with `"isDefault": true` to keep prompts silent**.
+- [`blender.addon.justMyCode`](vscode://settings/blender.addon.justMyCode): disable to step into third-party libraries while debugging.
+- [`blender.addon.reloadOnSave`](vscode://settings/blender.addon.reloadOnSave): reload addons every time a workspace file changes while Blender is running.
+- [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel): control the verbosity of the Blender output channel for debugging.
+
+### Keyboard Shortcuts
+Add entries to `keybindings.json` to trigger commands:
+
 ```json
 {
-    "key": "ctrl+h",
-    "command": "blender.start",
+  "key": "ctrl+h",
+  "command": "blender.start"
 }
 ```
 
-Shortcut to `Blender: Start` advanced example:
+For advanced usage (choose a specific executable or script):
+
 ```json
 {
   "key": "ctrl+h",
   "command": "blender.start",
   "args": {
-    "blenderExecutable": {
-      "path": "C:\\...\\blender.exe" 
-    },
-    // optional, run script after debugger is attached, must be absolute path
-    "script": "C:\\script.py"
+    "blenderExecutable": { "path": "C:\\path\\blender.exe" },
+    "script": "C:\\path\\script.py"
   }
 }
 ```
 
-Shortcut to `Blender: Run Script` simple example:
+Run scripts with shortcuts as well:
+
 ```json
 {
   "key": "ctrl+shift+enter",
@@ -150,88 +141,13 @@ Shortcut to `Blender: Run Script` simple example:
 }
 ```
 
-Shortcut to `Blender: Run Script` advanced example:
-```json
-{
-  "key": "ctrl+shift+enter",
-  "command": "blender.runScript",
-  "args": {
-    // optional, same format as item in blender.executables
-    // if missing user will be prompted to choose blender.exe or default blender.exe will be used
-    "blenderExecutable": { 
-      "path": "C:\\...\\blender.exe" 
-    },
-    // optional, run script after debugger is attached, must be absolute path, defaults to current open file
-    "script": "C:\\script.py"
-  },
-  "when": "editorLangId == 'python'"
-}
-```
+## Troubleshooting & Logs
+- Use the latest VS Code and Blender builds.
+- Check `CHANGELOG.md` for breaking changes.
+- Search issues on GitHub before filing a new one.
+- Enable debug logs via [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) and inspect the `Blender` output channel in VS Code.
 
-
-
-## Script Tools
-
-When I say "script" I mean a piece of Python code that runs in Blender but is not an addon.
-Scripts are best to test and learn Blender's Python API but also to solve simple tasks at hand.
-Usually scripts are written in Blender's text editor.
-However, the text editor has fairly limited capabilities compared to modern text editors and IDEs.
-
-For script writing this extension offers
-- all text editing features VS Code and its extensions can offer
-- a way to quickly organize your scripts into folders
-- easy execution of the script inside of Blender
-- a simple way to change the context, the script runs in
-- debugging
-
-### How can I create a new script?
-
-Execute the `Blender: New Script` command in VS Code's Command Palette.
-You will be asked for a folder to save the script and a script name.
-For quick tests you can also just use the given default name.
-
-The new script file already contains a little bit of code to make it easier to get started.
-
-### How can I run the script in Blender?
-
-First you have to start a Blender instance by executing the `Blender: Start` command in VS Code's Command Palette.
-To execute the script in all Blender instances that have been started this way, execute the `Blender: Run Script` command.
-
-You can assign a shortcut to `Blender: Run Script` by editing `keybindings.json`, see section [How to start Blender with shortcut?](#how-to-start-blender-with-shortcut)
-
-### How can I change the context the script runs in?
-
-Currently the support for this is very basic, but still useful.
-To run the script in a specific area type in Blender insert a comment like `#context.area: VIEW_3D`.
-The preferred way to insert this comment is to execute the `Blender: Set Script Context` command.
-
-### How can I pass command line argument to my script?
-
-Specify your arguments in [`blender.additionalArguments`](vscode://settings/blender.additionalArguments) after `--`, which
- indicates [End option processing, following arguments passed unchanged](https://docs.blender.org/manual/en/latest/advanced/command_line/arguments.html). Access via Python’s `sys.argv`
-
-Be aware about:
-
-- [sys.exit gotcha](https://docs.blender.org/api/current/info_gotcha.html#sys-exit) 
-- and [register_cli_command](https://docs.blender.org/api/current/bpy.utils.html#bpy.utils.register_cli_command) 
-
-## Core Blender development
-
-This addon has some ability to help with [Blender source code development](https://developer.blender.org/docs/handbook/building_blender/) but it is undocumented.
-
-## Troubleshooting
-
-- Make sure you use the newest version of VS Code.
-- Use the latest Blender version from https://www.blender.org/download/.
-- Check [CHANGELOG](./CHANGELOG.md) for breaking changes.
-- Search Issues for similar problems.
-- When reporting issue please enable debug logs using [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel) 
-- Look in VS Code Output window.
-
-## Status
-
-This extension is not actively developed anymore. However, if you are interested in working on this extension, please contact me.
-
-## Contributing
-
-See [DEVELOPMENT.md](./DEVELOPMENT.md)
+## Status & Contribution
+- The extension is no longer in active feature development.
+- Bugs are welcome; please file issues with as much detail as possible.
+- Want to help? Follow the instructions in [DEVELOPMENT.md](./DEVELOPMENT.md) to get started.
