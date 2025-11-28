@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## [0.0.28] - 2025-11-28
+
+### Changed
+
+* Revamped readme
+
+### Fixed
+
+* Improve server startup error handling and retry logic ([#252](https://github.com/JacquesLucke/blender_vscode/pull/252))
+* Remove deprecated request library in favor of axios
+
 ## [0.0.27] - 2025-11-25
 
 ### Fixed
