@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.29] - 2025-11-29
+
 ### Fixed
 
 * Removed operators were still shown in command palette.
