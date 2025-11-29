@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+* Removed operators were still shown in command palette.
+
 ## [0.0.28] - 2025-11-28
 
 ### Changed
