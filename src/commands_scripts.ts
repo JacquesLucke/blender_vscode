@@ -49,7 +49,7 @@ export async function COMMAND_runScript(args?: RunScriptCommandArguments): Promi
         throw new Error('script path could not be determined');
     }
 
-    const instances = RunningBlenders.getAllive();
+    const instances = RunningBlenders.getAlive();
 
     if (instances.length > 0) {
         await RunningBlenders.sendToResponsive({ type: 'script', path: scriptPath });

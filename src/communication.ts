@@ -101,8 +101,8 @@ export class RunningBlenderInstances {
         this.instances = this.instances.filter(item => item.vscodeIdentifier !== vscodeIdentifier);
     }
 
-    /** Blender with allive and responsive web server is considered running.
-     * Note: not response might be caused by CPU usage or active breakpoint in debugger
+    /** Blender with alive and responsive web server is considered running.
+     * Note: no response might be caused by CPU usage or active breakpoint in debugger.
      */
     async getResponsive(timeout: number = RESPONSIVE_LIMIT_MS): Promise<BlenderInstance[]> {
         if (this.instances.length === 0) {
@@ -113,10 +113,10 @@ export class RunningBlenderInstances {
         return this.instances.filter((_, index) => responsiveness[index]);
     }
 
-    /** There is no direct way to check if process is allive.
-     * The correctness is guranteed by correct cleanup in kill method.
+    /** There is no direct way to check if process is alive.
+     * The correctness is guaranteed by correct cleanup in kill method.
      */
-    getAllive(): BlenderInstance[] {
+    getAlive(): BlenderInstance[] {
         return this.instances;
     }
 
