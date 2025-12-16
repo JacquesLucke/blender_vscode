@@ -92,10 +92,10 @@ This extension helps you write, run, and debug standalone Blender scripts that a
 - Execute `Blender: New Script` and follow the prompts to create a script in your chosen folder.
 - Run `Blender: Run Script` to execute every script in any open Blender session started through VS Code. Blender will automatically start if no instances are running.
 - Insert a comment like `#context.area: VIEW_3D` or run `Blender: Set Script Context` to control where scripts execute.
-- Pass CLI arguments by adding them after `--` in [`blender.additionalArguments`](vscode://settings/blender.additionalArguments) [(they become available in `sys.argv`)](https://docs.blender.org/manual/en/latest/advanced/command_line/arguments.html). 
+- Pass CLI arguments to python script by adding them after `--` in [`blender.additionalArguments`](vscode://settings/blender.additionalArguments) (they become available in `sys.argv`). Note: newer approach is to register command with [`bpy.utils.register_cli_command`](https://docs.blender.org/api/current/bpy.utils.html#bpy.utils.register_cli_command) (Blender 4.2 and newer) and use `--command` to call it.
 
 **Common pitfalls**:
-- Avoid calling `sys.exit` inside Blender scripts (see [sys.exit gotcha](https://docs.blender.org/api/current/info_gotcha.html#sys-exit)).
+- Avoid calling `sys.exit` inside Blender scripts (see [sys.exit gotcha](https://docs.blender.org/api/current/info_gotchas_crashes.html#sys-exit)).
 - Prefer `bpy.utils.register_cli_command` when wiring command line entry points.
 
 
