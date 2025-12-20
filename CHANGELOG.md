@@ -7,6 +7,7 @@
 ### Fixed
 
 * Removed operators were still shown in command palette.
+* Run Script: do not launch new Blender if the instance is busy.
 
 ## [0.0.28] - 2025-11-28
 
