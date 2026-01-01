@@ -59,6 +59,11 @@ export async function launch(data: BlenderExecutableData, blend_filepath?: strin
         blenderArgs,
         { env: await getBlenderLaunchEnv() }
     );
+
+    outputChannel.appendLine(`Running custom build tasks (if any).`);
+    const addons = await AddonWorkspaceFolder.All();
+    await Promise.all(addons.map(a => a.buildIfNecessary()));
+
     outputChannel.appendLine(`Starting blender: ${data.path} ${blenderArgs.join(' ')}`);
     outputChannel.appendLine('With ENV Vars: ' + JSON.stringify(execution.options?.env, undefined, 2));
 
