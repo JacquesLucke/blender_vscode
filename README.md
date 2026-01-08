@@ -68,7 +68,10 @@ Set [`blender.environmentVariables`](vscode://settings/blender.environmentVariab
 <details>
 
 <summary>
-This keeps settings, addons, and user scripts separate from your daily Blender setup. You can also specify the finer-grained `BLENDER_USER_*` variables listed here:
+This keeps settings, addons, and user scripts separate from your daily Blender setup.
+
+You can also specify the finer-grained `BLENDER_USER_*` variables listed here:
+
 </summary>
 
 ```
@@ -109,7 +112,13 @@ The extension is driven by settings (search for `blender.` inside VS Code settin
 - [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel): control the verbosity of the Blender output channel for debugging.
 
 ### Keyboard Shortcuts
-Add entries to `keybindings.json` to trigger commands:
+
+Add shorcuts by editing `keybindings.json` (`crtl+shift+p` and search for `Preferences: Open Keyborad Shortcuts (JSON)`).
+
+<details>
+<summary>
+<code>Blender: Start</code> shortcut:
+</summary>
 
 ```json
 {
@@ -118,7 +127,12 @@ Add entries to `keybindings.json` to trigger commands:
 }
 ```
 
-For advanced usage (choose a specific executable or script):
+</details>
+
+<details>
+<summary>
+<code>Blender: Start</code> shortcut, but with specific executable or script:
+</summary>
 
 ```json
 {
@@ -130,8 +144,12 @@ For advanced usage (choose a specific executable or script):
   }
 }
 ```
+</details>
 
-Run scripts with shortcuts as well:
+<details>
+<summary>
+<code>Blender: Run Script</code> shortcut:
+</summary>
 
 ```json
 {
@@ -140,6 +158,8 @@ Run scripts with shortcuts as well:
   "when": "editorLangId == 'python'"
 }
 ```
+
+</details>
 
 ## Troubleshooting & Logs
 - Use the latest VS Code and Blender builds.
