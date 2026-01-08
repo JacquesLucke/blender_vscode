@@ -141,7 +141,7 @@
           "blender.addon.buildTaskName": {
             "type": "string",
             "scope": "resource",
-            "description": "Task that should be executed before the addon can be loaded into Blender."
+            "description": "Task that should be executed before every addon start and on every addon reload. Output will be shown in terminal."
           },
           "blender.addon.loadDirectory": {
             "type": "string",

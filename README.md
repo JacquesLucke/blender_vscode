@@ -110,6 +110,31 @@ The extension is driven by settings (search for `blender.` inside VS Code settin
 - [`blender.addon.justMyCode`](vscode://settings/blender.addon.justMyCode): disable to step into third-party libraries while debugging.
 - [`blender.addon.reloadOnSave`](vscode://settings/blender.addon.reloadOnSave): reload addons every time a workspace file changes while Blender is running.
 - [`blender.addon.logLevel`](vscode://settings/blender.addon.logLevel): control the verbosity of the Blender output channel for debugging.
+<details>
+<summary>
+<a href="vscode://settings/blender.addon.buildTaskName"><code>blender.addon.buildTaskName</code></a>: VS Code task name that is executed before addon start and on every addon reload (output shown in terminal). See detailed example:
+
+</summary>
+
+1. Open `tasks.json` (`crtl+shift+p` and search `Tasks: Open User Tasks`)
+2. Add task:
+```
+{
+  "version": "2.0.0",
+  "tasks": [
+      {
+          "label": "my-blender-reload-task",
+          "type": "shell",
+          "command": "echo Hello",
+          "problemMatcher": []
+      }
+  ]
+}
+```
+3. Configure [`blender.addon.buildTaskName`](vscode://settings/blender.addon.buildTaskName) set to `my-blender-reload-task`
+4. Task will be triggered before every `Blender: Start` and `Blender: Reload Addons` for every addon in workspace
+
+</details>
 
 ### Keyboard Shortcuts
 
