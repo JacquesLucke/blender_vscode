@@ -9,17 +9,17 @@ import {
     isValidPythonModuleName, renamePath, toTitleCase
 } from './utils';
 
-type AddonBuilder = (path: string, addonName: string, authorName: string, supportLegacy: boolean) => Promise<string>;
+type AddonBuilder = (path: string, addonName: string, authorName: string) => Promise<string>;
 
 const addonTemplateDir = path.join(templateFilesDir, 'addons');
 const manifestFile = path.join(templateFilesDir, 'blender_manifest.toml');
 
 export async function COMMAND_newAddon() {
     const builder = await getNewAddonGenerator();
-    const [addonName, authorName, supportLegacy] = await askUser_SettingsForNewAddon();
+    const [addonName, authorName] = await askUser_SettingsForNewAddon();
     let folderPath = await getFolderForNewAddon();
     folderPath = await fixAddonFolderName(folderPath);
-    const mainPath = await builder(folderPath, addonName, authorName, supportLegacy);
+    const mainPath = await builder(folderPath, addonName, authorName);
 
     await vscode.window.showTextDocument(vscode.Uri.file(mainPath));
     addFolderToWorkspace(folderPath);
@@ -120,7 +120,7 @@ function getFolderNameAlternatives(name: string): string[] {
     return [name.replace(/\W/, '_'), name.replace(/\W/, '')];
 }
 
-async function askUser_SettingsForNewAddon() {
+async function askUser_SettingsForNewAddon(): Promise<[string, string]> {
     const addonName = await vscode.window.showInputBox({ placeHolder: 'Addon Name' });
     if (addonName === undefined) {
         return Promise.reject(cancel());
@@ -137,39 +137,32 @@ async function askUser_SettingsForNewAddon() {
         return Promise.reject(new Error('Can\'t create an addon without an author name.'));
     }
 
-    const items = [
-    { label: 'Yes', data: true },
-    { label: 'No', data: false },
-];
-    const item = await letUserPickItem(items, 'Support legacy Blender versions (<4.2)?');
-    const supportLegacy = item.data;
-
-    return [addonName, authorName, supportLegacy];
+    return [addonName, authorName];
 }
 
-async function generateAddon_Simple(folder: string, addonName: string, authorName: string, supportLegacy: boolean) {
+async function generateAddon_Simple(folder: string, addonName: string, authorName: string) {
     const srcDir = path.join(addonTemplateDir, 'simple');
 
     const initSourcePath = path.join(srcDir, '__init__.py');
     const initTargetPath = path.join(folder, '__init__.py');
-    await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName, supportLegacy);
+    await copyModifiedInitFile(initSourcePath, initTargetPath);
 
     const manifestTargetPath = path.join(folder, 'blender_manifest.toml');
     await copyModifiedManifestFile(manifestFile, manifestTargetPath, addonName, authorName);
-    
+
     return manifestTargetPath;
 }
 
-async function generateAddon_WithAutoLoad(folder: string, addonName: string, authorName: string, supportLegacy: boolean) {
+async function generateAddon_WithAutoLoad(folder: string, addonName: string, authorName: string) {
     const srcDir = path.join(addonTemplateDir, 'with_auto_load');
 
     const initSourcePath = path.join(srcDir, '__init__.py');
     const initTargetPath = path.join(folder, '__init__.py');
-    await copyModifiedInitFile(initSourcePath, initTargetPath, addonName, authorName, supportLegacy);
-    
+    await copyModifiedInitFile(initSourcePath, initTargetPath);
+
     const manifestTargetPath = path.join(folder, 'blender_manifest.toml');
     await copyModifiedManifestFile(manifestFile, manifestTargetPath, addonName, authorName);
-    
+
     const autoLoadSourcePath = path.join(srcDir, 'auto_load.py');
     const autoLoadTargetPath = path.join(folder, 'auto_load.py');
     await copyFileWithReplacedText(autoLoadSourcePath, autoLoadTargetPath, {});
@@ -195,18 +188,8 @@ async function getDefaultFileName() {
     return item.label;
 }
 
-async function copyModifiedInitFile(src: string, dst: string, addonName: string, authorName: string, supportLegacy: boolean) {
-    const replacements = supportLegacy
-        ? {
-            ADDON_NAME: toTitleCase(addonName),
-            AUTHOR_NAME: authorName,
-        }
-        : {
-            // https://regex101.com/r/RmBWrk/1
-            'bl_info.+=.+{[\s\S]*}\s*': '',
-        };
-
-    await copyFileWithReplacedText(src, dst, replacements);
+async function copyModifiedInitFile(src: string, dst: string) {
+    await copyFileWithReplacedText(src, dst, {});
 }
 
 async function copyModifiedManifestFile(src: string, dst: string, addonName: string, authorName: string) {
