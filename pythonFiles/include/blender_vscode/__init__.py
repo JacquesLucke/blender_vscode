@@ -50,4 +50,4 @@ def handle_fatal_error(message):
     print("#" * 80)
     print(f"PATHONPATH: {pformat(sys.path)}")
     print()
-    sys.exit(1)
+    raise RuntimeError(message)
