@@ -6,3 +6,5 @@ npm-debug.log
 package-lock.json
 __pycache__
 .idea
+.claude
+.vscode
