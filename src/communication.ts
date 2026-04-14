@@ -69,6 +69,7 @@ export class BlenderInstances {
 
     register(instance: BlenderInstance) {
         this.instances.push(instance);
+        vscode.commands.executeCommand('setContext', 'blender.isRunning', true);
     }
 
     async getResponsive(timeout: number = RESPONSIVE_LIMIT_MS): Promise<BlenderInstance[]> {
@@ -104,6 +105,11 @@ export class BlenderInstances {
         for (const instance of this.instances) {
             instance.post(data);
         }
+    }
+
+    clear() {
+        this.instances = [];
+        vscode.commands.executeCommand('setContext', 'blender.isRunning', false);
     }
 }
 

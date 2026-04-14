@@ -70,6 +70,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(...disposables);
 
+    vscode.window.registerTreeDataProvider('blenderActions', {
+        getTreeItem: () => new vscode.TreeItem(''),
+        getChildren: () => [],
+    });
+
     startServer();
 }
 
@@ -149,6 +154,7 @@ async function startBlender(blend_filepaths?: string[]) {
 
 async function COMMAND_stop() {
     RunningBlenders.sendToAll({ type: 'stop' });
+    RunningBlenders.clear();
 }
 
 async function COMMAND_build() {

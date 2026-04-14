@@ -26,7 +26,8 @@
     "onCommand:blender.openScriptsFolder",
     "onCommand:blender.newOperator",
     "onCommand:blender.openWithBlender",
-    "onCommand:blender.openFiles"
+    "onCommand:blender.openFiles",
+    "onView:blenderActions"
   ],
   "main": "./out/extension",
   "repository": {
@@ -332,6 +333,26 @@
         }
       ]
     },
+    "views": {
+      "explorer": [
+        {
+          "id": "blenderActions",
+          "name": "Quick Actions"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "blenderActions",
+        "contents": "Start Blender to begin.\n[$(debug-start) Start Blender](command:blender.start)",
+        "when": "!blender.isRunning"
+      },
+      {
+        "view": "blenderActions",
+        "contents": "Blender is running.\n[$(debug-stop) Stop Blender](command:blender.stop)\n[$(rocket) Run Script in Blender](command:blender.runScript)\n[$(refresh) Reload Addons](command:blender.reloadAddons)",
+        "when": "blender.isRunning"
+      }
+    ],
     "languages": [
       {
         "id": "blend",
