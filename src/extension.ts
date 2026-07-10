@@ -72,15 +72,18 @@ export type StartCommandArguments = {
     blendFilepaths?: string[]
     // run python script after degugger is attached
     script?: string
-    // additionalArguments?: string[]; // support someday
+    // extra CLI args passed through to Blender
+    additionalArguments?: string[]
 }
 
 export async function COMMAND_start(args?: StartCommandArguments) {
     let blenderToRun = getDefaultBlenderSettings()
     let filePaths: string[] | undefined = undefined
     let script: string | undefined = undefined
+    let additionalArguments: string[] | undefined = undefined
     if (args !== undefined) {
         script = args.script
+        additionalArguments = args.additionalArguments
         if (args.blenderExecutable !== undefined) {
             if (args.blenderExecutable.path !== undefined) {
                 blenderToRun = args.blenderExecutable
@@ -90,9 +93,9 @@ export async function COMMAND_start(args?: StartCommandArguments) {
     }
 
     if (blenderToRun === undefined) {
-        await LaunchAnyInteractive(filePaths, script)
+        await LaunchAnyInteractive(filePaths, script, additionalArguments)
     } else {
-        await LaunchAny(blenderToRun, filePaths, script)
+        await LaunchAny(blenderToRun, filePaths, script, additionalArguments)
     }
 }
 

@@ -13,7 +13,7 @@ import { outputChannel, showNotificationAddDefault } from './extension';
 import { getBlenderWindows } from './blender_executable_windows';
 import { deduplicateSameHardLinks } from './blender_executable_linux';
 
-export async function LaunchAnyInteractive(blend_filepaths?: string[], script?: string) {
+export async function LaunchAnyInteractive(blend_filepaths?: string[], script?: string, additionalArguments?: string[]) {
     const executable = await getFilteredBlenderPath({
         label: 'Blender Executable',
         selectNewLabel: 'Choose a new Blender executable...',
@@ -21,16 +21,16 @@ export async function LaunchAnyInteractive(blend_filepaths?: string[], script?: 
         setSettings: () => { }
     });
     showNotificationAddDefault(executable);
-    return await LaunchAny(executable, blend_filepaths, script);
+    return await LaunchAny(executable, blend_filepaths, script, additionalArguments);
 }
 
-export async function LaunchAny(executable: BlenderExecutableData, blend_filepaths?: string[], script?: string) {
+export async function LaunchAny(executable: BlenderExecutableData, blend_filepaths?: string[], script?: string, additionalArguments?: string[]) {
     if (blend_filepaths === undefined || !blend_filepaths.length) {
-        await launch(executable, undefined, script);
+        await launch(executable, undefined, script, additionalArguments);
         return;
     }
     for (const blend_filepath of blend_filepaths) {
-        await launch(executable, blend_filepath, script);
+        await launch(executable, blend_filepath, script, additionalArguments);
     }
 }
 
@@ -52,8 +52,8 @@ export class BlenderTask {
     }
 }
 
-export async function launch(data: BlenderExecutableData, blend_filepath?: string, script?: string) {
-    const blenderArgs = getBlenderLaunchArgs(blend_filepath);
+export async function launch(data: BlenderExecutableData, blend_filepath?: string, script?: string, additionalArguments?: string[]) {
+    const blenderArgs = getBlenderLaunchArgs(blend_filepath, additionalArguments);
     const execution = new vscode.ProcessExecution(
         data.path,
         blenderArgs,
@@ -249,7 +249,7 @@ async function testIfPathIsBlender(filepath: string) {
     });
 }
 
-function getBlenderLaunchArgs(blend_filepath?: string) {
+function getBlenderLaunchArgs(blend_filepath?: string, passthroughArgs: string[] = []) {
     const config = getConfig();
     const additional_args: string[] = [];
     if (blend_filepath !== undefined) {
@@ -267,8 +267,14 @@ function getBlenderLaunchArgs(blend_filepath?: string) {
         }
         additional_args.push(blend_filepath);
         additional_args.push(...post_args);
+        if (passthroughArgs && passthroughArgs.length) {
+            additional_args.push(...passthroughArgs);
+        }
     } else {
         additional_args.push(...(<string[]>config.get('additionalArguments', [])));
+        if (passthroughArgs && passthroughArgs.length) {
+            additional_args.push(...passthroughArgs);
+        }
     }
     const args = ['--python', launchPath, ...additional_args];
     return args;
