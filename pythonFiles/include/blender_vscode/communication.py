@@ -84,7 +84,7 @@ def start_own_server():
         if startup_failed.is_set():
             raise RuntimeError("Failed to start Flask server. See logs for details.") from result["exception"]
         time.sleep(0.07)
-    raise TimeoutError(f"Falsk server did not start within {timeout} seconds.")
+    raise TimeoutError(f"Flask server did not start within {timeout} seconds.")
 
 
 def start_debug_server():
