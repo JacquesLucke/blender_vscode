@@ -22,7 +22,8 @@
     "onCommand:blender.openScriptsFolder",
     "onCommand:blender.newOperator",
     "onCommand:blender.openWithBlender",
-    "onCommand:blender.openFiles"
+    "onCommand:blender.openFiles",
+    "onCommand:blender.buildExtension"
   ],
   "main": "./out/extension",
   "repository": {
@@ -87,6 +88,11 @@
       {
         "command": "blender.openFiles",
         "title": "Open File(s)",
+        "category": "Blender"
+      },
+      {
+        "command": "blender.buildExtension",
+        "title": "Build Extension",
         "category": "Blender"
       }
     ],

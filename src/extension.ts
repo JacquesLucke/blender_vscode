@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode';
 import { AddonWorkspaceFolder } from './addon_folder';
-import { BlenderExecutableData, BlenderExecutableSettings, LaunchAny, LaunchAnyInteractive } from './blender_executable';
+import { BlenderExecutableData, BlenderExecutableSettings, LaunchAny, LaunchAnyInteractive, resolveBlenderExecutable } from './blender_executable';
 import { RunningBlenders, startServer, stopServer } from './communication';
 import { COMMAND_newAddon } from './commands_new_addon';
 import { COMMAND_newOperator } from './commands_new_operator';
@@ -14,7 +14,7 @@ import {
     COMMAND_runScript_registerCleanup,
     COMMAND_setScriptContext
 } from './commands_scripts';
-import { getDefaultBlenderSettings, handleErrors } from './utils';
+import { getDefaultBlenderSettings, getRandomString, handleErrors, runTask, getAnyWorkspaceFolder } from './utils';
 
 export let outputChannel: vscode.OutputChannel;
 
@@ -42,6 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
         ['blender.runScript', COMMAND_runScript],
         ['blender.setScriptContext', COMMAND_setScriptContext],
         ['blender.newOperator', COMMAND_newOperator],
+        ['blender.buildExtension', COMMAND_buildExtension],
     ];
 
     let disposables = [
@@ -118,6 +119,20 @@ async function COMMAND_openFiles() {
         blendFilepaths: resources.map(r => r.fsPath)
     }
     COMMAND_start(args);
+}
+
+async function COMMAND_buildExtension() {
+    const blender = await resolveBlenderExecutable();
+    const workspaceFolder = getAnyWorkspaceFolder();
+
+    const execution = new vscode.ProcessExecution(
+        blender.path,
+        ['--command', 'extension', 'build'],
+        { cwd: workspaceFolder.uri.fsPath }
+    );
+
+    outputChannel.appendLine(`Building extension: ${blender.path} --command extension build`);
+    await runTask('blender extension build', execution, getRandomString(), workspaceFolder);
 }
 
 async function COMMAND_stop() {

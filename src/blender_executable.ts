@@ -7,11 +7,26 @@ import * as fs from 'fs';
 import { launchPath } from './paths';
 import { getServerPort, RunningBlenders } from './communication';
 import { letUserPickItem, PickItem } from './select_utils';
-import { getConfig, cancel, runTask, getAnyWorkspaceFolder, getRandomString } from './utils';
+import { getConfig, cancel, runTask, getAnyWorkspaceFolder, getDefaultBlenderSettings, getRandomString } from './utils';
 import { AddonWorkspaceFolder } from './addon_folder';
 import { outputChannel, showNotificationAddDefault } from './extension';
 import { getBlenderWindows } from './blender_executable_windows';
 import { deduplicateSameHardLinks } from './blender_executable_linux';
+
+export async function resolveBlenderExecutable(): Promise<BlenderExecutableData> {
+    const defaultSettings = getDefaultBlenderSettings();
+    if (defaultSettings !== undefined) {
+        return defaultSettings;
+    }
+    const executable = await getFilteredBlenderPath({
+        label: 'Blender Executable',
+        selectNewLabel: 'Choose a new Blender executable...',
+        predicate: () => true,
+        setSettings: () => { }
+    });
+    showNotificationAddDefault(executable);
+    return executable;
+}
 
 export async function LaunchAnyInteractive(blend_filepaths?: string[], script?: string) {
     const executable = await getFilteredBlenderPath({
