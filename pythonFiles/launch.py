@@ -30,6 +30,4 @@ try:
         addons_to_load=addons_to_load,
     )
 except Exception as e:
-    if type(e) is not SystemExit:
-        traceback.print_exc()
-        sys.exit()
+    traceback.print_exc()
