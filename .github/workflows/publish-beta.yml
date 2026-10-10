@@ -8,17 +8,26 @@ name: Deploy Extension pre-release
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Maps the secret to an env var so the Open VSX step below can check for
+    # its presence. Secrets cannot be referenced directly in `if` conditions,
+    # hence this indirection.
+    env:
+      OVSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm ci
-      # - name: Publish to Open VSX Registry
-      #   uses: HaaLeo/publish-vscode-extension@v2
-      #   with:
-      #     pat: ${{ secrets.OPEN_VSX_TOKEN }}
-      #     preRelease: true
+      - name: Publish to Open VSX Registry
+        # Only runs once the maintainer has configured the OPEN_VSX_TOKEN
+        # repository secret (see DEVELOPMENT.md). Skipped silently until then,
+        # so the Visual Studio Marketplace release below is never affected.
+        if: ${{ env.OVSX_TOKEN != '' }}
+        uses: HaaLeo/publish-vscode-extension@v2
+        with:
+          pat: ${{ secrets.OPEN_VSX_TOKEN }}
+          preRelease: true
       - name: Publish to Visual Studio Marketplace
         uses: HaaLeo/publish-vscode-extension@v2
         with:

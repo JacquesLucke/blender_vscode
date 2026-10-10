@@ -37,3 +37,30 @@ pytest -s .\tests
 # Typescript guideline
 
 Nothing more than `tslint.json`.
+
+# Releasing
+
+Releases are published manually via the `workflow_dispatch` trigger on two
+workflows in `.github/workflows/`:
+
+- `publish.yml` — stable release to the Visual Studio Marketplace and the
+  [Open VSX Registry](https://open-vsx.org/).
+- `publish-beta.yml` — pre-release (`preRelease: true`) to both registries.
+
+## Required repository secrets
+
+- `VS_MARKETPLACE_TOKEN` — personal access token for the Visual Studio
+  Marketplace (already configured).
+- `OPEN_VSX_TOKEN` — personal access token for the Open VSX Registry.
+  To set it up:
+  1. Log in to [open-vsx.org](https://open-vsx.org/) with the GitHub account
+     that owns the `JacquesLucke` publisher namespace and claim the namespace
+     if it is not claimed yet
+     (see the [Open VSX publishing docs](https://github.com/eclipse/openvsx/wiki/Publishing-Extensions)).
+  2. Generate a personal access token on open-vsx.org.
+  3. Add it as the `OPEN_VSX_TOKEN` repository secret under
+     Settings → Secrets and variables → Actions.
+
+Until `OPEN_VSX_TOKEN` is configured, the Open VSX publish step is skipped
+automatically and only the Marketplace release runs — existing releases are
+unaffected.
