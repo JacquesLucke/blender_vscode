@@ -335,6 +335,7 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
+    "test": "npm run compile && node --test test/extension.test.js",
     "watch": "tsc -watch -p ./",
     "lint": "eslint \"src/**/*.ts\" --max-warnings=0"
   },
