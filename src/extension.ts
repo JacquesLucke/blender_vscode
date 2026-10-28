@@ -55,6 +55,12 @@ export function activate(context: vscode.ExtensionContext) {
     disposables.push(...COMMAND_runScript_registerCleanup())
 
     context.subscriptions.push(...disposables);
+
+    vscode.window.registerTreeDataProvider('blenderActions', {
+        getTreeItem: () => new vscode.TreeItem(''),
+        getChildren: () => [],
+    });
+
     showNotificationAddDefault = factoryShowNotificationAddDefault(context)
     startServer();
 }
@@ -122,6 +128,7 @@ async function COMMAND_openFiles() {
 
 async function COMMAND_stop() {
     RunningBlenders.sendToAll({ type: 'stop' });
+    RunningBlenders.clear();
 }
 
 let isSavingForReload = false;

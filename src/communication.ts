@@ -82,6 +82,7 @@ export class RunningBlenderInstances {
     registerInstance(instance: BlenderInstance): void {
         this.instances = this.instances.filter(item => item.vscodeIdentifier !== instance.vscodeIdentifier);
         this.instances.push(instance);
+        vscode.commands.executeCommand('setContext', 'blender.isRunning', true);
     }
     registerTask(task: BlenderTask): void {
         this.tasks.push(task);
@@ -153,6 +154,11 @@ export class RunningBlenderInstances {
                 instance.connectionErrors.push(error instanceof Error ? error : new Error(String(error)));
             }
         }
+    }
+
+    clear() {
+        this.instances = [];
+        vscode.commands.executeCommand('setContext', 'blender.isRunning', false);
     }
 }
 
